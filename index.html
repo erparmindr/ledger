@@ -11,6 +11,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ledger">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
 <style>
 /* ============================================================
    THEME TOKENS — Modern Ledger v2 (glow/depth, Helvetica)
@@ -37,8 +41,8 @@
   --radius:14px;
   --radius-lg:18px;
   --radius-md:13px;
-  --font-num:'Helvetica Neue',Helvetica,Arial,sans-serif;
-  --font-sans:'Helvetica Neue',Helvetica,Arial,sans-serif;
+  --font-num:'Manrope','Helvetica Neue',Helvetica,Arial,sans-serif;
+  --font-sans:'Manrope','Helvetica Neue',Helvetica,Arial,sans-serif;
   --shadow-card:0 1px 2px rgba(20,20,30,0.04), 0 1px 1px rgba(20,20,30,0.03);
   --shadow-lift:0 10px 28px -16px rgba(20,20,30,0.18);
 }
@@ -887,6 +891,14 @@ function categoryColor(catId){
   return CAT_PALETTE[idx % CAT_PALETTE.length];
 }
 
+function refreshIcons(){
+  // Guarded: if the Lucide CDN hasn't loaded yet (slow/offline first visit),
+  // this quietly no-ops instead of throwing — icons just stay as empty <i> tags.
+  if(window.lucide && typeof window.lucide.createIcons === "function"){
+    try{ window.lucide.createIcons(); }catch(e){}
+  }
+}
+
 function showToast(msg){
   var root = document.getElementById("toastRoot");
   var el = document.createElement("div");
@@ -901,21 +913,22 @@ function showToast(msg){
    NAVIGATION
    ============================================================ */
 var NAV_ITEMS = [
-  {id:"overview", label:"Overview", ic:"&sect;"},
-  {id:"register", label:"Register", ic:"&equiv;"},
-  {id:"accounts", label:"Accounts", ic:"&fnof;"},
-  {id:"people", label:"People", ic:"&para;"},
-  {id:"reports", label:"Reports", ic:"&deg;"},
-  {id:"recurring", label:"Recurring", ic:"&infin;"},
-  {id:"settings", label:"Settings", ic:"&middot;"}
+  {id:"overview", label:"Overview", ic:"layout-dashboard"},
+  {id:"register", label:"Register", ic:"list"},
+  {id:"accounts", label:"Accounts", ic:"wallet"},
+  {id:"people", label:"People", ic:"users"},
+  {id:"reports", label:"Reports", ic:"pie-chart"},
+  {id:"recurring", label:"Recurring", ic:"repeat"},
+  {id:"settings", label:"Settings", ic:"settings"}
 ];
 
 function renderNav(){
   var nav = document.getElementById("navList");
   nav.innerHTML = NAV_ITEMS.map(function(item){
     return '<button class="nav-item ' + (currentPage===item.id?'active':'') + '" data-nav="' + item.id + '">' +
-      '<span class="ic">' + item.ic + '</span>' + item.label + '</button>';
+      '<span class="ic"><i data-lucide="' + item.ic + '"></i></span>' + item.label + '</button>';
   }).join("");
+  refreshIcons();
   Array.prototype.forEach.call(nav.querySelectorAll("[data-nav]"), function(btn){
     btn.addEventListener("click", function(){
       navigateTo(btn.getAttribute("data-nav"));
@@ -982,6 +995,7 @@ function renderPage(){
   else if(currentPage === "recurring") c.innerHTML = renderRecurringPage();
   else if(currentPage === "settings") c.innerHTML = renderSettingsPage();
   wirePageEvents();
+  refreshIcons();
 }
 
 /* ============================================================
@@ -1177,13 +1191,13 @@ function renderTxRow(t, opts){
   return '<div class="tx-row">'
     + '<div class="tx-tab" style="background:' + bubbleBg + '; color:' + bubbleColor + ';">' + symbol + '</div>'
     + '<div class="main">'
-    + '  <div class="desc">' + escapeHtml(mainLabel) + (t.notes ? '<span class="notes-ic" title="' + escapeHtml(t.notes) + '">&#9998;</span>' : '') + '</div>'
+    + '  <div class="desc">' + escapeHtml(mainLabel) + (t.notes ? '<span class="notes-ic" title="' + escapeHtml(t.notes) + '"><i data-lucide="sticky-note" style="width:11px;height:11px;vertical-align:-1px;"></i></span>' : '') + '</div>'
     + '  <div class="meta">' + dateDisp + ' &middot; ' + subLabel + '</div>'
     + '</div>'
     + '<div class="amt num">' + amtDisp + '</div>'
     + runBalHtml
     + '<div class="rowactions">'
-    + '  <button class="icon-btn" data-edit-tx="' + t.id + '" title="Edit" aria-label="Edit">&#9998;</button>'
+    + '  <button class="icon-btn" data-edit-tx="' + t.id + '" title="Edit" aria-label="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
     + '  <button class="icon-btn danger" data-del-tx="' + t.id + '" title="Delete" aria-label="Delete">&times;</button>'
     + '</div>'
     + '</div>';
@@ -1333,7 +1347,7 @@ function renderAccountsPage(){
       + '<div style="text-align:right;">'
       + '  <div class="tag">' + typeLabel + '</div>'
       + '  <div class="acct-ops">'
-      + '    <button class="icon-btn" data-edit-acct="' + a.id + '" title="Edit" aria-label="Edit">&#9998;</button>'
+      + '    <button class="icon-btn" data-edit-acct="' + a.id + '" title="Edit" aria-label="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
       + '    <button class="icon-btn danger" data-del-acct="' + a.id + '" title="Delete" aria-label="Delete">&times;</button>'
       + '  </div>'
       + '</div>'
@@ -1397,7 +1411,7 @@ function renderPeoplePage(){
       + '  <div style="text-align:right;">'
       + '    ' + (currencies.length ? balanceHtml : '')
       + '    <div class="acct-ops" style="justify-content:flex-end; display:flex;">'
-      + '      <button class="icon-btn" data-edit-person="' + p.id + '" title="Edit" aria-label="Edit">&#9998;</button>'
+      + '      <button class="icon-btn" data-edit-person="' + p.id + '" title="Edit" aria-label="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
       + '      <button class="icon-btn danger" data-del-person="' + p.id + '" title="Delete" aria-label="Delete">&times;</button>'
       + '    </div>'
       + '  </div>'
@@ -1672,7 +1686,7 @@ function renderSettingsPage(){
     return cats.map(function(c){
       var subsHtml = c.subs.map(function(s){
         return '<div class="subcat-row"><span>' + escapeHtml(s.name) + '</span>'
-          + '<span><button class="icon-btn" data-rename-sub="' + c.id + '|' + s.id + '" title="Rename" aria-label="Rename">&#9998;</button>'
+          + '<span><button class="icon-btn" data-rename-sub="' + c.id + '|' + s.id + '" title="Rename" aria-label="Rename"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
           + '<button class="icon-btn danger" data-del-sub="' + c.id + '|' + s.id + '" title="Delete" aria-label="Delete">&times;</button></span></div>';
       }).join("");
       return '<div class="category-row" style="flex-direction:column; align-items:stretch;">'
@@ -1680,7 +1694,7 @@ function renderSettingsPage(){
         + '  <span style="font-weight:700;">' + escapeHtml(c.name) + '</span>'
         + '  <span>'
         + '    <button class="icon-btn" data-add-sub="' + c.id + '" title="Add subcategory" aria-label="Add subcategory">+ sub</button>'
-        + '    <button class="icon-btn" data-rename-cat="' + c.id + '" title="Rename" aria-label="Rename">&#9998;</button>'
+        + '    <button class="icon-btn" data-rename-cat="' + c.id + '" title="Rename" aria-label="Rename"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
         + '    <button class="icon-btn danger" data-del-cat="' + c.id + '" title="Delete" aria-label="Delete">&times;</button>'
         + '  </span>'
         + '</div>'
