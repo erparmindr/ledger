@@ -265,6 +265,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   border:1px solid var(--border);
   background:var(--surface);
   color:var(--text);
+  cursor:pointer;
   transition:all var(--transition-fast);
 }
 .btn:hover{
@@ -494,10 +495,11 @@ select:focus{
 .tx-row .rowactions{ display:flex; gap:4px; }
 .icon-btn{
   background:none; border:none; color:var(--text-faint); padding:6px 8px; border-radius:8px; font-size:13px;
-  transition:all var(--transition-fast);
+  cursor:pointer; transition:all var(--transition-fast);
 }
 .icon-btn:hover{ background:var(--surface-2); color:var(--text); }
 .icon-btn.danger:hover{ color:var(--clay); background:var(--clay-soft); }
+.modal-head .icon-btn{ font-size:22px; padding:4px 10px; line-height:1; }
 
 @media (max-width:760px){
   .tx-row{ flex-wrap:wrap; }
@@ -639,7 +641,7 @@ select:focus{
 .modal-head{ display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid var(--border-soft); }
 .modal-head h3{ font-size:17px; margin:0; font-weight:800; letter-spacing:-0.01em; }
 .modal-body{ padding:22px 24px; display:flex; flex-direction:column; gap:15px; }
-.modal-foot{ padding:17px 24px; border-top:1px solid var(--border-soft); display:flex; justify-content:flex-end; gap:10px; }
+.modal-foot{ padding:17px 24px; border-top:1px solid var(--border-soft); display:flex; justify-content:flex-end; gap:10px; position:sticky; bottom:0; background:var(--surface); border-radius:0 0 var(--radius-lg) var(--radius-lg); }
 
 .toast{
   position:fixed; bottom:24px; right:24px; background:var(--text); color:var(--bg);
