@@ -164,8 +164,8 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       + catOptsFor(preType, r.suggestedCategoryId)
       + '  </select>'
       + '</td>'
-      + '<td style="'+tdStyle+'">'
-      + '  <select class="prev-toacc" data-idx="'+i+'" style="font-size:11.5px; padding:5px 7px; border-radius:8px; border:1px solid var(--clay); background:var(--surface-2); color:var(--text); display:'+(preType==='transfer'?'':'none')+'">'
+      + '<td style="'+tdStyle+' display:'+(preType==='transfer'?'':'none')+';">'
+      + '  <select class="prev-toacc" data-idx="'+i+'" style="font-size:11.5px; padding:5px 7px; border-radius:8px; border:1px solid var(--clay); background:var(--surface-2); color:var(--text);">'
       + toAccOpts
       + '  </select>'
       + '</td>'
@@ -192,10 +192,9 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     + '        <th style="'+thStyle+'">Date</th>'
     + '        <th style="'+thStyle+'">Description</th>'
     + '        <th style="'+thStyle+' text-align:right;">Amount</th>'
-    + '        <th style="'+thStyle+'">Type</th>'
-    + '        <th style="'+thStyle+'">Category</th>'
-    + '        <th style="'+thStyle+'">To Account</th>'
-    + '      </tr>'
+      + '        <th style="'+thStyle+'">Type</th>'
+      + '        <th style="'+thStyle+'">Category</th>'
+      + '      </tr>'
     + rowsHtml
     + '    </table>'
     + '  </div>'
@@ -223,9 +222,8 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       sel.addEventListener("change", function(){
         var idx = parseInt(sel.getAttribute("data-idx"), 10);
         var catSel = document.querySelector('.prev-category[data-idx="'+idx+'"]');
-        var toAccSel = document.querySelector('.prev-toacc[data-idx="'+idx+'"]');
-        var isTransfer = sel.value === "transfer";
-        if(toAccSel) toAccSel.style.display = isTransfer ? "" : "none";
+        var toAccTd = document.querySelector('.prev-toacc[data-idx="'+idx+'"]');
+        if(toAccTd && toAccTd.parentElement) toAccTd.parentElement.style.display = sel.value === "transfer" ? "" : "none";
         if(catSel){
           var suggestion = window.Ledger.suggestCategoryForDescription(parsedRows[idx].desc, sel.value, window.Ledger.DB, window.Ledger.findCategory) || "";
           catSel.innerHTML = catOptsFor(sel.value, suggestion);
