@@ -499,7 +499,8 @@ select:focus{
 }
 .icon-btn:hover{ background:var(--surface-2); color:var(--text); }
 .icon-btn.danger:hover{ color:var(--clay); background:var(--clay-soft); }
-.modal-head .icon-btn{ font-size:28px; padding:2px 8px; line-height:1; font-weight:300; }
+.modal-head .icon-btn{ padding:6px; display:flex; align-items:center; justify-content:center; }
+.modal-head .icon-btn svg{ width:20px; height:20px; }
 
 @media (max-width:760px){
   .tx-row{ flex-wrap:wrap; }

@@ -82,7 +82,7 @@ window.Ledger.parseStatementText = function(text){
 
 window.Ledger.openStatementPasteModal = function(){
   var html = ''
-    + '<div class="modal-head"><h3>Import from pasted statement text</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><i data-lucide="x" style="width:18px;height:18px;"></i></button></div>'
+    + '<div class="modal-head"><h3>Import from pasted statement text</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
     + '<div class="modal-body">'
     + '  <p class="faint" style="font-size:12px; margin:0;">Open your PDF statement, select the transaction lines, copy, and paste them below. Works with most bank formats &mdash; you\'ll get a chance to review before anything is imported.</p>'
     + '  <div class="field"><textarea id="stmtPasteArea" rows="9" placeholder="Paste statement text here, e.g.:&#10;06/20/2026  GROCERY STORE PURCHASE   -45.20&#10;06/18/2026  PAYROLL DEPOSIT           2,000.00" style="min-height:160px; font-family:monospace; font-size:12px;"></textarea></div>'
@@ -170,7 +170,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
   var html = ''
     + '<div class="modal-head">'
     + '  <h3>Review '+parsedRows.length+' transaction'+(parsedRows.length===1?"":"s")+' <span class="faint" style="font-size:12px; font-weight:500;">from '+window.Ledger.escapeHtml(source||"import")+'</span></h3>'
-    + '  <button class="icon-btn" id="closeModalBtn" aria-label="Close"><i data-lucide="x" style="width:18px;height:18px;"></i></button>'
+    + '  <button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
     + '</div>'
     + '<div class="modal-body">'
     + '  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">'
@@ -357,7 +357,7 @@ window.Ledger.promptLinkTransfers = function(importedAccountId, importedIds){
   }).join("");
 
   var html = ''
-    + '<div class="modal-head"><h3>Link related transfers?</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><i data-lucide="x" style="width:18px;height:18px;"></i></button></div>'
+    + '<div class="modal-head"><h3>Link related transfers?</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
     + '<div class="modal-body">'
     + '  <p class="faint" style="font-size:12px; margin:0 0 12px;">We found ' + candidates.length + ' transaction'+(candidates.length===1?'':'s')+' that may be the other side of an existing transfer. Link them to keep your records clean.</p>'
     + '  <div style="display:flex; flex-direction:column; gap:8px;">' + rowsHtml + '</div>'
@@ -420,7 +420,7 @@ window.Ledger.openLinkTransferModal = function(txId){
   }).join("");
 
   var html = ''
-    + '<div class="modal-head"><h3>Link destination</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><i data-lucide="x" style="width:18px;height:18px;"></i></button></div>'
+    + '<div class="modal-head"><h3>Link destination</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
     + '<div class="modal-body">'
     + '  <div style="padding:12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface-2); margin-bottom:16px;">'
     + '    <div style="font-size:13px; font-weight:600;">' + window.Ledger.escapeHtml(tx.desc) + ' &middot; ' + window.Ledger.fmtMoney(tx.amount) + '</div>'
