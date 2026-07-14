@@ -17,12 +17,13 @@ window.Ledger.pages.renderOverviewPage = function(){
   window.Ledger.DB.transactions.forEach(function(t){
     if(window.Ledger.monthKeyOf(t.date) !== thisMonth) return;
     var cur = null;
-    if(t.type === "income" || t.type === "expense"){
+    if(t.type === "income" || t.type === "expense" || t.type === "refund"){
       var acc = window.Ledger.findAccount(t.account);
       cur = acc ? acc.currency : "USD";
     }
     if(t.type === "income"){ incomeByCur[cur] = (incomeByCur[cur]||0) + t.amount; }
     if(t.type === "expense"){ expenseByCur[cur] = (expenseByCur[cur]||0) + t.amount; }
+    if(t.type === "refund"){ expenseByCur[cur] = (expenseByCur[cur]||0) - t.amount; }
   });
 
   var totalsHtml = Object.keys(byCurrency).length === 0
@@ -42,15 +43,16 @@ window.Ledger.pages.renderOverviewPage = function(){
   // ---- Top spending categories (this month, primary currency) ----
   var catTotals = {};
   window.Ledger.DB.transactions.forEach(function(t){
-    if(t.type !== "expense") return;
+    if(t.type !== "expense" && t.type !== "refund") return;
     if(window.Ledger.monthKeyOf(t.date) !== thisMonth) return;
     var acc = window.Ledger.findAccount(t.account);
     var cur = acc ? acc.currency : "USD";
     if(cur !== primaryCur) return;
+    var sign = t.type === "refund" ? -1 : 1;
     if(t.categorySplits && t.categorySplits.length){
-      t.categorySplits.forEach(function(s){ catTotals[s.categoryId] = (catTotals[s.categoryId]||0) + s.amount; });
+      t.categorySplits.forEach(function(s){ catTotals[s.categoryId] = (catTotals[s.categoryId]||0) + (s.amount * sign); });
     } else if(t.category){
-      catTotals[t.category] = (catTotals[t.category]||0) + t.amount;
+      catTotals[t.category] = (catTotals[t.category]||0) + (t.amount * sign);
     }
   });
   var topCats = Object.keys(catTotals).map(function(catId){

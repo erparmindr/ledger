@@ -54,6 +54,7 @@ window.Ledger.renderSidebarBalance = function(){
     if(cur !== primaryCur) return;
     if(t.type === "income") income += t.amount;
     if(t.type === "expense") expense += t.amount;
+    if(t.type === "refund") expense -= t.amount;
   });
   var net = income - expense;
   var extraCurCount = Object.keys(byCurrency).length - 1;

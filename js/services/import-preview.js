@@ -121,14 +121,18 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
   var tdStyle = 'padding:6px 8px; border-bottom:1px solid var(--border-soft); vertical-align:middle;';
 
   function catOptsFor(forType, selectedId){
-    var relevant = window.Ledger.DB.categories.filter(function(c){ return c.type === forType; });
+    var catType = forType === "refund" ? "expense" : forType;
+    var relevant = window.Ledger.DB.categories.filter(function(c){ return c.type === catType; });
     return '<option value="">Choose category&hellip;</option>' + relevant.map(function(c){
       return '<option value="'+c.id+'" '+(c.id===selectedId?'selected':'')+'>'+window.Ledger.escapeHtml(c.name)+'</option>';
     }).join("");
   }
 
+  var REFUND_KW = /\b(refund|return|reversal|chargeback|credit\s*refund)\b/i;
+
   parsedRows.forEach(function(r){
     if(r.suggestedCategoryId === undefined){
+      if(!r.type && REFUND_KW.test(r.desc)) r.type = "refund";
       var forType = r.type || (r.amount < 0 ? "expense" : "income");
       r.suggestedCategoryId = window.Ledger.suggestCategoryForDescription(r.desc, forType, window.Ledger.DB, window.Ledger.findCategory) || "";
     }
@@ -152,6 +156,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       + '    <option value="expense" '+(preType==="expense"?"selected":"")+'>Expense</option>'
       + '    <option value="income" '+(preType==="income"?"selected":"")+'>Income</option>'
       + '    <option value="transfer" '+(preType==="transfer"?"selected":"")+'>Transfer</option>'
+      + '    <option value="refund" '+(preType==="refund"?"selected":"")+'>Refund</option>'
       + '  </select>'
       + '</td>'
       + '<td style="'+tdStyle+'">'

@@ -68,6 +68,7 @@ window.Ledger.pages.renderRegisterPage = function(){
       chrono.forEach(function(t){
         if(t.type==="expense" && t.account===acc.id) running -= t.amount;
         else if(t.type==="income" && t.account===acc.id) running += t.amount;
+        else if(t.type==="refund" && t.account===acc.id) running += t.amount;
         else if(t.type==="transfer"){
           if(t.pending){
             if(t.fromType==="account" && t.fromId===acc.id) running -= t.amount;
@@ -117,6 +118,7 @@ window.Ledger.pages.renderRegisterPage = function(){
     + '      <option value="expense" ' + (window.Ledger.registerFilters.type==="expense"?"selected":"") + '>Expense</option>'
     + '      <option value="income" ' + (window.Ledger.registerFilters.type==="income"?"selected":"") + '>Income</option>'
     + '      <option value="transfer" ' + (window.Ledger.registerFilters.type==="transfer"?"selected":"") + '>Transfer</option>'
+    + '      <option value="refund" ' + (window.Ledger.registerFilters.type==="refund"?"selected":"") + '>Refund</option>'
     + '    </select>'
     + '    <select id="fDatePreset">' + window.Ledger.DATE_PRESETS.map(function(p){
           return '<option value="'+p.id+'" '+(window.Ledger.registerFilters.datePreset===p.id?"selected":"")+'>'+p.label+'</option>';

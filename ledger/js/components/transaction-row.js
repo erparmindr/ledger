@@ -23,6 +23,10 @@ window.Ledger.renderTxRow = function(t, opts){
     } else {
       bubbleBg = "var(--sage-soft)"; bubbleColor = "var(--sage)"; symbol = "+";
     }
+  } else if(t.type === "refund"){
+    var acc3 = window.Ledger.findAccount(t.account);
+    currency = acc3 ? acc3.currency : "USD";
+    bubbleBg = "var(--sage-soft)"; bubbleColor = "var(--sage)"; symbol = "\u21bb";
   } else {
     bubbleBg = "var(--brass-soft)"; bubbleColor = "var(--brass)"; symbol = "&#8644;";
     var fromRef = window.Ledger.entityRef(t.fromType, t.fromId);
@@ -59,7 +63,12 @@ window.Ledger.renderTxRow = function(t, opts){
     mainLabel = t.desc;
     var accName = (window.Ledger.findAccount(t.account)||{}).name || "?";
     subLabel = accName + (catLabel ? " &middot; " + catLabel : "");
-    amtDisp = '<span class="' + (t.type==="income"?"pos":"neg") + '">' + (t.type==="income"?"+":"\u2212") + window.Ledger.fmtMoney(t.amount, currency) + '</span>';
+    if(t.type === "refund"){
+      subLabel = accName + (catLabel ? " &middot; refund \u2190 " + catLabel : " &middot; refund");
+      amtDisp = '<span class="pos">+' + window.Ledger.fmtMoney(t.amount, currency) + '</span>';
+    } else {
+      amtDisp = '<span class="' + (t.type==="income"?"pos":"neg") + '">' + (t.type==="income"?"+":"\u2212") + window.Ledger.fmtMoney(t.amount, currency) + '</span>';
+    }
   }
 
   var runBalHtml = "";
@@ -79,7 +88,7 @@ window.Ledger.renderTxRow = function(t, opts){
     + runBalHtml
     + '<div class="rowactions">'
     + '  <button class="icon-btn" data-edit-tx="' + t.id + '" title="Edit" aria-label="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
-    + '  <button class="icon-btn danger" data-del-tx="' + t.id + '" title="Delete" aria-label="Delete">&times;</button>'
+    + '  <button class="icon-btn danger" data-del-tx="' + t.id + '" title="Delete" aria-label="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
     + '</div>'
     + '</div>';
 };

@@ -27,15 +27,16 @@ window.Ledger.pages.renderReportsPage = function() {
 
   var totals = {};
   window.Ledger.DB.transactions.forEach(function(t){
-    if(t.type !== "expense") return;
+    if(t.type !== "expense" && t.type !== "refund") return;
     if(window.Ledger.monthKeyOf(t.date) !== reportState.month) return;
     var acc = window.Ledger.findAccount(t.account);
     var cur = acc ? acc.currency : "USD";
+    var sign = t.type === "refund" ? -1 : 1;
 
     if(t.categorySplits && t.categorySplits.length){
       t.categorySplits.forEach(function(s){
         var key = cur + "||" + s.categoryId + "||";
-        totals[key] = (totals[key]||0) + s.amount;
+        totals[key] = (totals[key]||0) + (s.amount * sign);
       });
       return;
     }
@@ -46,7 +47,7 @@ window.Ledger.pages.renderReportsPage = function() {
     } else {
       key = cur + "||" + t.category + "||";
     }
-    totals[key] = (totals[key]||0) + t.amount;
+    totals[key] = (totals[key]||0) + (t.amount * sign);
   });
 
   var entries = Object.keys(totals).map(function(k){
@@ -82,10 +83,11 @@ window.Ledger.pages.renderReportsPage = function() {
   var monthIncome = {}, monthExpense = {};
   window.Ledger.DB.transactions.forEach(function(t){
     if(window.Ledger.monthKeyOf(t.date) !== reportState.month) return;
-    if(t.type!=="income" && t.type!=="expense") return;
+    if(t.type!=="income" && t.type!=="expense" && t.type!=="refund") return;
     var acc = window.Ledger.findAccount(t.account);
     var cur = acc ? acc.currency : "USD";
     if(t.type==="income") monthIncome[cur]=(monthIncome[cur]||0)+t.amount;
+    else if(t.type==="refund") monthExpense[cur]=(monthExpense[cur]||0)-t.amount;
     else monthExpense[cur]=(monthExpense[cur]||0)+t.amount;
   });
   var curUnion = Object.keys(Object.assign({}, monthIncome, monthExpense));

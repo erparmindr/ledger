@@ -207,6 +207,9 @@ window.Ledger.openCsvImportModal = function(file){
           var TRANSFER_KW = /\b(transfer|payment|cc\s*pay|credit\s*card\s*pay|e\s*transfer|etransfer|interac|pay\s*credit|pay\s*visa|pay\s*mastercard|payment\s*to|payment\s*from)\b/i;
           if(type !== "transfer" && TRANSFER_KW.test(desc)) type = "transfer";
 
+          var REFUND_KW = /\b(refund|return|reversal|chargeback|credit\s*refund)\b/i;
+          if(type !== "transfer" && REFUND_KW.test(desc)) type = "refund";
+
           parsedRows.push({ date: isoDate, amount: amt, type: type, desc: desc, raw: r.join(", ") });
         });
 

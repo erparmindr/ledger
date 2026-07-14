@@ -461,6 +461,7 @@ select:focus{
 .type-pill.active[data-t="expense"]{ background:var(--clay-soft); border-color:var(--clay); color:var(--clay); }
 .type-pill.active[data-t="income"]{ background:var(--sage-soft); border-color:var(--sage); color:var(--sage); }
 .type-pill.active[data-t="transfer"]{ background:var(--brass-soft); border-color:var(--brass); color:var(--brass); }
+.type-pill.active[data-t="refund"]{ background:var(--sage-soft); border-color:var(--sage); color:var(--sage); }
 
 /* ---- Tables / register ---- */
 .tx-row{

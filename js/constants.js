@@ -31,7 +31,8 @@ window.Ledger.AUTO_CATEGORY_KEYWORDS = [
   {cat:"Utilities", words:["hydro","electricity","water bill","internet","rogers","bell canada","telus","comcast","at&t","verizon"]},
   {cat:"Travel", words:["expedia","airbnb","booking.com","air canada","westjet","delta air","united airlines","hotel","marriott","hilton"]},
   {cat:"Salary", words:["payroll","salary","direct deposit"]},
-  {cat:"Cashback / Rewards", words:["cashback","cash back","rebate","reward"]}
+  {cat:"Cashback / Rewards", words:["cashback","cash back","rebate","reward"]},
+  {cat:"Refund", words:["refund","return","reversal","chargeback","credit refund"]}
 ];
 
 window.Ledger.learnedCategoryKey = function learnedCategoryKey(desc) {

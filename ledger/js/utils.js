@@ -48,6 +48,7 @@ window.Ledger.accountBalance = function accountBalance(accountId){
   Ledger.DB.transactions.forEach(function(t){
     if(t.type === "expense" && t.account === accountId) bal -= t.amount;
     else if(t.type === "income" && t.account === accountId) bal += t.amount;
+    else if(t.type === "refund" && t.account === accountId) bal += t.amount;
     else if(t.type === "transfer"){
       if(t.pending){
         if(t.fromType === "account" && t.fromId === accountId) bal -= t.amount;

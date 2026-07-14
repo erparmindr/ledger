@@ -47,6 +47,7 @@ window.Ledger.openTxModal = function(existing){
     + '    <button type="button" class="type-pill ' + (t.type==='expense'?'active':'') + '" data-t="expense">\u2212 Expense</button>'
     + '    <button type="button" class="type-pill ' + (t.type==='income'?'active':'') + '" data-t="income">+ Income</button>'
     + '    <button type="button" class="type-pill ' + (t.type==='transfer'?'active':'') + '" data-t="transfer">\u21c4 Transfer</button>'
+    + '    <button type="button" class="type-pill ' + (t.type==='refund'?'active':'') + '" data-t="refund">\u21bb Refund</button>'
     + '  </div>'
     + '  <div class="field"><label>Description <span class="faint">(optional)</span></label><input type="text" id="txDesc" value="' + window.Ledger.escapeHtml(t.desc||"") + '" placeholder="e.g. Groceries at Metro"></div>'
     + '  <div class="form-row">'
@@ -59,7 +60,7 @@ window.Ledger.openTxModal = function(existing){
     + '      <div class="field"><label>Category</label><select id="txCategory">' + catOptions(t.type==='income'?'income':'expense') + '</select></div>'
     + '    </div>'
     + '    <div class="field" id="subcatField" style="display:none;"><label>Subcategory <span class="faint">(required)</span></label><select id="txSubcategory"></select></div>'
-    + (t.type !== 'income' ? (
+    + (t.type !== 'income' && t.type !== 'refund' ? (
         '    <div style="display:flex; gap:16px; padding-top:2px;">'
         + '      <button type="button" id="openCategorySplitBtn" class="icon-btn" style="font-size:11.5px; font-weight:700; color:var(--brass); padding:2px 0;">&#8862; Split across categories</button>'
         + '      <button type="button" id="openFriendSplitBtn" class="icon-btn" style="font-size:11.5px; font-weight:700; color:var(--brass); padding:2px 0;">&#128101; Split with friends</button>'
@@ -121,11 +122,15 @@ window.Ledger.openTxModal = function(existing){
         Array.prototype.forEach.call(document.querySelectorAll("#typePills .type-pill"), function(b){ b.classList.toggle("active", b===btn); });
         document.getElementById("exIncFields").style.display = currentType === "transfer" ? "none" : "flex";
         document.getElementById("transferFields").style.display = currentType === "transfer" ? "flex" : "none";
-        if(currentType === "expense" || currentType === "income"){
+        if(currentType === "expense" || currentType === "income" || currentType === "refund"){
           var catSel = document.getElementById("txCategory");
-          catSel.innerHTML = catOptions(currentType);
+          catSel.innerHTML = catOptions(currentType === "refund" ? "expense" : currentType);
           refreshSubcatOptions();
         }
+        // Hide split buttons for refund (not applicable)
+        var splitBtns = document.getElementById("openCategorySplitBtn");
+        var friendBtns = document.getElementById("openFriendSplitBtn");
+        if(splitBtns) splitBtns.closest("div").style.display = (currentType === "refund" || currentType === "income") ? "none" : "flex";
       });
     });
 
