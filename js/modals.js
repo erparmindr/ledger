@@ -13,6 +13,7 @@ window.Ledger.openModal = function (html, onMount) {
     if (e.target.id === "modalBackdrop") window.Ledger.closeModal();
   });
   if (onMount) onMount();
+  if(window.Ledger.initCustomDropdowns) window.Ledger.initCustomDropdowns();
 };
 
 window.Ledger.openSubModal = function (html, onMount) {

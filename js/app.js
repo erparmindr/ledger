@@ -87,6 +87,7 @@ window.Ledger.renderPage = function(){
   else if(window.Ledger.currentPage === "settings") c.innerHTML = window.Ledger.pages.renderSettingsPage();
   window.Ledger.wirePageEvents();
   window.Ledger.refreshIcons();
+  window.Ledger.initCustomDropdowns();
 };
 
 /* ============================================================
