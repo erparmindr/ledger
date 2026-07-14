@@ -11,7 +11,7 @@ window.Ledger.pages.renderSettingsPage = function(){
       var subsHtml = c.subs.map(function(s){
         return '<div class="subcat-row"><span>' + window.Ledger.escapeHtml(s.name) + '</span>'
           + '<span><button class="icon-btn" data-rename-sub="' + c.id + '|' + s.id + '" title="Rename" aria-label="Rename"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
-          + '<button class="icon-btn danger" data-del-sub="' + c.id + '|' + s.id + '" title="Delete" aria-label="Delete">&times;</button></span></div>';
+          + '<button class="icon-btn danger" data-del-sub="' + c.id + '|' + s.id + '" title="Delete" aria-label="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></span></div>';
       }).join("");
       return '<div class="category-row" style="flex-direction:column; align-items:stretch;">'
         + '<div style="display:flex; justify-content:space-between; align-items:center;">'
@@ -19,7 +19,7 @@ window.Ledger.pages.renderSettingsPage = function(){
         + '  <span>'
         + '    <button class="icon-btn" data-add-sub="' + c.id + '" title="Add subcategory" aria-label="Add subcategory">+ sub</button>'
         + '    <button class="icon-btn" data-rename-cat="' + c.id + '" title="Rename" aria-label="Rename"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
-        + '    <button class="icon-btn danger" data-del-cat="' + c.id + '" title="Delete" aria-label="Delete">&times;</button>'
+        + '    <button class="icon-btn danger" data-del-cat="' + c.id + '" title="Delete" aria-label="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
         + '  </span>'
         + '</div>'
         + (subsHtml ? '<div class="subcat-list">' + subsHtml + '</div>' : '')

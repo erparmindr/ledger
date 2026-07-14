@@ -22,7 +22,7 @@ window.Ledger.pages.renderAccountsPage = function(){
       + '  <div class="tag">' + typeLabel + '</div>'
       + '  <div class="acct-ops">'
       + '    <button class="icon-btn" data-edit-acct="' + a.id + '" title="Edit" aria-label="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
-      + '    <button class="icon-btn danger" data-del-acct="' + a.id + '" title="Delete" aria-label="Delete">&times;</button>'
+      + '    <button class="icon-btn danger" data-del-acct="' + a.id + '" title="Delete" aria-label="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
       + '  </div>'
       + '</div>'
       + '</div>';
