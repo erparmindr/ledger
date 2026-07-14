@@ -24,7 +24,12 @@ window.Ledger.defaultCategories = function() {
     {id:uid(), name:"Cashback / Rewards", type:"income", subs:[]},
     {id:uid(), name:"Gift", type:"income", subs:[]},
     {id:uid(), name:"Loan Repayment", type:"income", subs:[]},
-    {id:uid(), name:"Other Income", type:"income", subs:[]}
+    {id:uid(), name:"Other Income", type:"income", subs:[]},
+    {id:uid(), name:"Credit Card Payment", type:"transfer", subs:[]},
+    {id:uid(), name:"Between My Accounts", type:"transfer", subs:[]},
+    {id:uid(), name:"To Friend", type:"transfer", subs:[]},
+    {id:uid(), name:"From Friend", type:"transfer", subs:[]},
+    {id:uid(), name:"Other Transfer", type:"transfer", subs:[]}
   ];
 };
 

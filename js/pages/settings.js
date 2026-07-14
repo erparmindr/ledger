@@ -43,6 +43,13 @@ window.Ledger.pages.renderSettingsPage = function(){
     + '</div>'
 
     + '<div class="card card-pad section-gap">'
+    + '  <h2 style="font-size:16px; font-weight:800; margin:0 0 4px;">Transfer categories</h2>'
+    + '  <p class="faint" style="font-size:11.5px; margin:0 0 12px;">Shown when logging a transfer. No subcategories needed.</p>'
+    + '  <div>' + renderCatGroup("transfer") + '</div>'
+    + '  <div class="inline-add"><input type="text" id="newCatNameTransfer" placeholder="New transfer category"><button class="btn btn-sm" id="addCatBtnTransfer">Add</button></div>'
+    + '</div>'
+
+    + '<div class="card card-pad section-gap">'
     + '  <h2 style="font-size:16px; font-weight:800; margin:0 0 6px;">Backup &amp; restore</h2>'
     + '  <p class="muted" style="font-size:12.5px; margin:0 0 14px;">Export everything (accounts, people, transactions, categories, recurring items) into one file. Use it to move your data to another device or browser, or just keep a safety copy.</p>'
     + '  <div style="display:flex; gap:10px; flex-wrap:wrap;">'

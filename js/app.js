@@ -99,6 +99,9 @@ window.Ledger.wirePageEvents = function(){
   if(window.Ledger.currentPage === "overview"){
     var navLink = document.querySelector("[data-nav-link]");
     if(navLink) navLink.addEventListener("click", function(){ window.Ledger.navigateTo(navLink.getAttribute("data-nav-link")); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-link-pending]"), function(b){
+      b.addEventListener("click", function(){ window.Ledger.openLinkTransferModal(b.getAttribute("data-link-pending")); });
+    });
     window.Ledger.wireTxRowActions();
   }
 
@@ -250,6 +253,13 @@ window.Ledger.wirePageEvents = function(){
       if(!name){ window.Ledger.showToast("Enter a category name"); return; }
       window.Ledger.DB.categories.push({ id:window.Ledger.uid(), name:name, type:"income", subs:[] });
       window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Income category added");
+    });
+    document.getElementById("addCatBtnTransfer").addEventListener("click", function(){
+      var input = document.getElementById("newCatNameTransfer");
+      var name = input.value.trim();
+      if(!name){ window.Ledger.showToast("Enter a category name"); return; }
+      window.Ledger.DB.categories.push({ id:window.Ledger.uid(), name:name, type:"transfer", subs:[] });
+      window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Transfer category added");
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-rename-cat]"), function(b){
       b.addEventListener("click", function(){

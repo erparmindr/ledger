@@ -103,6 +103,27 @@ window.Ledger.pages.renderOverviewPage = function(){
     ? '<div class="empty-state"><div class="big">No entries yet</div>Use "New transaction" above to add your first one.</div>'
     : recentTx.map(window.Ledger.renderTxRow).join("");
 
+  var pendingTfers = window.Ledger.pendingTransfers ? window.Ledger.pendingTransfers() : [];
+  var pendingHtml;
+  if(pendingTfers.length === 0){
+    pendingHtml = '<div class="empty-state" style="padding:20px;"><div class="big" style="font-size:13px;">No pending transfers</div>Transfers without a linked destination will appear here.</div>';
+  } else {
+    pendingHtml = pendingTfers.map(function(t){
+      var acc = window.Ledger.findAccount(t.fromId);
+      var catName = window.Ledger.categoryName(t.category);
+      return '<div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-soft);">'
+        + '<div>'
+        + '  <div style="font-size:12.5px; font-weight:600;">' + window.Ledger.escapeHtml(t.desc) + ' <span class="faint" style="font-size:11px;">' + t.date + '</span></div>'
+        + '  <div style="font-size:11.5px; color:var(--text-dim);">' + window.Ledger.escapeHtml(acc ? acc.name : "Unknown") + ' &middot; ' + window.Ledger.escapeHtml(catName) + '</div>'
+        + '</div>'
+        + '<div style="display:flex; align-items:center; gap:10px;">'
+        + '  <span style="font-size:13px; font-weight:700; font-variant-numeric:tabular-nums;">' + window.Ledger.fmtMoney(t.amount, acc ? acc.currency : "USD") + '</span>'
+        + '  <button class="btn btn-sm btn-primary" data-link-pending="' + t.id + '">Link destination</button>'
+        + '</div>'
+        + '</div>';
+    }).join("");
+  }
+
   return ''
     + '<div class="grid-3">' + totalsHtml + '</div>'
     + '<div class="section-gap grid-3">'
@@ -121,6 +142,10 @@ window.Ledger.pages.renderOverviewPage = function(){
     + '    <div style="padding:0 20px 16px;"><button class="btn btn-sm" data-nav-link="recurring">Manage recurring &rarr;</button></div>'
     + '  </div>'
     + '</div>'
+    + (pendingTfers.length > 0 ? '<div class="card section-gap">'
+    + '  <div class="card-header"><h2>Pending transfers</h2><span class="hint">' + pendingTfers.length + ' awaiting destination</span></div>'
+    + '  <div class="card-pad" style="padding-top:4px; padding-bottom:4px;">' + pendingHtml + '</div>'
+    + '</div>' : '')
     + '<div class="card section-gap">'
     + '  <div class="card-header"><h2>Recent activity</h2><span class="hint">last 6 entries</span></div>'
     + '  <div>' + recentHtml + '</div>'

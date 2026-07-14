@@ -27,6 +27,7 @@ window.Ledger.renderTxRow = function(t, opts){
     bubbleBg = "var(--brass-soft)"; bubbleColor = "var(--brass)"; symbol = "&#8644;";
     var fromRef = window.Ledger.entityRef(t.fromType, t.fromId);
     currency = fromRef ? fromRef.currency : "USD";
+    if(t.pending){ symbol = "&#8644;"; bubbleBg = "var(--clay-soft)"; bubbleColor = "var(--clay)"; }
   }
 
   var dateDisp = new Date(t.date + "T00:00:00").toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"});
@@ -43,7 +44,11 @@ window.Ledger.renderTxRow = function(t, opts){
     var fr = window.Ledger.entityRef(t.fromType, t.fromId);
     var to = window.Ledger.entityRef(t.toType, t.toId);
     mainLabel = (t.desc && t.desc.trim()) ? t.desc : "Transfer";
-    subLabel = (fr?fr.name:"?") + " &rarr; " + (to?to.name:"?");
+    if(t.pending){
+      subLabel = (fr?fr.name:"?") + ' &rarr; <span class="faint">pending destination</span>';
+    } else {
+      subLabel = (fr?fr.name:"?") + " &rarr; " + (to?to.name:"?");
+    }
     amtDisp = '<span style="color:var(--brass);">' + window.Ledger.fmtMoney(t.amount, currency) + '</span>';
   } else if(isLinkedTransfer){
     mainLabel = t.desc;

@@ -49,8 +49,12 @@ window.Ledger.accountBalance = function accountBalance(accountId){
     if(t.type === "expense" && t.account === accountId) bal -= t.amount;
     else if(t.type === "income" && t.account === accountId) bal += t.amount;
     else if(t.type === "transfer"){
-      if(t.fromType === "account" && t.fromId === accountId) bal -= t.amount;
-      if(t.toType === "account" && t.toId === accountId) bal += t.amount;
+      if(t.pending){
+        if(t.fromType === "account" && t.fromId === accountId) bal -= t.amount;
+      } else {
+        if(t.fromType === "account" && t.fromId === accountId) bal -= t.amount;
+        if(t.toType === "account" && t.toId === accountId) bal += t.amount;
+      }
     }
   });
   return bal;

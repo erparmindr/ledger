@@ -69,8 +69,12 @@ window.Ledger.pages.renderRegisterPage = function(){
         if(t.type==="expense" && t.account===acc.id) running -= t.amount;
         else if(t.type==="income" && t.account===acc.id) running += t.amount;
         else if(t.type==="transfer"){
-          if(t.fromType==="account" && t.fromId===acc.id) running -= t.amount;
-          if(t.toType==="account" && t.toId===acc.id) running += t.amount;
+          if(t.pending){
+            if(t.fromType==="account" && t.fromId===acc.id) running -= t.amount;
+          } else {
+            if(t.fromType==="account" && t.fromId===acc.id) running -= t.amount;
+            if(t.toType==="account" && t.toId===acc.id) running += t.amount;
+          }
         }
         runBalMap[t.id] = running;
       });

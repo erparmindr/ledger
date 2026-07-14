@@ -82,7 +82,7 @@ window.Ledger.parseStatementText = function(text){
 
 window.Ledger.openStatementPasteModal = function(){
   var html = ''
-    + '<div class="modal-head"><h3>Import from pasted statement text</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close">&times;</button></div>'
+    + '<div class="modal-head"><h3>Import from pasted statement text</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
     + '<div class="modal-body">'
     + '  <p class="faint" style="font-size:12px; margin:0;">Open your PDF statement, select the transaction lines, copy, and paste them below. Works with most bank formats &mdash; you\'ll get a chance to review before anything is imported.</p>'
     + '  <div class="field"><textarea id="stmtPasteArea" rows="9" placeholder="Paste statement text here, e.g.:&#10;06/20/2026  GROCERY STORE PURCHASE   -45.20&#10;06/18/2026  PAYROLL DEPOSIT           2,000.00" style="min-height:160px; font-family:monospace; font-size:12px;"></textarea></div>'
@@ -112,6 +112,9 @@ window.Ledger.openStatementPasteModal = function(){
 window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, source, onBack){
   var accOpts = window.Ledger.DB.accounts.map(function(a){
     return '<option value="'+a.id+'" '+(a.id===preselectedAccount?'selected':'')+'>'+window.Ledger.escapeHtml(a.name)+'</option>';
+  }).join("");
+  var toAccOpts = '<option value="">Choose account&hellip;</option>' + window.Ledger.DB.accounts.map(function(a){
+    return '<option value="'+a.id+'">'+window.Ledger.escapeHtml(a.name)+'</option>';
   }).join("");
 
   var thStyle = 'text-align:left; padding:7px 10px; font-size:10.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid var(--border); background:var(--surface-2); white-space:nowrap;';
@@ -156,13 +159,18 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       + catOptsFor(preType, r.suggestedCategoryId)
       + '  </select>'
       + '</td>'
+      + '<td style="'+tdStyle+'">'
+      + '  <select class="prev-toacc" data-idx="'+i+'" style="font-size:11.5px; padding:5px 7px; border-radius:8px; border:1px solid var(--clay); background:var(--surface-2); color:var(--text); display:'+(preType==='transfer'?'':'none')+'">'
+      + toAccOpts
+      + '  </select>'
+      + '</td>'
       + '</tr>';
   }).join("");
 
   var html = ''
     + '<div class="modal-head">'
     + '  <h3>Review '+parsedRows.length+' transaction'+(parsedRows.length===1?"":"s")+' <span class="faint" style="font-size:12px; font-weight:500;">from '+window.Ledger.escapeHtml(source||"import")+'</span></h3>'
-    + '  <button class="icon-btn" id="closeModalBtn" aria-label="Close">&times;</button>'
+    + '  <button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
     + '</div>'
     + '<div class="modal-body">'
     + '  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">'
@@ -181,6 +189,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     + '        <th style="'+thStyle+' text-align:right;">Amount</th>'
     + '        <th style="'+thStyle+'">Type</th>'
     + '        <th style="'+thStyle+'">Category</th>'
+    + '        <th style="'+thStyle+'">To Account</th>'
     + '      </tr>'
     + rowsHtml
     + '    </table>'
@@ -209,6 +218,9 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       sel.addEventListener("change", function(){
         var idx = parseInt(sel.getAttribute("data-idx"), 10);
         var catSel = document.querySelector('.prev-category[data-idx="'+idx+'"]');
+        var toAccSel = document.querySelector('.prev-toacc[data-idx="'+idx+'"]');
+        var isTransfer = sel.value === "transfer";
+        if(toAccSel) toAccSel.style.display = isTransfer ? "" : "none";
         if(catSel){
           var suggestion = window.Ledger.suggestCategoryForDescription(parsedRows[idx].desc, sel.value, window.Ledger.DB, window.Ledger.findCategory) || "";
           catSel.innerHTML = catOptsFor(sel.value, suggestion);
@@ -229,10 +241,12 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       var descs  = document.querySelectorAll(".prev-desc");
       var types  = document.querySelectorAll(".prev-type");
       var cats   = document.querySelectorAll(".prev-category");
+      var toAccs = document.querySelectorAll(".prev-toacc");
 
       var missing = [];
       Array.prototype.forEach.call(checks, function(chk, i){
-        if(chk.checked && !cats[i].value) missing.push(i+1);
+        if(chk.checked && types[i].value !== "transfer" && !cats[i].value) missing.push(i+1);
+        if(chk.checked && types[i].value === "transfer" && !cats[i].value) missing.push(i+1);
       });
       if(missing.length){
         window.Ledger.showToast("Pick a category for row" + (missing.length===1?"":"s") + " " + missing.join(", ") + " (or uncheck to skip)");
@@ -240,28 +254,200 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       }
 
       var imported = 0;
+      var importedIds = [];
       Array.prototype.forEach.call(checks, function(chk, i){
         if(!chk.checked) return;
         var r = parsedRows[i];
         var chosenType = types[i].value;
         var chosenDesc = descs[i].value.trim() || r.desc || "Imported transaction";
         var chosenCategory = cats[i].value;
-        window.Ledger.DB.transactions.push({
-          id: window.Ledger.uid(), type: chosenType, date: r.date, amount: Math.abs(r.amount),
-          desc: chosenDesc, notes: "Imported from " + (source||"import"),
-          account: account, category: chosenCategory, subcategory: "", created: Date.now()
-        });
-        if(chosenType !== "transfer") window.Ledger.learnCategoryMapping(chosenDesc, chosenCategory, window.Ledger.DB);
+
+        if(chosenType === "transfer"){
+          var toAccountId = toAccs[i].value;
+          var isPending = !toAccountId;
+          var newId = window.Ledger.uid();
+          var txObj = {
+            id: newId, type: "transfer", date: r.date, amount: Math.abs(r.amount),
+            desc: chosenDesc, notes: "Imported from " + (source||"import"),
+            account: account, category: chosenCategory, subcategory: "", created: Date.now(),
+            fromType: "account", fromId: account, pending: isPending
+          };
+          if(toAccountId){
+            txObj.toType = "account";
+            txObj.toId = toAccountId;
+          }
+          window.Ledger.DB.transactions.push(txObj);
+          importedIds.push(newId);
+        } else {
+          var newId2 = window.Ledger.uid();
+          window.Ledger.DB.transactions.push({
+            id: newId2, type: chosenType, date: r.date, amount: Math.abs(r.amount),
+            desc: chosenDesc, notes: "Imported from " + (source||"import"),
+            account: account, category: chosenCategory, subcategory: "", created: Date.now()
+          });
+          importedIds.push(newId2);
+          window.Ledger.learnCategoryMapping(chosenDesc, chosenCategory, window.Ledger.DB);
+        }
         imported++;
       });
       window.Ledger.saveData();
       window.Ledger.closeModal();
       window.Ledger.showToast(imported + " transaction"+(imported===1?"":"s")+" imported");
       window.Ledger.renderPage();
+      window.Ledger.promptLinkTransfers(account, importedIds);
+    });
+  });
+};
+
+/* ============================================================
+   POST-IMPORT TRANSFER LINKING
+   ============================================================ */
+window.Ledger.promptLinkTransfers = function(importedAccountId, importedIds){
+  if(!importedIds || !importedIds.length) return;
+
+  var candidates = [];
+  importedIds.forEach(function(newId){
+    var newTx = window.Ledger.DB.transactions.find(function(t){ return t.id === newId; });
+    if(!newTx) return;
+
+    var matches = window.Ledger.DB.transactions.filter(function(t){
+      if(t.id === newId) return false;
+      if(t.type !== "transfer") return false;
+      var sameAmount = Math.abs(t.amount) === Math.abs(newTx.amount);
+      if(!sameAmount) return false;
+      var d1 = new Date(t.date), d2 = new Date(newTx.date);
+      var diffDays = Math.abs((d1 - d2) / 86400000);
+      if(diffDays > 2) return false;
+      var touchesImported = (t.fromId === importedAccountId || t.toId === importedAccountId);
+      return touchesImported;
+    });
+
+    matches.forEach(function(m){
+      var alreadyListed = candidates.some(function(c){ return c.existing.id === m.id && c.newTx.id === newTx.id; });
+      if(!alreadyListed) candidates.push({ newTx: newTx, existing: m });
+    });
+  });
+
+  if(candidates.length === 0) return;
+
+  var fromAcc = window.Ledger.findAccount(importedAccountId);
+  var fromName = fromAcc ? fromAcc.name : "Account";
+
+  var rowsHtml = candidates.map(function(c, i){
+    var toAccId = c.existing.fromId === importedAccountId ? c.existing.toId : c.existing.fromId;
+    var toAcc = window.Ledger.findAccount(toAccId);
+    var toName = toAcc ? toAcc.name : "Unknown";
+    return '<div style="display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface-2);" data-link-idx="'+i+'">'
+      + '<div style="flex:1; min-width:0;">'
+      + '  <div style="font-size:12.5px; font-weight:600; margin-bottom:4px;">'
+      + window.Ledger.escapeHtml(c.newTx.desc) + ' &middot; ' + window.Ledger.fmtMoney(Math.abs(c.newTx.amount))
+      + '  <span class="faint" style="font-size:11px;">(' + c.newTx.date + ')</span>'
+      + '  </div>'
+      + '  <div style="font-size:11.5px; color:var(--text-dim);">'
+      + '    Existing transfer: ' + window.Ledger.escapeHtml(fromName) + ' &rarr; ' + window.Ledger.escapeHtml(toName)
+      + '    &middot; ' + window.Ledger.fmtMoney(Math.abs(c.existing.amount))
+      + '    <span class="faint">(' + c.existing.date + ')</span>'
+      + '  </div>'
+      + '</div>'
+      + '<div style="display:flex; gap:6px;">'
+      + '  <button class="btn btn-sm btn-primary link-yes" data-new="'+c.newTx.id+'" data-existing="'+c.existing.id+'">Link</button>'
+      + '  <button class="btn btn-sm link-no" data-new="'+c.newTx.id+'">Skip</button>'
+      + '</div>'
+      + '</div>';
+  }).join("");
+
+  var html = ''
+    + '<div class="modal-head"><h3>Link related transfers?</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div class="modal-body">'
+    + '  <p class="faint" style="font-size:12px; margin:0 0 12px;">We found ' + candidates.length + ' transaction'+(candidates.length===1?'':'s')+' that may be the other side of an existing transfer. Link them to keep your records clean.</p>'
+    + '  <div style="display:flex; flex-direction:column; gap:8px;">' + rowsHtml + '</div>'
+    + '</div>'
+    + '<div class="modal-foot"><button class="btn" id="doneLinkBtn">Done</button></div>';
+
+  window.Ledger.openModal(html, function(){
+    document.getElementById("closeModalBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("doneLinkBtn").addEventListener("click", window.Ledger.closeModal);
+
+    Array.prototype.forEach.call(document.querySelectorAll(".link-yes"), function(btn){
+      btn.addEventListener("click", function(){
+        var newId = btn.getAttribute("data-new");
+        var existingId = btn.getAttribute("data-existing");
+        var newTx = window.Ledger.DB.transactions.find(function(t){ return t.id === newId; });
+        var existingTx = window.Ledger.DB.transactions.find(function(t){ return t.id === existingId; });
+        if(newTx && existingTx){
+          existingTx.amount = Math.max(Math.abs(existingTx.amount), Math.abs(newTx.amount));
+          existingTx.desc = existingTx.desc + " / " + newTx.desc;
+          window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(t){ return t.id !== newId; });
+          window.Ledger.saveData();
+          var wrapper = btn.closest('[data-link-idx]');
+          if(wrapper) wrapper.remove();
+          window.Ledger.showToast("Transfer linked");
+        }
+      });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll(".link-no"), function(btn){
+      btn.addEventListener("click", function(){
+        var wrapper = btn.closest('[data-link-idx]');
+        if(wrapper) wrapper.remove();
+      });
     });
   });
 };
 
 window.Ledger.openStatementPreviewModal = function(parsedRows, preselectedAccount){
   window.Ledger.openImportPreviewModal(parsedRows, preselectedAccount||"", "pasted statement", window.Ledger.openStatementPasteModal);
+};
+
+/* ============================================================
+   PENDING TRANSFERS — helpers + link modal
+   ============================================================ */
+window.Ledger.pendingTransfers = function(){
+  return window.Ledger.DB.transactions.filter(function(t){
+    return t.type === "transfer" && t.pending;
+  }).sort(function(a,b){ return (b.date+b.id).localeCompare(a.date+a.id); });
+};
+
+window.Ledger.openLinkTransferModal = function(txId){
+  var tx = window.Ledger.DB.transactions.find(function(t){ return t.id === txId; });
+  if(!tx || tx.type !== "transfer") return;
+
+  var fromAcc = window.Ledger.findAccount(tx.fromId);
+  var fromName = fromAcc ? fromAcc.name : "Unknown";
+  var otherAccs = window.Ledger.DB.accounts.filter(function(a){ return a.id !== tx.fromId; });
+  var otherAccOpts = otherAccs.map(function(a){
+    return '<option value="'+a.id+'">'+window.Ledger.escapeHtml(a.name)+'</option>';
+  }).join("");
+
+  var html = ''
+    + '<div class="modal-head"><h3>Link destination</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div class="modal-body">'
+    + '  <div style="padding:12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface-2); margin-bottom:16px;">'
+    + '    <div style="font-size:13px; font-weight:600;">' + window.Ledger.escapeHtml(tx.desc) + ' &middot; ' + window.Ledger.fmtMoney(tx.amount) + '</div>'
+    + '    <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">From: ' + window.Ledger.escapeHtml(fromName) + ' &middot; ' + tx.date + '</div>'
+    + '  </div>'
+    + '  <div class="field"><label>To account</label><select id="linkToAcc">' + otherAccOpts + '</select></div>'
+    + '  <div class="field"><label>Description <span class="faint">(optional)</span></label>'
+    + '    <input type="text" id="linkDesc" value="'+window.Ledger.escapeHtml(tx.desc)+'" placeholder="e.g. Credit Card Payment">'
+    + '  </div>'
+    + '</div>'
+    + '<div class="modal-foot"><button class="btn" id="cancelBtn">Cancel</button><button class="btn btn-primary" id="confirmLinkBtn">Link transfer</button></div>';
+
+  window.Ledger.openModal(html, function(){
+    document.getElementById("closeModalBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("cancelBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("confirmLinkBtn").addEventListener("click", function(){
+      var toAccountId = document.getElementById("linkToAcc").value;
+      var newDesc = document.getElementById("linkDesc").value.trim();
+      if(!toAccountId){ window.Ledger.showToast("Pick a destination account"); return; }
+      tx.toType = "account";
+      tx.toId = toAccountId;
+      tx.pending = false;
+      if(newDesc) tx.desc = newDesc;
+      window.Ledger.saveData();
+      window.Ledger.closeModal();
+      window.Ledger.showToast("Transfer linked");
+      window.Ledger.renderPage();
+    });
+  });
 };
