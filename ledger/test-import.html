@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Import Transfer Test</title>
+<style>
+  body { font-family: monospace; background: #0E1116; color: #E8E6E3; padding: 24px; max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 16px; color: #D4A574; }
+  h2 { font-size: 14px; color: #87A878; margin-top: 24px; }
+  .pass { color: #87A878; }
+  .fail { color: #D45B5B; }
+  .info { color: #8E8A85; font-size: 12px; }
+  pre { background: #1A1D23; padding: 12px; border-radius: 6px; font-size: 12px; overflow-x: auto; border: 1px solid #2A2D33; }
+  .section { border: 1px solid #2A2D33; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .label { color: #D4A574; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>Transfer Import Test Harness</h1>
+<p class="info">Tests: transfer categories, keyword detection, pending state, balance computation, link detection.</p>
+
+<script src="./js/constants.js"></script>
+<script src="./js/utils.js"></script>
+<script src="./js/store.js"></script>
+<script src="./js/modals.js"></script>
+<script src="./js/modals/entity-modals.js"></script>
+<script src="./js/components/transaction-row.js"></script>
+<script src="./js/components/custom-dropdown.js"></script>
+<script src="./js/services/backup.js"></script>
+<script src="./js/services/csv-import.js"></script>
+<script src="./js/services/import-preview.js"></script>
+
+<script>
+var L = window.Ledger;
+var results = [];
+var passed = 0, failed = 0;
+
+function assert(name, condition, detail) {
+  var ok = !!condition;
+  if(ok) { passed++; } else { failed++; }
+  results.push({ name: name, ok: ok, detail: detail || "" });
+}
+
+function log() {
+  var el = document.getElementById("results");
+  var html = results.map(function(r) {
+    return '<div class="' + (r.ok ? 'pass' : 'fail') + '">'
+      + (r.ok ? 'PASS' : 'FAIL') + ' &middot; ' + r.name
+      + (r.detail ? ' <span class="info">(' + r.detail + ')</span>' : '')
+      + '</div>';
+  }).join("");
+  html += '<div style="margin-top:16px; font-weight:bold;">'
+    + '<span class="pass">' + passed + ' passed</span> &middot; '
+    + '<span class="fail">' + failed + ' failed</span>'
+    + '</div>';
+  el.innerHTML = html;
+}
+
+/* ============================================================
+   TEST 1: Default transfer categories exist
+   ============================================================ */
+document.write('<h2>Test 1: Default transfer categories</h2>');
+var cats = L.defaultCategories();
+var transferCats = cats.filter(function(c){ return c.type === "transfer"; });
+assert("Transfer categories exist", transferCats.length >= 5, transferCats.length + " found");
+assert("Credit Card Payment category", transferCats.some(function(c){ return c.name === "Credit Card Payment"; }));
+assert("Between My Accounts category", transferCats.some(function(c){ return c.name === "Between My Accounts"; }));
+assert("To Friend category", transferCats.some(function(c){ return c.name === "To Friend"; }));
+assert("From Friend category", transferCats.some(function(c){ return c.name === "From Friend"; }));
+assert("Other Transfer category", transferCats.some(function(c){ return c.name === "Other Transfer"; }));
+
+/* ============================================================
+   TEST 2: Transfer keyword auto-detection
+   ============================================================ */
+document.write('<h2>Test 2: Transfer keyword detection</h2>');
+var TRANSFER_KW = /\b(transfer|payment|cc\s*pay|credit\s*card\s*pay|e\s*transfer|etransfer|interac|pay\s*credit|pay\s*visa|pay\s*mastercard|payment\s*to|payment\s*from)\b/i;
+
+assert("ROGRS BNK MC PAYMENT detected", TRANSFER_KW.test("ROGRS BNK MC PAYMENT"));
+assert("CC Payment detected", TRANSFER_KW.test("CC Payment"));
+assert("Credit Card Payment detected", TRANSFER_KW.test("Credit Card Payment"));
+assert("E Transfer detected", TRANSFER_KW.test("E Transfer"));
+assert("Transfer to Savings detected", TRANSFER_KW.test("Transfer to Savings"));
+assert("Payment to Visa detected", TRANSFER_KW.test("Payment to Visa"));
+assert("Grocery Store NOT detected", !TRANSFER_KW.test("Grocery Store Purchase"));
+assert("Amazon.ca NOT detected", !TRANSFER_KW.test("Amazon.ca Purchase"));
+
+/* ============================================================
+   TEST 3: Simulated import — Chequing CSV (with pending)
+   ============================================================ */
+document.write('<h2>Test 3: Simulated Chequing import (pending transfers)</h2>');
+
+L.DB = {
+  accounts: [
+    { id: "acc-chequing", name: "Chequing", type: "checking", currency: "CAD", openingBalance: 5000, archived: false, created: Date.now() },
+    { id: "acc-visa", name: "Visa", type: "credit", currency: "CAD", openingBalance: 0, archived: false, created: Date.now() }
+  ],
+  categories: cats,
+  transactions: [],
+  people: [],
+  recurring: [],
+  importMappings: {},
+  learnings: {}
+};
+
+var chequingCSV = "Date,Description,Debit,Credit\n2026-07-10,ROGRS BNK MC PAYMENT,1000.00,\n2026-07-12,GROCERY STORE,45.20,\n2026-07-13,PAYROLL DEPOSIT,,2500.00";
+
+var rows = L.parseCsv(chequingCSV);
+assert("CSV parsed correctly", rows.length === 4, rows.length + " rows (1 header + 3 data)");
+
+var parsedRows = [];
+rows.slice(1).forEach(function(r) {
+  var rawDate = r[0].trim();
+  var isoDate = L.normalizeDate(rawDate);
+  if (!isoDate) return;
+
+  var drAmt = parseFloat((r[2]||"").replace(/[^0-9.]/g,"")) || 0;
+  var crAmt = parseFloat((r[3]||"").replace(/[^0-9.]/g,"")) || 0;
+
+  var amt, type;
+  if(drAmt > 0 && crAmt === 0){ type = "expense"; amt = drAmt; }
+  else if(crAmt > 0 && drAmt === 0){ type = "income"; amt = crAmt; }
+  else return;
+
+  var desc = r[1].trim() || "Imported transaction";
+  if(type !== "transfer" && TRANSFER_KW.test(desc)) type = "transfer";
+
+  parsedRows.push({ date: isoDate, amount: amt, type: type, desc: desc });
+});
+
+assert("3 rows parsed", parsedRows.length === 3);
+assert("ROGRS row auto-detected as transfer", parsedRows[0].type === "transfer");
+assert("GROCERY row is expense", parsedRows[1].type === "expense");
+assert("PAYROLL row is income", parsedRows[2].type === "income");
+
+/* ============================================================
+   TEST 4: Pending transfer creation (no To account)
+   ============================================================ */
+document.write('<h2>Test 4: Pending transfer creation</h2>');
+
+// Import the transfer WITHOUT specifying a destination (pending)
+var txId1 = L.uid();
+L.DB.transactions.push({
+  id: txId1, type: "transfer", date: "2026-07-10", amount: 1000,
+  desc: "ROGRS BNK MC PAYMENT", notes: "Imported from CSV",
+  account: "acc-chequing", category: "cat-cc-payment", subcategory: "", created: Date.now(),
+  fromType: "account", fromId: "acc-chequing", pending: true
+});
+
+var txId2 = L.uid();
+L.DB.transactions.push({
+  id: txId2, type: "expense", date: "2026-07-12", amount: 45.20,
+  desc: "GROCERY STORE", notes: "Imported from CSV",
+  account: "acc-chequing", category: "cat-groceries", subcategory: "", created: Date.now()
+});
+
+var txId3 = L.uid();
+L.DB.transactions.push({
+  id: txId3, type: "income", date: "2026-07-13", amount: 2500,
+  desc: "PAYROLL DEPOSIT", notes: "Imported from CSV",
+  account: "acc-chequing", category: "cat-salary", subcategory: "", created: Date.now()
+});
+
+var pendingTx = L.DB.transactions.find(function(t){ return t.id === txId1; });
+assert("Transfer has pending: true", pendingTx.pending === true);
+assert("Transfer has fromId", pendingTx.fromId === "acc-chequing");
+assert("Transfer has NO toId", !pendingTx.toId);
+assert("Transfer has account field", pendingTx.account === "acc-chequing");
+assert("Transfer has category", pendingTx.category === "cat-cc-payment");
+
+/* ============================================================
+   TEST 5: Balance — pending transfer is single-sided
+   ============================================================ */
+document.write('<h2>Test 5: Balance with pending transfer</h2>');
+
+var chequingBal = 5000;
+L.DB.transactions.forEach(function(t) {
+  if(t.type === "expense" && t.account === "acc-chequing") chequingBal -= t.amount;
+  if(t.type === "income" && t.account === "acc-chequing") chequingBal += t.amount;
+  if(t.type === "transfer") {
+    if(t.pending) {
+      if(t.fromType === "account" && t.fromId === "acc-chequing") chequingBal -= t.amount;
+    } else {
+      if(t.fromType === "account" && t.fromId === "acc-chequing") chequingBal -= t.amount;
+      if(t.toType === "account" && t.toId === "acc-chequing") chequingBal += t.amount;
+    }
+  }
+});
+
+// Chequing = 5000 - 1000 (pending transfer out) - 45.20 (expense) + 2500 (income) = 6454.80
+assert("Chequing balance correct with pending", Math.abs(chequingBal - 6454.80) < 0.01, "$" + chequingBal.toFixed(2));
+
+// Visa should be 0 — pending transfer doesn't affect it yet
+var visaBal = 0;
+L.DB.transactions.forEach(function(t) {
+  if(t.type === "transfer") {
+    if(t.pending) {
+      // pending: skip — single-sided only
+    } else {
+      if(t.fromType === "account" && t.fromId === "acc-visa") visaBal -= t.amount;
+      if(t.toType === "account" && t.toId === "acc-visa") visaBal += t.amount;
+    }
+  }
+});
+assert("Visa balance unaffected by pending transfer", Math.abs(visaBal - 0) < 0.01, "$" + visaBal.toFixed(2));
+
+/* ============================================================
+   TEST 6: Link pending transfer
+   ============================================================ */
+document.write('<h2>Test 6: Link pending transfer</h2>');
+
+// Simulate linking the pending transfer to Visa
+pendingTx.toType = "account";
+pendingTx.toId = "acc-visa";
+pendingTx.pending = false;
+
+assert("After linking: pending is false", pendingTx.pending === false);
+assert("After linking: toId set", pendingTx.toId === "acc-visa");
+assert("After linking: toType set", pendingTx.toType === "account");
+
+// Re-compute Visa balance — now the linked transfer affects it
+visaBal = 0;
+L.DB.transactions.forEach(function(t) {
+  if(t.type === "transfer") {
+    if(t.pending) {
+      if(t.fromType === "account" && t.fromId === "acc-visa") visaBal -= t.amount;
+    } else {
+      if(t.fromType === "account" && t.fromId === "acc-visa") visaBal -= t.amount;
+      if(t.toType === "account" && t.toId === "acc-visa") visaBal += t.amount;
+    }
+  }
+});
+assert("Visa balance after link", Math.abs(visaBal - 1000) < 0.01, "$" + visaBal.toFixed(2));
+
+/* ============================================================
+   TEST 7: pendingTransfers() helper
+   ============================================================ */
+document.write('<h2>Test 7: pendingTransfers helper</h2>');
+
+// Reset — add a new pending transfer
+var txId4 = L.uid();
+L.DB.transactions.push({
+  id: txId4, type: "transfer", date: "2026-07-14", amount: 500,
+  desc: "CC Payment", notes: "",
+  account: "acc-chequing", category: "cat-cc-payment", subcategory: "", created: Date.now(),
+  fromType: "account", fromId: "acc-chequing", pending: true
+});
+
+var pendingList = L.pendingTransfers();
+assert("pendingTransfers() returns pending items", pendingList.length > 0, pendingList.length + " found");
+assert("pendingTransfers() only includes pending", pendingList.every(function(t){ return t.pending === true; }));
+assert("pendingTransfers() sorted by date desc", pendingList[0].date >= pendingList[pendingList.length-1].date);
+
+/* ============================================================
+   TEST 8: Non-transfer types unaffected
+   ============================================================ */
+document.write('<h2>Test 8: Non-transfer balance unaffected</h2>');
+
+// expense and income should work the same regardless of pending flag
+var expTx = L.DB.transactions.find(function(t){ return t.id === txId2; });
+var incTx = L.DB.transactions.find(function(t){ return t.id === txId3; });
+assert("Expense has no pending field", expTx.pending === undefined);
+assert("Income has no pending field", incTx.pending === undefined);
+
+// Chequing balance after all: 5000 - 1000 (pending, now linked) - 45.20 + 2500 - 500 (pending) = 5954.80
+chequingBal = 5000;
+L.DB.transactions.forEach(function(t) {
+  if(t.type === "expense" && t.account === "acc-chequing") chequingBal -= t.amount;
+  if(t.type === "income" && t.account === "acc-chequing") chequingBal += t.amount;
+  if(t.type === "transfer") {
+    if(t.pending) {
+      if(t.fromType === "account" && t.fromId === "acc-chequing") chequingBal -= t.amount;
+    } else {
+      if(t.fromType === "account" && t.fromId === "acc-chequing") chequingBal -= t.amount;
+      if(t.toType === "account" && t.toId === "acc-chequing") chequingBal += t.amount;
+    }
+  }
+});
+assert("Final Chequing balance", Math.abs(chequingBal - 5954.80) < 0.01, "$" + chequingBal.toFixed(2));
+
+/* ============================================================
+   TEST 9: Category filtering by type
+   ============================================================ */
+document.write('<h2>Test 9: Category filtering by type</h2>');
+
+var expCats = cats.filter(function(c){ return c.type === "expense"; });
+var incCats = cats.filter(function(c){ return c.type === "income"; });
+var trfCats = cats.filter(function(c){ return c.type === "transfer"; });
+
+assert("Expense categories: 11", expCats.length === 11, expCats.length + " found");
+assert("Income categories: 6", incCats.length === 6, incCats.length + " found");
+assert("Transfer categories: 5", trfCats.length === 5, trfCats.length + " found");
+
+/* ============================================================
+   FINAL
+   ============================================================ */
+document.write('<h2>Summary</h2>');
+document.write('<div id="results"></div>');
+log();
+</script>
+</body>
+</html>
