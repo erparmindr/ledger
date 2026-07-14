@@ -111,7 +111,7 @@ window.Ledger.openCsvImportModal = function(file){
     var tdBadge = tdFormat ? '<span style="background:var(--sage-soft);color:var(--sage);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:8px;">TD Bank detected</span>' : '';
 
     var html = ''
-      + '<div class="modal-head"><h3>Import CSV &middot; map columns' + tdBadge + '</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close">&times;</button></div>'
+      + '<div class="modal-head"><h3>Import CSV &middot; map columns' + tdBadge + '</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><i data-lucide="x" style="width:18px;height:18px;"></i></button></div>'
       + '<div class="modal-body">'
       + '  <div style="overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius); max-height:140px;">' + previewHtml + '</div>'
       + (tdFormat ? '<p class="faint" style="font-size:11.5px; margin:0;">TD bank format detected automatically &mdash; columns pre-mapped. Just pick your account and import.</p>' : '')
