@@ -95,7 +95,11 @@ window.Ledger.loadData = function() {
 
 window.Ledger.saveData = function() {
   try{
-    localStorage.setItem(window.Ledger.STORAGE_KEY, JSON.stringify(window.Ledger.DB));
+    if(window.Ledger.Storage && window.Ledger.Storage.persist){
+      window.Ledger.Storage.persist();
+    } else {
+      localStorage.setItem(window.Ledger.STORAGE_KEY, JSON.stringify(window.Ledger.DB));
+    }
   }catch(e){
     console.error("Save failed", e);
     window.Ledger.showToast("Could not save — storage may be full");

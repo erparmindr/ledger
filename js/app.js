@@ -397,6 +397,15 @@ document.addEventListener("DOMContentLoaded", function(){
     b.addEventListener("click", function(){ window.Ledger.applyTheme(b.getAttribute("data-theme-btn")); });
   });
 
+  // Init storage layer (async: migrates localStorage → IDB if needed)
+  // DB is already populated from localStorage by store.js, so UI renders immediately.
+  // If IDB returns different data, we hot-swap and re-render.
+  if(window.Ledger.Storage){
+    window.Ledger.Storage.init().then(function(){
+      window.Ledger.renderPage();
+    });
+  }
+
   window.Ledger.__LEDGER_INIT__();
 
   if("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
