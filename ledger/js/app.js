@@ -113,10 +113,11 @@ window.Ledger.wirePageEvents = function(){
   if(window.Ledger.currentPage === "accounts"){
     el = document.getElementById("addAcctBtn"); if(el) el.addEventListener("click", function(){ window.Ledger.openAccountModal(null); });
     Array.prototype.forEach.call(document.querySelectorAll("[data-edit-acct]"), function(b){
-      b.addEventListener("click", function(){ window.Ledger.openAccountModal(window.Ledger.findAccount(b.getAttribute("data-edit-acct"))); });
+      b.addEventListener("click", function(e){ e.stopPropagation(); window.Ledger.openAccountModal(window.Ledger.findAccount(b.getAttribute("data-edit-acct"))); });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-archive-acct]"), function(b){
-      b.addEventListener("click", function(){
+      b.addEventListener("click", function(e){
+        e.stopPropagation();
         var id = b.getAttribute("data-archive-acct");
         var a = window.Ledger.findAccount(id);
         window.Ledger.openConfirmModal("Archive account?", "Archive \"" + (a?a.name:"") + "\"? It will be hidden from active lists but all transactions stay intact. You can unarchive it later from the Archived section.", function(){
@@ -125,7 +126,8 @@ window.Ledger.wirePageEvents = function(){
       });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-unarchive-acct]"), function(b){
-      b.addEventListener("click", function(){
+      b.addEventListener("click", function(e){
+        e.stopPropagation();
         var id = b.getAttribute("data-unarchive-acct");
         var a = window.Ledger.findAccount(id);
         if(a){ window.Ledger.unarchiveAccount(id); }
