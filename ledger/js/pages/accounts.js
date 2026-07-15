@@ -20,9 +20,11 @@ window.Ledger.pages.renderAccountsPage = function(){
       + '<div class="acct-card-left">'
       + '  <div class="nm">' + escapeHtml(a.name) + (archived?' <span class="faint">(archived)</span>':'') + '</div>'
       + '  <div class="acct-type-label">' + typeLabel + ' &middot; ' + a.currency + '</div>'
-      + '  <div class="bal num ' + (isCredit && bal<0 ? 'neg' : '') + '">' + fmtMoney(bal, a.currency) + '</div>'
       + '</div>'
-      + '<div class="acct-card-right">' + ops + '</div>'
+      + '<div class="acct-card-right">'
+      + '  <div class="bal num ' + (isCredit && bal<0 ? 'neg' : '') + '">' + fmtMoney(bal, a.currency) + '</div>'
+      + '  <div class="acct-card-actions">' + ops + '</div>'
+      + '</div>'
       + '</div>';
   }
 

@@ -555,18 +555,19 @@ select:focus-visible{
 .acct-card{
   background:var(--surface);
   border:1px solid var(--border); border-radius:var(--radius-lg);
-  padding:14px 16px; position:relative; overflow:hidden;
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:12px 14px; position:relative; overflow:hidden;
+  display:flex; align-items:stretch; justify-content:space-between; gap:14px;
   box-shadow:var(--shadow-card);
   transition:all var(--transition-fast);
 }
-.acct-card:hover{ transform:translateY(-2px); box-shadow:var(--shadow-lift); }
-.acct-card-left{ position:relative; z-index:1; flex:1; min-width:0; }
-.acct-card-right{ display:flex; gap:2px; position:relative; z-index:1; align-items:center; }
-.acct-card-right .icon-btn{ min-width:auto; min-height:auto; padding:4px; }
+.acct-card:hover{ transform:translateY(-1px); box-shadow:var(--shadow-lift); }
+.acct-card-left{ position:relative; z-index:1; flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:2px; }
+.acct-card-right{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between; gap:6px; min-width:0; }
+.acct-card-actions{ display:flex; gap:2px; }
+.acct-card-actions .icon-btn{ min-width:auto; min-height:auto; padding:3px; }
 .acct-card .nm{ font-size:14px; font-weight:700; color:var(--text); line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.acct-card .acct-type-label{ font-size:11px; color:var(--text-faint); font-weight:500; margin-top:1px; }
-.acct-card .bal{ font-family:var(--font-num); font-size:18px; font-weight:800; margin-top:6px; letter-spacing:-0.02em; }
+.acct-card .acct-type-label{ font-size:11px; color:var(--text-dim); font-weight:500; letter-spacing:0.01em; }
+.acct-card .bal{ font-family:var(--font-num); font-size:17px; font-weight:800; letter-spacing:-0.02em; line-height:1; white-space:nowrap; }
 .acct-card.archived{ opacity:.55; }
 .acct-card.kind-credit{ border-left:3px solid var(--clay); }
 .acct-card:not(.kind-credit){ border-left:3px solid var(--sage); }
@@ -883,6 +884,8 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   .report-tabs{ overflow-x:auto; flex-wrap:nowrap; }
   .report-tabs button{ white-space:nowrap; flex:none; padding:8px 12px; }
   .acct-mini-card{ min-width:140px; }
+  .acct-card{ padding:10px 12px; gap:10px; }
+  .acct-card .bal{ font-size:15px; }
 }
 
 /* ============================================================
