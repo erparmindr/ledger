@@ -84,24 +84,27 @@ window.Ledger.wirePageEvents = function(){
         window.Ledger.navigateTo("transactions");
       });
     });
-    Array.prototype.forEach.call(document.querySelectorAll(".pill-dropdown"), function(dd){
-      var trigger = dd.querySelector(".pill-trigger");
-      trigger.addEventListener("click", function(e){
+    /* Pill dropdown: event delegation on pageContent */
+    document.getElementById("pageContent").addEventListener("click", function(e){
+      var trigger = e.target.closest(".pill-trigger");
+      if(trigger){
         e.stopPropagation();
+        var dd = trigger.closest(".pill-dropdown");
         var wasOpen = dd.classList.contains("open");
         document.querySelectorAll(".pill-dropdown.open").forEach(function(x){ x.classList.remove("open"); });
         if(!wasOpen) dd.classList.add("open");
-      });
-    });
-    Array.prototype.forEach.call(document.querySelectorAll(".pill-option"), function(opt){
-      opt.addEventListener("click", function(e){
+        return;
+      }
+      var opt = e.target.closest(".pill-option");
+      if(opt){
         e.stopPropagation();
-        var dd = opt.closest(".pill-dropdown");
-        var key = dd.getAttribute("data-pill-dropdown");
+        var dd2 = opt.closest(".pill-dropdown");
+        var key = dd2.getAttribute("data-pill-dropdown");
         window.Ledger.overviewState[key] = opt.getAttribute("data-pill-val");
         window.Ledger.saveOverviewState();
         window.Ledger.renderPage();
-      });
+        return;
+      }
     });
     window.Ledger.wireTxRowActions();
   }
