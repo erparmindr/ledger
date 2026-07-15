@@ -7,8 +7,10 @@ window.Ledger.NAV_ITEMS = [
   {id:"overview", label:"Overview", ic:"layout-dashboard"},
   {id:"transactions", label:"Transactions", ic:"list"},
   {id:"accounts", label:"Accounts", ic:"wallet"},
-  {id:"creditcards", label:"Credit Cards", ic:"credit-card"},
   {id:"reports", label:"Reports", ic:"pie-chart"},
+  {id:"categories", label:"Categories", ic:"tag"},
+  {id:"payees", label:"Payees", ic:"users"},
+  {id:"scheduled", label:"Scheduled", ic:"repeat"},
   {id:"settings", label:"Settings", ic:"settings"}
 ];
 
@@ -81,10 +83,10 @@ window.Ledger.renderPage = function(){
   if(window.Ledger.currentPage === "overview") c.innerHTML = window.Ledger.pages.renderOverviewPage();
   else if(window.Ledger.currentPage === "transactions") c.innerHTML = window.Ledger.pages.renderRegisterPage();
   else if(window.Ledger.currentPage === "accounts") c.innerHTML = window.Ledger.pages.renderAccountsPage();
-  else if(window.Ledger.currentPage === "creditcards") c.innerHTML = window.Ledger.pages.renderCreditCardsPage();
-  else if(window.Ledger.currentPage === "people") c.innerHTML = window.Ledger.pages.renderPeoplePage();
   else if(window.Ledger.currentPage === "reports") c.innerHTML = window.Ledger.pages.renderReportsPage();
-  else if(window.Ledger.currentPage === "recurring") c.innerHTML = window.Ledger.pages.renderRecurringPage();
+  else if(window.Ledger.currentPage === "categories") c.innerHTML = window.Ledger.pages.renderCategoriesPage();
+  else if(window.Ledger.currentPage === "payees") c.innerHTML = window.Ledger.pages.renderPeoplePage();
+  else if(window.Ledger.currentPage === "scheduled") c.innerHTML = window.Ledger.pages.renderRecurringPage();
   else if(window.Ledger.currentPage === "settings") c.innerHTML = window.Ledger.pages.renderSettingsPage();
   window.Ledger.wirePageEvents();
   window.Ledger.refreshIcons();
@@ -156,24 +158,71 @@ window.Ledger.wirePageEvents = function(){
     });
   }
 
-  if(window.Ledger.currentPage === "creditcards"){
-    document.getElementById("addAcctBtn").addEventListener("click", function(){ window.Ledger.openAccountModal(null); });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-nav-link]"), function(b){
-      b.addEventListener("click", function(){
-        window.Ledger.navigateTo(b.getAttribute("data-nav-link"));
-        var filterAcc = b.getAttribute("data-filter-account");
-        if(filterAcc){
-          setTimeout(function(){
-            var sel = document.getElementById("fAccount");
-            if(sel){ sel.value = filterAcc; sel.dispatchEvent(new Event("change")); }
-          }, 100);
-        }
+  if(window.Ledger.currentPage === "categories"){
+    ["addCatBtnExpense","addCatBtnIncome","addCatBtnTransfer"].forEach(function(btnId){
+      var btn = document.getElementById(btnId);
+      if(btn) btn.addEventListener("click", function(){
+        var type = btnId === "addCatBtnExpense" ? "expense" : btnId === "addCatBtnIncome" ? "income" : "transfer";
+        var inputId = "newCatName" + type.charAt(0).toUpperCase() + type.slice(1);
+        var input = document.getElementById(inputId);
+        var name = input ? input.value.trim() : "";
+        if(!name){ window.Ledger.showToast("Enter a category name"); return; }
+        window.Ledger.DB.categories.push({ id: window.Ledger.uid(), type: type, name: name, subs: [] });
+        window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Category added");
       });
     });
-    window.Ledger.wireTxRowActions();
+    Array.prototype.forEach.call(document.querySelectorAll("[data-add-sub]"), function(b){
+      b.addEventListener("click", function(){
+        var catId = b.getAttribute("data-add-sub");
+        var name = prompt("Subcategory name:");
+        if(!name) return;
+        var cat = window.Ledger.DB.categories.find(function(c){ return c.id===catId; });
+        if(cat){ cat.subs.push({ id: window.Ledger.uid(), name: name }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Subcategory added"); }
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-rename-cat]"), function(b){
+      b.addEventListener("click", function(){
+        var catId = b.getAttribute("data-rename-cat");
+        var cat = window.Ledger.DB.categories.find(function(c){ return c.id===catId; });
+        if(!cat) return;
+        var name = prompt("Rename category:", cat.name);
+        if(!name) return;
+        cat.name = name; window.Ledger.saveData(); window.Ledger.renderPage();
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-del-cat]"), function(b){
+      b.addEventListener("click", function(){
+        var catId = b.getAttribute("data-del-cat");
+        window.Ledger.openConfirmModal("Delete category?", "Transactions using this category will keep working but it won't appear in new-transaction suggestions.", function(){
+          window.Ledger.DB.categories = window.Ledger.DB.categories.filter(function(c){ return c.id!==catId; }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Category deleted");
+        });
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-rename-sub]"), function(b){
+      b.addEventListener("click", function(){
+        var parts = b.getAttribute("data-rename-sub").split("|");
+        var cat = window.Ledger.DB.categories.find(function(c){ return c.id===parts[0]; });
+        if(!cat) return;
+        var sub = cat.subs.find(function(s){ return s.id===parts[1]; });
+        if(!sub) return;
+        var name = prompt("Rename subcategory:", sub.name);
+        if(!name) return;
+        sub.name = name; window.Ledger.saveData(); window.Ledger.renderPage();
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-del-sub]"), function(b){
+      b.addEventListener("click", function(){
+        var parts = b.getAttribute("data-del-sub").split("|");
+        var cat = window.Ledger.DB.categories.find(function(c){ return c.id===parts[0]; });
+        if(!cat) return;
+        window.Ledger.openConfirmModal("Delete subcategory?", "", function(){
+          cat.subs = cat.subs.filter(function(s){ return s.id!==parts[1]; }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Subcategory deleted");
+        });
+      });
+    });
   }
 
-  if(window.Ledger.currentPage === "people"){
+  if(window.Ledger.currentPage === "payees"){
     document.getElementById("addPersonBtn").addEventListener("click", function(){ window.Ledger.openPersonModal(null); });
     Array.prototype.forEach.call(document.querySelectorAll("[data-edit-person]"), function(b){
       b.addEventListener("click", function(){ window.Ledger.openPersonModal(window.Ledger.findPerson(b.getAttribute("data-edit-person"))); });
@@ -221,7 +270,7 @@ window.Ledger.wirePageEvents = function(){
     if(dlBackup) dlBackup.addEventListener("click", window.Ledger.exportBackup);
   }
 
-  if(window.Ledger.currentPage === "recurring"){
+  if(window.Ledger.currentPage === "scheduled"){
     document.getElementById("addRecurringBtn").addEventListener("click", function(){
       var name = document.getElementById("rName").value.trim();
       var amount = parseFloat(document.getElementById("rAmount").value);
