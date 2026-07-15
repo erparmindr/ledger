@@ -1,7 +1,5 @@
 window.Ledger = window.Ledger || {};
 
-window.Ledger.STORAGE_KEY = "ledger_app_v1";
-
 window.Ledger.CURRENCIES = ["USD","CAD","EUR","GBP","INR","AUD","JPY"];
 
 window.Ledger.ACCOUNT_TYPES = [

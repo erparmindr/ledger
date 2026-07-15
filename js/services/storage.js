@@ -189,17 +189,6 @@ window.Ledger = window.Ledger || {};
       if(this.ready){
         this.adapter.save(data);
       }
-    },
-
-    /**
-     * Wipe all persisted data.
-     */
-    clearAll: function(){
-      lsClear();
-      if(this.ready){
-        return this.adapter.clear();
-      }
-      return Promise.resolve();
     }
   };
 

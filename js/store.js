@@ -44,7 +44,6 @@ window.Ledger.defaultData = function() {
     transactions:[],
     categories:window.Ledger.defaultCategories(),
     recurring:[],
-    importMappings:{},
     debtItems:[],
     categoryLearning:{}
   };
@@ -83,7 +82,6 @@ window.Ledger.loadData = function() {
       transactions: parsed.transactions || [],
       categories: categories,
       recurring: recurring,
-      importMappings: parsed.importMappings || {},
       debtItems: parsed.debtItems || [],
       categoryLearning: parsed.categoryLearning || {}
     };

@@ -1,15 +1,6 @@
 window.Ledger = window.Ledger || {};
 window.Ledger.pages = window.Ledger.pages || {};
 
-window.Ledger.upcomingRecurring = function(withinDays){
-  var today = window.Ledger.todayISO();
-  return window.Ledger.DB.recurring.filter(function(r){
-    var due = window.Ledger.nextDueDate(r, today);
-    var diffDays = Math.round((new Date(due+"T00:00:00") - new Date(today+"T00:00:00")) / 86400000);
-    return diffDays <= withinDays;
-  });
-};
-
 window.Ledger.pages.renderRecurringPage = function(){
   var today = window.Ledger.todayISO();
   var rows = window.Ledger.DB.recurring.slice().sort(function(a,b){ return window.Ledger.nextDueDate(a,today).localeCompare(window.Ledger.nextDueDate(b,today)); }).map(function(r){

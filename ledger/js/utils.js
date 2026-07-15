@@ -92,11 +92,6 @@ window.Ledger.personBalanceByCurrency = function personBalanceByCurrency(personI
   return byCur;
 };
 
-window.Ledger.personBalance = function personBalance(personId){
-  var byCur = window.Ledger.personBalanceByCurrency(personId);
-  return Object.keys(byCur).reduce(function(sum, cur){ return sum + byCur[cur]; }, 0);
-};
-
 /* Debt/Loan helpers */
 window.Ledger.openDebtItemsForPerson = function openDebtItemsForPerson(personId){
   return Ledger.DB.debtItems.filter(function(d){ return d.personId === personId && d.status === "open"; })

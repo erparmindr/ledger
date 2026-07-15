@@ -395,7 +395,6 @@ window.Ledger.wirePageEvents = function(){
           window.Ledger.DB.transactions = fresh.transactions;
           window.Ledger.DB.categories = fresh.categories;
           window.Ledger.DB.recurring = fresh.recurring;
-          window.Ledger.DB.importMappings = fresh.importMappings;
           window.Ledger.saveData();
           window.Ledger.navigateTo("overview");
           window.Ledger.showToast("All data cleared — fresh start");

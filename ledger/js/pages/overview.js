@@ -192,10 +192,6 @@ window.Ledger.pages.renderOverviewPage = function(){
 /* ============================================================
    RECURRING HELPERS (used by overview + recurring page)
    ============================================================ */
-var _overviewPad2 = function(n){ n = String(n); return n.length < 2 ? "0" + n : n; };
-var _overviewTodayISOFromDate = function(d){
-  return d.getFullYear() + "-" + _overviewPad2(d.getMonth()+1) + "-" + _overviewPad2(d.getDate());
-};
 
 /* Computes the next due date (ISO string) for a recurring item on/after `fromDate` (ISO string, defaults to today).
    Supports weekly, biweekly, and monthly frequencies, all anchored to r.startDate. */
@@ -207,12 +203,12 @@ window.Ledger.nextDueDate = function(r, fromDate){
   if(r.frequency === "weekly" || r.frequency === "biweekly"){
     var stepDays = r.frequency === "weekly" ? 7 : 14;
     var diffDays = Math.round((from - start) / 86400000);
-    if(diffDays < 0) return _overviewTodayISOFromDate(start);
+    if(diffDays < 0) return window.Ledger.todayISOFromDate(start);
     var cyclesElapsed = Math.floor(diffDays / stepDays);
     var candidate = new Date(start);
     candidate.setDate(candidate.getDate() + cyclesElapsed * stepDays);
     if(candidate < from) candidate.setDate(candidate.getDate() + stepDays);
-    return _overviewTodayISOFromDate(candidate);
+    return window.Ledger.todayISOFromDate(candidate);
   }
 
   // monthly: anchor to the day-of-month from startDate
@@ -223,7 +219,7 @@ window.Ledger.nextDueDate = function(r, fromDate){
     if(nm > 11){ nm = 0; ny++; }
     candidateMonth = new Date(ny, nm, Math.min(day, window.Ledger.daysInMonth(ny, nm)));
   }
-  return _overviewTodayISOFromDate(candidateMonth);
+  return window.Ledger.todayISOFromDate(candidateMonth);
 };
 
 window.Ledger.daysInMonth = function(year, month){ return new Date(year, month+1, 0).getDate(); };

@@ -25,7 +25,6 @@ window.Ledger.importBackupFile = function(file){
         window.Ledger.DB.transactions = parsed.transactions || [];
         window.Ledger.DB.categories = parsed.categories || window.Ledger.defaultCategories();
         window.Ledger.DB.recurring = parsed.recurring || [];
-        window.Ledger.DB.importMappings = parsed.importMappings || {};
         window.Ledger.DB.debtItems = parsed.debtItems || [];
         window.Ledger.DB.categoryLearning = parsed.categoryLearning || {};
         window.Ledger.saveData();
