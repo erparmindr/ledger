@@ -104,4 +104,223 @@ window.Ledger.saveData = function() {
   }
 };
 
+/* ============================================================
+   MUTATION FUNCTIONS
+   Single entry points for all state changes.
+   Each function mutates DB, saves, and renders.
+   ============================================================ */
+
+// ---- Transactions ----
+
+window.Ledger.addTransaction = function(tx, skipSave) {
+  window.Ledger.DB.transactions.push(tx);
+  if(!skipSave){
+    window.Ledger.saveData();
+    window.Ledger.renderPage();
+  }
+};
+
+window.Ledger.addTransactionBatch = function(txArray, categoryLearning) {
+  for(var i = 0; i < txArray.length; i++){
+    window.Ledger.DB.transactions.push(txArray[i]);
+  }
+  if(categoryLearning){
+    for(var k in categoryLearning){
+      if(categoryLearning.hasOwnProperty(k)) window.Ledger.DB.categoryLearning[k] = categoryLearning[k];
+    }
+  }
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+};
+
+window.Ledger.updateTransaction = function(id, changes) {
+  var idx = window.Ledger.DB.transactions.findIndex(function(x){ return x.id === id; });
+  if(idx >= 0) Object.assign(window.Ledger.DB.transactions[idx], changes);
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+};
+
+window.Ledger.upsertTransaction = function(rec) {
+  var idx = window.Ledger.DB.transactions.findIndex(function(x){ return x.id === rec.id; });
+  if(idx >= 0) window.Ledger.DB.transactions[idx] = rec;
+  else window.Ledger.DB.transactions.push(rec);
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+};
+
+window.Ledger.deleteTransaction = function(id) {
+  window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(x){ return x.id !== id; });
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+};
+
+window.Ledger.deleteTransactionsByLink = function(linkId) {
+  window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(x){ return x.linkId !== linkId; });
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+};
+
+// ---- Accounts ----
+
+window.Ledger.addAccount = function(acct) {
+  window.Ledger.DB.accounts.push(acct);
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+};
+
+window.Ledger.updateAccount = function(rec) {
+  var idx = window.Ledger.DB.accounts.findIndex(function(x){ return x.id === rec.id; });
+  if(idx >= 0) window.Ledger.DB.accounts[idx] = rec;
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+};
+
+window.Ledger.archiveAccount = function(id) {
+  var a = window.Ledger.findAccount(id);
+  if(a) a.archived = true;
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+  window.Ledger.showToast("Account archived");
+};
+
+window.Ledger.unarchiveAccount = function(id) {
+  var a = window.Ledger.findAccount(id);
+  if(a) a.archived = false;
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+  window.Ledger.showToast("Account restored");
+};
+
+// ---- Categories ----
+
+window.Ledger.addCategory = function(type, name) {
+  window.Ledger.DB.categories.push({ id: window.Ledger.uid(), type: type, name: name, subs: [] });
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+  window.Ledger.showToast("Category added");
+};
+
+window.Ledger.renameCategory = function(catId, name) {
+  var cat = window.Ledger.DB.categories.find(function(c){ return c.id === catId; });
+  if(cat) cat.name = name;
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+};
+
+window.Ledger.deleteCategory = function(catId) {
+  window.Ledger.DB.categories = window.Ledger.DB.categories.filter(function(c){ return c.id !== catId; });
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+  window.Ledger.showToast("Category deleted");
+};
+
+window.Ledger.addSubcategory = function(catId, name) {
+  var cat = window.Ledger.DB.categories.find(function(c){ return c.id === catId; });
+  if(cat){ cat.subs.push({ id: window.Ledger.uid(), name: name }); }
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+  window.Ledger.showToast("Subcategory added");
+};
+
+window.Ledger.renameSubcategory = function(catId, subId, name) {
+  var cat = window.Ledger.DB.categories.find(function(c){ return c.id === catId; });
+  if(cat){
+    var sub = cat.subs.find(function(s){ return s.id === subId; });
+    if(sub) sub.name = name;
+  }
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+};
+
+window.Ledger.deleteSubcategory = function(catId, subId) {
+  var cat = window.Ledger.DB.categories.find(function(c){ return c.id === catId; });
+  if(cat) cat.subs = cat.subs.filter(function(s){ return s.id !== subId; });
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+  window.Ledger.showToast("Subcategory deleted");
+};
+
+// ---- Recurring ----
+
+window.Ledger.addRecurring = function(obj) {
+  window.Ledger.DB.recurring.push(obj);
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+  window.Ledger.showToast("Recurring item added");
+};
+
+window.Ledger.deleteRecurring = function(id) {
+  window.Ledger.DB.recurring = window.Ledger.DB.recurring.filter(function(r){ return r.id !== id; });
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+};
+
+// ---- People ----
+
+window.Ledger.addPerson = function(obj) {
+  window.Ledger.DB.people.push(obj);
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+  window.Ledger.showToast("Person added");
+};
+
+window.Ledger.updatePerson = function(rec) {
+  var idx = window.Ledger.DB.people.findIndex(function(x){ return x.id === rec.id; });
+  if(idx >= 0) window.Ledger.DB.people[idx] = rec;
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+  window.Ledger.showToast("Person updated");
+};
+
+window.Ledger.deletePerson = function(id) {
+  window.Ledger.DB.people = window.Ledger.DB.people.filter(function(p){ return p.id !== id; });
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+  window.Ledger.showToast("Person deleted");
+};
+
+// ---- Debt Items ----
+
+window.Ledger.replaceDebtItemsForTransaction = function(mainId, debtItems) {
+  window.Ledger.DB.debtItems = window.Ledger.DB.debtItems.filter(function(d){ return d.sourceTransactionId !== mainId; });
+  for(var i = 0; i < debtItems.length; i++){
+    window.Ledger.DB.debtItems.push(debtItems[i]);
+  }
+};
+
+window.Ledger.updateDebtItem = function(id, changes, skipSave) {
+  var d = window.Ledger.DB.debtItems.find(function(x){ return x.id === id; });
+  if(d) Object.assign(d, changes);
+  if(!skipSave){
+    window.Ledger.saveData();
+    window.Ledger.renderPage();
+  }
+};
+
+// ---- Category Learning ----
+
+window.Ledger.learnCategory = function(desc, catId) {
+  if(!desc || !catId) return;
+  if(!window.Ledger.DB.categoryLearning) window.Ledger.DB.categoryLearning = {};
+  var key = window.Ledger.learnedCategoryKey(desc);
+  var firstToken = key.split(" ")[0] || "";
+  if(firstToken.length >= 4){
+    window.Ledger.DB.categoryLearning[firstToken] = catId;
+  }
+};
+
+// ---- Full data replacement (reset, backup import) ----
+
+window.Ledger.replaceAllData = function(data) {
+  window.Ledger.DB.accounts = data.accounts || [];
+  window.Ledger.DB.people = data.people || [];
+  window.Ledger.DB.transactions = data.transactions || [];
+  window.Ledger.DB.categories = data.categories || window.Ledger.defaultCategories();
+  window.Ledger.DB.recurring = data.recurring || [];
+  window.Ledger.DB.debtItems = data.debtItems || [];
+  window.Ledger.DB.categoryLearning = data.categoryLearning || {};
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+};
+
 window.Ledger.DB = window.Ledger.loadData();

@@ -447,6 +447,8 @@ window.Ledger.openTxModal = function(existing){
           } else {
             window.Ledger.commitLinkedTransferPair(window.Ledger.uid(), date, amount, convertedAmount, desc, notes, fromType, fromId, toType, toId, Date.now());
           }
+          window.Ledger.closeModal();
+          window.Ledger.showToast("Cross-currency transfer saved");
           return;
         }
 
@@ -457,6 +459,8 @@ window.Ledger.openTxModal = function(existing){
           created: isEdit ? t.created : Date.now()
         };
         window.Ledger.commitTransaction(rec, isEdit);
+        window.Ledger.closeModal();
+        window.Ledger.showToast(isEdit ? "Transaction updated" : "Transaction added");
       } else {
         var account = document.getElementById("txAccount").value;
         if(!account){ window.Ledger.showToast("Select an account"); return; }
@@ -478,11 +482,10 @@ window.Ledger.openTxModal = function(existing){
             created: isEdit ? t.created : Date.now()
           };
           if(isEdit){
-            var idx = window.Ledger.DB.transactions.findIndex(function(x){ return x.id===mainId; });
-            if(idx>=0) window.Ledger.DB.transactions[idx] = mainRec; else window.Ledger.DB.transactions.push(mainRec);
-            window.Ledger.DB.debtItems = window.Ledger.DB.debtItems.filter(function(d){ return d.sourceTransactionId !== mainId; });
+            window.Ledger.upsertTransaction(mainRec);
+            window.Ledger.replaceDebtItemsForTransaction(mainId, []);
           } else {
-            window.Ledger.DB.transactions.push(mainRec);
+            window.Ledger.addTransaction(mainRec);
           }
           friendSplit.shares.forEach(function(share){
             window.Ledger.DB.debtItems.push({
@@ -522,6 +525,8 @@ window.Ledger.openTxModal = function(existing){
             created: isEdit ? t.created : Date.now()
           };
           window.Ledger.commitTransaction(rec3, isEdit);
+          window.Ledger.closeModal();
+          window.Ledger.showToast(isEdit ? "Transaction updated" : "Transaction added");
           return;
         }
 
@@ -533,22 +538,15 @@ window.Ledger.openTxModal = function(existing){
         };
         if(currentType === "refund" && refundOf) rec2.refundOf = refundOf;
         window.Ledger.commitTransaction(rec2, isEdit);
+        window.Ledger.closeModal();
+        window.Ledger.showToast(isEdit ? "Transaction updated" : "Transaction added");
       }
     });
   });
 };
 
 window.Ledger.commitTransaction = function(rec, isEdit){
-  if(isEdit){
-    var idx = window.Ledger.DB.transactions.findIndex(function(x){ return x.id === rec.id; });
-    if(idx >= 0) window.Ledger.DB.transactions[idx] = rec;
-  } else {
-    window.Ledger.DB.transactions.push(rec);
-  }
-  window.Ledger.saveData();
-  window.Ledger.closeModal();
-  window.Ledger.showToast(isEdit ? "Transaction updated" : "Transaction added");
-  window.Ledger.renderPage();
+  window.Ledger.upsertTransaction(rec);
 };
 
 /* Cross-currency transfer between own accounts/people: creates two linked rows
@@ -559,38 +557,32 @@ window.Ledger.commitLinkedTransferPair = function(linkId, date, fromAmount, toAm
   var toRef = window.Ledger.entityRef(toType, toId);
   var baseDesc = desc || "Transfer";
 
-  // Remove any existing rows for this linkId first (covers the edit case)
-  window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(x){ return x.linkId !== linkId; });
+  var rows = [];
+  if(fromType === "account"){
+    rows.push({
+      id: window.Ledger.uid(), type: "expense", date: date, amount: fromAmount,
+      desc: baseDesc + " \u2192 " + (toRef ? toRef.name : "?"),
+      notes: notes, account: (fromType==="account" ? fromId : null),
+      person: (fromType==="person" ? fromId : null),
+      category: "", subcategory: "",
+      linkId: linkId, linkRole: "out", linkCurrency: toRef ? toRef.currency : "",
+      created: createdTs
+    });
+  }
+  if(toType === "account"){
+    rows.push({
+      id: window.Ledger.uid(), type: "income", date: date, amount: toAmount,
+      desc: baseDesc + " \u2190 " + (fromRef ? fromRef.name : "?"),
+      notes: notes, account: (toType==="account" ? toId : null),
+      person: (toType==="person" ? toId : null),
+      category: "", subcategory: "",
+      linkId: linkId, linkRole: "in", linkCurrency: fromRef ? fromRef.currency : "",
+      created: createdTs
+    });
+  }
 
-  var outRec = {
-    id: window.Ledger.uid(), type: "expense", date: date, amount: fromAmount,
-    desc: baseDesc + " \u2192 " + (toRef ? toRef.name : "?"),
-    notes: notes, account: (fromType==="account" ? fromId : null),
-    person: (fromType==="person" ? fromId : null),
-    category: "", subcategory: "",
-    linkId: linkId, linkRole: "out", linkCurrency: toRef ? toRef.currency : "",
-    created: createdTs
-  };
-  var inRec = {
-    id: window.Ledger.uid(), type: "income", date: date, amount: toAmount,
-    desc: baseDesc + " \u2190 " + (fromRef ? fromRef.name : "?"),
-    notes: notes, account: (toType==="account" ? toId : null),
-    person: (toType==="person" ? toId : null),
-    category: "", subcategory: "",
-    linkId: linkId, linkRole: "in", linkCurrency: fromRef ? fromRef.currency : "",
-    created: createdTs
-  };
-
-  // Only push rows for the "account" side — person-side cross-currency transfers
-  // are rare and people don't carry a running multi-currency ledger here, so we
-  // still record against the account leg(s) that exist.
-  if(fromType === "account") window.Ledger.DB.transactions.push(outRec);
-  if(toType === "account") window.Ledger.DB.transactions.push(inRec);
-
-  window.Ledger.saveData();
-  window.Ledger.closeModal();
-  window.Ledger.showToast("Cross-currency transfer added (2 linked entries)");
-  window.Ledger.renderPage();
+  window.Ledger.deleteTransactionsByLink(linkId);
+  window.Ledger.addTransactionBatch(rows);
 };
 
 /* ---------- Account modal ---------- */
@@ -632,15 +624,12 @@ window.Ledger.openAccountModal = function(existing){
         created: isEdit ? a.created : Date.now()
       };
       if(isEdit){
-        var idx = window.Ledger.DB.accounts.findIndex(function(x){ return x.id===a.id; });
-        window.Ledger.DB.accounts[idx] = rec;
+        window.Ledger.updateAccount(rec);
       } else {
-        window.Ledger.DB.accounts.push(rec);
+        window.Ledger.addAccount(rec);
       }
-      window.Ledger.saveData();
       window.Ledger.closeModal();
       window.Ledger.showToast(isEdit ? "Account updated" : "Account added");
-      window.Ledger.renderPage();
     });
   });
 };
@@ -666,9 +655,9 @@ window.Ledger.openPersonModal = function(existing){
       var name = document.getElementById("pName").value.trim();
       if(!name){ window.Ledger.showToast("Enter a name"); return; }
       var rec = { id: isEdit?p.id:window.Ledger.uid(), name:name, created: isEdit?p.created:Date.now() };
-      if(isEdit){ var idx = window.Ledger.DB.people.findIndex(function(x){return x.id===p.id;}); window.Ledger.DB.people[idx]=rec; }
-      else window.Ledger.DB.people.push(rec);
-      window.Ledger.saveData(); window.Ledger.closeModal(); window.Ledger.showToast(isEdit?"Person updated":"Person added"); window.Ledger.renderPage();
+      if(isEdit){ window.Ledger.updatePerson(rec); }
+      else window.Ledger.addPerson(rec);
+      window.Ledger.closeModal();
     });
   });
 };

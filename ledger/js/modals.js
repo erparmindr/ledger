@@ -91,9 +91,8 @@ window.Ledger.openMarkPaidModal = function (debtItem) {
     document.getElementById("confirmPaidBtn").addEventListener("click", function () {
       var accountId = document.getElementById("paidAccount").value;
       if (!accountId) { window.Ledger.showToast("Choose an account"); return; }
-      debtItem.status = "settled";
-      debtItem.settledDate = window.Ledger.todayISO();
-      window.Ledger.DB.transactions.push({
+      window.Ledger.updateDebtItem(debtItem.id, { status: "settled", settledDate: window.Ledger.todayISO() }, true);
+      window.Ledger.addTransaction({
         id: window.Ledger.uid(),
         type: "transfer",
         date: window.Ledger.todayISO(),

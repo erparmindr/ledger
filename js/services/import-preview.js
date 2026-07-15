@@ -266,6 +266,8 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
 
       var imported = 0;
       var importedIds = [];
+      var txArray = [];
+      var learnMap = {};
       Array.prototype.forEach.call(checks, function(chk, i){
         if(!chk.checked) return;
         var r = parsedRows[i];
@@ -287,24 +289,23 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
             txObj.toType = "account";
             txObj.toId = toAccountId;
           }
-          window.Ledger.DB.transactions.push(txObj);
+          txArray.push(txObj);
           importedIds.push(newId);
         } else {
           var newId2 = window.Ledger.uid();
-          window.Ledger.DB.transactions.push({
+          txArray.push({
             id: newId2, type: chosenType, date: r.date, amount: Math.abs(r.amount),
             desc: chosenDesc, notes: "Imported from " + (source||"import"),
             account: account, category: chosenCategory, subcategory: "", created: Date.now()
           });
           importedIds.push(newId2);
-          window.Ledger.learnCategoryMapping(chosenDesc, chosenCategory, window.Ledger.DB);
+          window.Ledger.learnCategory(chosenDesc, chosenCategory);
         }
         imported++;
       });
-      window.Ledger.saveData();
+      window.Ledger.addTransactionBatch(txArray);
       window.Ledger.closeModal();
       window.Ledger.showToast(imported + " transaction"+(imported===1?"":"s")+" imported");
-      window.Ledger.renderPage();
       window.Ledger.promptLinkTransfers(account, importedIds);
     });
   });
@@ -386,8 +387,11 @@ window.Ledger.promptLinkTransfers = function(importedAccountId, importedIds){
         var newTx = window.Ledger.DB.transactions.find(function(t){ return t.id === newId; });
         var existingTx = window.Ledger.DB.transactions.find(function(t){ return t.id === existingId; });
         if(newTx && existingTx){
-          existingTx.amount = Math.max(Math.abs(existingTx.amount), Math.abs(newTx.amount));
-          existingTx.desc = existingTx.desc + " / " + newTx.desc;
+          var existingIdx = window.Ledger.DB.transactions.findIndex(function(t){ return t.id === existingId; });
+          if(existingIdx >= 0){
+            window.Ledger.DB.transactions[existingIdx].amount = Math.max(Math.abs(existingTx.amount), Math.abs(newTx.amount));
+            window.Ledger.DB.transactions[existingIdx].desc = existingTx.desc + " / " + newTx.desc;
+          }
           window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(t){ return t.id !== newId; });
           window.Ledger.saveData();
           var wrapper = btn.closest('[data-link-idx]');
@@ -457,14 +461,11 @@ window.Ledger.openLinkTransferModal = function(txId){
       var toAccountId = document.getElementById("linkToAcc").value;
       var newDesc = document.getElementById("linkDesc").value.trim();
       if(!toAccountId){ window.Ledger.showToast("Pick a destination account"); return; }
-      tx.toType = "account";
-      tx.toId = toAccountId;
-      tx.pending = false;
-      if(newDesc) tx.desc = newDesc;
-      window.Ledger.saveData();
+      var changes = { toType: "account", toId: toAccountId, pending: false };
+      if(newDesc) changes.desc = newDesc;
+      window.Ledger.updateTransaction(tx.id, changes);
       window.Ledger.closeModal();
       window.Ledger.showToast("Transfer linked");
-      window.Ledger.renderPage();
     });
   });
 };

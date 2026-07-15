@@ -20,16 +20,8 @@ window.Ledger.importBackupFile = function(file){
       var parsed = JSON.parse(e.target.result);
       if(!parsed.accounts || !parsed.transactions){ window.Ledger.showToast("That doesn't look like a valid backup file"); return; }
       window.Ledger.openConfirmModal("Restore backup?", "This will replace all current data in this browser with the contents of the backup file. This can't be undone. Continue?", function(){
-        window.Ledger.DB.accounts = parsed.accounts || [];
-        window.Ledger.DB.people = parsed.people || [];
-        window.Ledger.DB.transactions = parsed.transactions || [];
-        window.Ledger.DB.categories = parsed.categories || window.Ledger.defaultCategories();
-        window.Ledger.DB.recurring = parsed.recurring || [];
-        window.Ledger.DB.debtItems = parsed.debtItems || [];
-        window.Ledger.DB.categoryLearning = parsed.categoryLearning || {};
-        window.Ledger.saveData();
+        window.Ledger.replaceAllData(parsed);
         window.Ledger.showToast("Backup restored");
-        window.Ledger.renderPage();
       });
     }catch(err){
       window.Ledger.showToast("Couldn't read that file — is it a valid backup?");

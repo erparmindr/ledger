@@ -67,12 +67,6 @@ window.Ledger.suggestCategoryForDescription = function suggestCategoryForDescrip
   return null;
 };
 
-window.Ledger.learnCategoryMapping = function learnCategoryMapping(desc, categoryId, DB) {
-  if(!desc || !categoryId) return;
-  if(!DB.categoryLearning) DB.categoryLearning = {};
-  var key = window.Ledger.learnedCategoryKey(desc);
-  var firstToken = key.split(" ")[0] || "";
-  if(firstToken.length >= 4){
-    DB.categoryLearning[firstToken] = categoryId;
-  }
+window.Ledger.learnCategoryMapping = function learnCategoryMapping(desc, categoryId) {
+  window.Ledger.learnCategory(desc, categoryId);
 };

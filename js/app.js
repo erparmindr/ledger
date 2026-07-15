@@ -120,7 +120,7 @@ window.Ledger.wirePageEvents = function(){
         var id = b.getAttribute("data-archive-acct");
         var a = window.Ledger.findAccount(id);
         window.Ledger.openConfirmModal("Archive account?", "Archive \"" + (a?a.name:"") + "\"? It will be hidden from active lists but all transactions stay intact. You can unarchive it later from the Archived section.", function(){
-          a.archived = true; window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Account archived");
+          window.Ledger.archiveAccount(id);
         });
       });
     });
@@ -128,7 +128,7 @@ window.Ledger.wirePageEvents = function(){
       b.addEventListener("click", function(){
         var id = b.getAttribute("data-unarchive-acct");
         var a = window.Ledger.findAccount(id);
-        if(a){ a.archived = false; window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Account restored"); }
+        if(a){ window.Ledger.unarchiveAccount(id); }
       });
     });
   }
@@ -150,8 +150,7 @@ window.Ledger.wirePageEvents = function(){
         var input = document.getElementById(inputId);
         var name = input ? input.value.trim() : "";
         if(!name){ window.Ledger.showToast("Enter a category name"); return; }
-        window.Ledger.DB.categories.push({ id: window.Ledger.uid(), type: type, name: name, subs: [] });
-        window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Category added");
+        window.Ledger.addCategory(type, name);
       });
     });
     // Enter key to add
@@ -170,10 +169,9 @@ window.Ledger.wirePageEvents = function(){
     Array.prototype.forEach.call(document.querySelectorAll("[data-add-sub]"), function(b){
       b.addEventListener("click", function(){
         var catId = b.getAttribute("data-add-sub");
-        window.Ledger.openTextPromptModal("Add subcategory", "Subcategory name", "", function(name){
-          var cat = window.Ledger.DB.categories.find(function(c){ return c.id===catId; });
-          if(cat){ cat.subs.push({ id: window.Ledger.uid(), name: name }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Subcategory added"); }
-        });
+          window.Ledger.openTextPromptModal("Add subcategory", "Subcategory name", "", function(name){
+            window.Ledger.addSubcategory(catId, name);
+          });
       });
     });
     // Rename category
@@ -183,7 +181,7 @@ window.Ledger.wirePageEvents = function(){
         var cat = window.Ledger.DB.categories.find(function(c){ return c.id===catId; });
         if(!cat) return;
         window.Ledger.openTextPromptModal("Rename category", "Category name", cat.name, function(name){
-          cat.name = name; window.Ledger.saveData(); window.Ledger.renderPage();
+          window.Ledger.renameCategory(catId, name);
         });
       });
     });
@@ -203,7 +201,7 @@ window.Ledger.wirePageEvents = function(){
           ? 'This category is used by ' + usage + ' transaction' + (usage !== 1 ? 's' : '') + '. Deleting it won\'t remove those transactions, but the category will show as missing in old entries. Continue?'
           : 'Transactions using this category will keep working but it won\'t appear in new-transaction suggestions. Continue?';
         window.Ledger.openConfirmModal("Delete " + (cat ? cat.name : "category") + "?", msg, function(){
-          window.Ledger.DB.categories = window.Ledger.DB.categories.filter(function(c){ return c.id!==catId; }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Category deleted");
+          window.Ledger.deleteCategory(catId);
         });
       });
     });
@@ -216,7 +214,7 @@ window.Ledger.wirePageEvents = function(){
         var sub = cat.subs.find(function(s){ return s.id===parts[1]; });
         if(!sub) return;
         window.Ledger.openTextPromptModal("Rename subcategory", "Subcategory name", sub.name, function(name){
-          sub.name = name; window.Ledger.saveData(); window.Ledger.renderPage();
+          window.Ledger.renameSubcategory(parts[0], parts[1], name);
         });
       });
     });
@@ -226,7 +224,7 @@ window.Ledger.wirePageEvents = function(){
         var cat = window.Ledger.DB.categories.find(function(c){ return c.id===parts[0]; });
         if(!cat) return;
         window.Ledger.openConfirmModal("Delete subcategory?", "", function(){
-          cat.subs = cat.subs.filter(function(s){ return s.id!==parts[1]; }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Subcategory deleted");
+          window.Ledger.deleteSubcategory(parts[0], parts[1]);
         });
       });
     });
@@ -241,7 +239,7 @@ window.Ledger.wirePageEvents = function(){
       b.addEventListener("click", function(){
         var id = b.getAttribute("data-del-person");
         window.Ledger.openConfirmModal("Delete person?", "Existing transfers referencing them will remain but show as a missing person. Continue?", function(){
-          window.Ledger.DB.people = window.Ledger.DB.people.filter(function(p){ return p.id!==id; }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Person deleted");
+          window.Ledger.deletePerson(id);
         });
       });
     });
@@ -260,10 +258,7 @@ window.Ledger.wirePageEvents = function(){
         if(!personId) return;
         var d = window.Ledger.DB.debtItems.find(function(x){ return x.id === debtId; });
         if(d){
-          d.personId = personId;
-          d.status = "open";
-          window.Ledger.saveData();
-          window.Ledger.renderPage();
+          window.Ledger.updateDebtItem(debtId, { personId: personId, status: "open" });
           window.Ledger.showToast("Assigned to " + ((window.Ledger.findPerson(personId)||{}).name||"person"));
         }
       });
@@ -304,8 +299,7 @@ window.Ledger.wirePageEvents = function(){
       var type = document.getElementById("rType").value;
       var account = document.getElementById("rAccount").value;
       if(!name || !amount || amount<=0 || !startDate || !account){ window.Ledger.showToast("Fill in all fields"); return; }
-      window.Ledger.DB.recurring.push({ id:window.Ledger.uid(), name:name, amount:amount, frequency:frequency, startDate:startDate, type:type, account:account });
-      window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Recurring item added");
+      window.Ledger.addRecurring({ id:window.Ledger.uid(), name:name, amount:amount, frequency:frequency, startDate:startDate, type:type, account:account });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-confirm-recurring]"), function(b){
       b.addEventListener("click", function(){
@@ -313,7 +307,7 @@ window.Ledger.wirePageEvents = function(){
         var r = window.Ledger.DB.recurring.find(function(x){ return x.id===id; });
         if(!r) return;
         var acc = window.Ledger.findAccount(r.account);
-        window.Ledger.DB.transactions.push({
+        window.Ledger.addTransaction({
           id:window.Ledger.uid(), type:r.type, date:window.Ledger.todayISO(), amount:r.amount, desc:r.name,
           notes:"Posted from recurring item", account:r.account, category:"", subcategory:"", created:Date.now()
         });
@@ -327,13 +321,15 @@ window.Ledger.wirePageEvents = function(){
           d2.setMonth(d2.getMonth() + 1);
           r.startDate = window.Ledger.todayISOFromDate(d2);
         }
-        window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast(r.name + " posted to " + (acc?acc.name:"account"));
+        window.Ledger.saveData();
+        window.Ledger.renderPage();
+        window.Ledger.showToast(r.name + " posted to " + (acc?acc.name:"account"));
       });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-del-recurring]"), function(b){
       b.addEventListener("click", function(){
         var id = b.getAttribute("data-del-recurring");
-        window.Ledger.DB.recurring = window.Ledger.DB.recurring.filter(function(r){ return r.id!==id; }); window.Ledger.saveData(); window.Ledger.renderPage();
+        window.Ledger.deleteRecurring(id);
       });
     });
   }
@@ -357,8 +353,7 @@ window.Ledger.wirePageEvents = function(){
         "Reset all data?",
         "This will permanently delete all accounts, transactions, people, categories and recurring items from this browser. Export a backup first if you want to keep anything. This cannot be undone.",
         function(){
-          window.Ledger.DB = window.Ledger.defaultData();
-          window.Ledger.saveData();
+          window.Ledger.replaceAllData(window.Ledger.defaultData());
           window.Ledger.navigateTo("overview");
           window.Ledger.showToast("All data cleared — fresh start");
         }
@@ -384,11 +379,11 @@ window.Ledger.wireTxRowActions = function(){
         : "This can't be undone.";
       window.Ledger.openConfirmModal("Delete transaction?", msg, function(){
         if(isLinked){
-          window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(x){ return x.linkId !== t.linkId; });
+          window.Ledger.deleteTransactionsByLink(t.linkId);
         } else {
-          window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(x){ return x.id!==id; });
+          window.Ledger.deleteTransaction(id);
         }
-        window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast(isLinked ? "Both linked entries deleted" : "Transaction deleted");
+        window.Ledger.showToast(isLinked ? "Both linked entries deleted" : "Transaction deleted");
       });
     });
   });
