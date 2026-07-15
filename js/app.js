@@ -313,65 +313,6 @@ window.Ledger.wirePageEvents = function(){
   }
 
   if(window.Ledger.currentPage === "settings"){
-    document.getElementById("addCatBtnExpense").addEventListener("click", function(){
-      var input = document.getElementById("newCatNameExpense");
-      var name = input.value.trim();
-      if(!name){ window.Ledger.showToast("Enter a category name"); return; }
-      window.Ledger.DB.categories.push({ id:window.Ledger.uid(), name:name, type:"expense", subs:[] });
-      window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Expense category added");
-    });
-    document.getElementById("addCatBtnIncome").addEventListener("click", function(){
-      var input = document.getElementById("newCatNameIncome");
-      var name = input.value.trim();
-      if(!name){ window.Ledger.showToast("Enter a category name"); return; }
-      window.Ledger.DB.categories.push({ id:window.Ledger.uid(), name:name, type:"income", subs:[] });
-      window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Income category added");
-    });
-    document.getElementById("addCatBtnTransfer").addEventListener("click", function(){
-      var input = document.getElementById("newCatNameTransfer");
-      var name = input.value.trim();
-      if(!name){ window.Ledger.showToast("Enter a category name"); return; }
-      window.Ledger.DB.categories.push({ id:window.Ledger.uid(), name:name, type:"transfer", subs:[] });
-      window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Transfer category added");
-    });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-rename-cat]"), function(b){
-      b.addEventListener("click", function(){
-        var c = window.Ledger.findCategory(b.getAttribute("data-rename-cat"));
-        window.Ledger.openTextPromptModal("Rename category", "Category name", c.name, function(v){ c.name=v; window.Ledger.saveData(); window.Ledger.renderPage(); });
-      });
-    });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-del-cat]"), function(b){
-      b.addEventListener("click", function(){
-        var id = b.getAttribute("data-del-cat");
-        window.Ledger.openConfirmModal("Delete category?", "Transactions using this category will keep their data but show as uncategorized. Continue?", function(){
-          window.Ledger.DB.categories = window.Ledger.DB.categories.filter(function(c){ return c.id!==id; }); window.Ledger.saveData(); window.Ledger.renderPage();
-        });
-      });
-    });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-add-sub]"), function(b){
-      b.addEventListener("click", function(){
-        var c = window.Ledger.findCategory(b.getAttribute("data-add-sub"));
-        window.Ledger.openTextPromptModal("Add subcategory to " + c.name, "Subcategory name", "", function(v){
-          c.subs.push({ id:window.Ledger.uid(), name:v }); window.Ledger.saveData(); window.Ledger.renderPage();
-        });
-      });
-    });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-rename-sub]"), function(b){
-      b.addEventListener("click", function(){
-        var parts = b.getAttribute("data-rename-sub").split("|");
-        var c = window.Ledger.findCategory(parts[0]); var s = c.subs.find(function(x){return x.id===parts[1];});
-        window.Ledger.openTextPromptModal("Rename subcategory", "Subcategory name", s.name, function(v){ s.name=v; window.Ledger.saveData(); window.Ledger.renderPage(); });
-      });
-    });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-del-sub]"), function(b){
-      b.addEventListener("click", function(){
-        var parts = b.getAttribute("data-del-sub").split("|");
-        var c = window.Ledger.findCategory(parts[0]);
-        c.subs = c.subs.filter(function(x){ return x.id!==parts[1]; });
-        window.Ledger.saveData(); window.Ledger.renderPage();
-      });
-    });
-
     document.getElementById("exportBackupBtn").addEventListener("click", window.Ledger.exportBackup);
     document.getElementById("importBackupBtn").addEventListener("click", function(){ document.getElementById("importBackupFile").click(); });
     document.getElementById("importBackupFile").addEventListener("change", function(e){
