@@ -242,7 +242,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .search-box{
   display:flex; align-items:center; gap:8px;
   background:var(--surface-2); border:1px solid var(--border);
-  border-radius:var(--radius-md); padding:8px 14px; min-width:210px;
+  border-radius:var(--radius-md); padding:8px 14px; min-width:210px; width:300px;
   transition:border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 .search-box:focus-within{ border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
@@ -538,7 +538,7 @@ select:focus-visible{
 .empty-icon{ width:48px; height:48px; margin:0 auto 12px; border-radius:50%; background:var(--surface-2); border:1px solid var(--border-soft); display:flex; align-items:center; justify-content:center; }
 .empty-icon svg{ width:22px; height:22px; stroke:var(--text-faint); fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
 .empty-desc{ font-size:13px; color:var(--text-dim); margin-bottom:12px; line-height:1.5; max-width:320px; margin-left:auto; margin-right:auto; }
-.empty-tip{ font-size:11.5px; color:var(--text-faint); margin-bottom:14px; line-height:1.45; max-width:300px; margin-left:auto; margin-right:auto; font-weight:500; }
+.empty-tip{ font-size:11.5px; color:var(--text-dim); margin-bottom:14px; line-height:1.45; max-width:300px; margin-left:auto; margin-right:auto; font-weight:500; }
 .empty-cta{ margin-top:2px; }
 .empty-cta .btn{ min-width:140px; justify-content:center; }
 .empty-icon--line{ background:transparent; border:none; }
@@ -592,7 +592,7 @@ select:focus-visible{
 }
 .clear-filters:hover{ border-color:var(--clay); color:var(--clay); background:var(--clay-soft); }
 .filters-bar .spacer{ flex:1; min-width:0; }
-.filters-bar .btn{ height:34px; padding:0 14px; font-size:12px; }
+.filters-bar .btn{ height:34px; padding:0 14px; font-size:12px; margin-left:8px; }
 .filters-bar .btn:disabled{ opacity:.4; cursor:not-allowed; pointer-events:none; }
 
 /* ---- Register summary chips ---- */
@@ -649,7 +649,7 @@ select:focus-visible{
 .tx-col-header.show-runbal .col-runbal{ display:block; }
 
 /* ---- Register empty state (enhanced) ---- */
-.register-empty{ padding:32px 24px 40px; text-align:center; display:flex; align-items:center; justify-content:center; min-height:460px; }
+.register-empty{ padding:32px 24px 40px; text-align:center; display:flex; align-items:center; justify-content:center; min-height:460px; margin-top:24px; }
 
 /* ---- Account / People cards ---- */
 .acct-card{
@@ -1021,8 +1021,10 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   .tx-col-header .col-cat{ display:none!important; }
   .tx-col-header .col-acct{ display:none!important; }
   .tx-col-header .col-runbal{ display:none!important; }
-  .register-empty{ min-height:300px; padding:24px 16px 32px; }
+  .register-empty{ min-height:300px; padding:24px 16px 32px; margin-top:16px; }
   .filters-bar .clear-filters{ margin-left:0; margin-top:4px; }
+  .filters-bar .btn{ margin-left:0; }
+  .search-box{ width:100%; min-width:0; }
 }
 
 /* ============================================================
