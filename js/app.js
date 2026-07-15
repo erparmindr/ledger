@@ -476,18 +476,14 @@ document.addEventListener("DOMContentLoaded", function(){
     var opt = e.target.closest(".pill-option");
     if(opt){
       e.stopPropagation();
-      e.preventDefault();
       var dd2 = opt.closest(".pill-dropdown");
       var key = dd2.getAttribute("data-pill-dropdown");
-      var val = opt.getAttribute("data-pill-val");
-      console.log("PILL CLICK:", key, "=", val);
-      window.Ledger.overviewState[key] = val;
+      window.Ledger.overviewState[key] = opt.getAttribute("data-pill-val");
       window.Ledger.saveOverviewState();
-      console.log("State saved:", JSON.stringify(window.Ledger.overviewState));
       window.Ledger.renderPage();
       return;
     }
-  }, true);
+  });
 
   if("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
     window.addEventListener("load", function(){

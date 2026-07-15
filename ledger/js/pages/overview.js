@@ -69,9 +69,9 @@ window.Ledger.periodLabel = function(id){
   return p ? p.label : id;
 };
 
-window.Ledger.periodPillHtml = function(selectedId, dataAttr){
+window.Ledger.periodPillHtml = function(selectedId, stateKey){
   var label = window.Ledger.periodLabel(selectedId);
-  return '<div class="pill-dropdown" data-pill-dropdown="'+dataAttr+'">'
+  return '<div class="pill-dropdown" data-pill-dropdown="'+stateKey+'">'
     + '<button class="pill-trigger">'+window.Ledger.escapeHtml(label)+'<svg width="8" height="8" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
     + '<div class="pill-menu">'
     + window.Ledger.OVERVIEW_PERIODS.map(function(p){
@@ -351,11 +351,11 @@ window.Ledger.pages.renderOverviewPage = function(){
     + '<div class="section-gap">' + cashFlowHtml + '</div>'
     + '<div class="section-gap" style="display:flex; gap:16px; flex-wrap:wrap;">'
     + '  <div class="card" style="flex:1; min-width:280px;">'
-    + '    <div class="card-header"><h2>Top spending</h2>' + window.Ledger.periodPillHtml(spendPeriod, "spend") + '</div>'
+    + '    <div class="card-header"><h2>Top spending</h2>' + window.Ledger.periodPillHtml(spendPeriod, "spendPeriod") + '</div>'
     + '    <div class="card-pad">' + donutHtml + '</div>'
     + '  </div>'
     + '  <div class="card" style="flex:1; min-width:280px;">'
-    + '    <div class="card-header"><h2>Spending trend</h2>' + window.Ledger.periodPillHtml(trendPeriod, "trend") + '</div>'
+    + '    <div class="card-header"><h2>Spending trend</h2>' + window.Ledger.periodPillHtml(trendPeriod, "trendPeriod") + '</div>'
     + '    <div class="card-pad">' + sparkHtml + '</div>'
     + '  </div>'
     + '</div>'
