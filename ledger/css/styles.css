@@ -39,12 +39,12 @@
   --transition-normal:0.2s cubic-bezier(0.4,0,0.2,1);
 }
 [data-theme="dark"]{
-  --bg:#08090D;
-  --surface:#13161D;
-  --surface-2:#191D26;
-  --surface-hi:#1F2430;
-  --border:#242A35;
-  --border-soft:#1C212B;
+  --bg:#000000;
+  --surface:#0A0A0A;
+  --surface-2:#111111;
+  --surface-hi:#1A1A1A;
+  --border:#222222;
+  --border-soft:#161616;
   --text:#F3F5F9;
   --text-dim:#8D96A8;
   --text-faint:#535B6B;
@@ -58,8 +58,8 @@
   --clay-soft:rgba(255,122,99,0.14);
   --blue:#6FAEEF;
   --blue-soft:rgba(111,174,239,0.14);
-  --shadow-card:0 10px 28px -16px rgba(0,0,0,0.55);
-  --shadow-lift:0 16px 40px -20px rgba(0,0,0,0.65);
+  --shadow-card:0 10px 28px -16px rgba(0,0,0,0.8);
+  --shadow-lift:0 16px 40px -20px rgba(0,0,0,0.9);
 }
 
 *{box-sizing:border-box;}
