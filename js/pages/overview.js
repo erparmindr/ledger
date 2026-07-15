@@ -126,6 +126,27 @@ window.Ledger.pages.renderOverviewPage = function(){
     }).join("");
   }
 
+  var unlinked = window.Ledger.unlinkedRefunds ? window.Ledger.unlinkedRefunds() : [];
+  var unlinkedHtml;
+  if(unlinked.length === 0){
+    unlinkedHtml = '';
+  } else {
+    unlinkedHtml = unlinked.map(function(t){
+      var acc = window.Ledger.findAccount(t.account);
+      var catName = window.Ledger.categoryName(t.category);
+      return '<div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-soft);">'
+        + '<div>'
+        + '  <div style="font-size:12.5px; font-weight:600;">' + window.Ledger.escapeHtml(t.desc || "Refund") + ' <span class="faint" style="font-size:11px;">' + t.date + '</span></div>'
+        + '  <div style="font-size:11.5px; color:var(--text-dim);">' + window.Ledger.escapeHtml(acc ? acc.name : "Unknown") + (catName !== "Uncategorized" ? ' &middot; ' + window.Ledger.escapeHtml(catName) : ' &middot; <span style="color:var(--clay);">no category</span>') + '</div>'
+        + '</div>'
+        + '<div style="display:flex; align-items:center; gap:10px;">'
+        + '  <span style="font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--sage);">+' + window.Ledger.fmtMoney(t.amount, acc ? acc.currency : "USD") + '</span>'
+        + '  <button class="btn btn-sm" data-link-refund="' + t.id + '">Link to transaction</button>'
+        + '</div>'
+        + '</div>';
+    }).join("");
+  }
+
   return ''
     + '<div class="grid-3">' + totalsHtml + '</div>'
     + '<div class="section-gap grid-3">'
@@ -147,6 +168,10 @@ window.Ledger.pages.renderOverviewPage = function(){
     + (pendingTfers.length > 0 ? '<div class="card section-gap">'
     + '  <div class="card-header"><h2>Pending transfers</h2><span class="hint">' + pendingTfers.length + ' awaiting destination</span></div>'
     + '  <div class="card-pad" style="padding-top:4px; padding-bottom:4px;">' + pendingHtml + '</div>'
+    + '</div>' : '')
+    + (unlinked.length > 0 ? '<div class="card section-gap">'
+    + '  <div class="card-header"><h2>Unlinked refunds</h2><span class="hint">' + unlinked.length + ' awaiting original transaction</span></div>'
+    + '  <div class="card-pad" style="padding-top:4px; padding-bottom:4px;">' + unlinkedHtml + '</div>'
     + '</div>' : '')
     + '<div class="card section-gap">'
     + '  <div class="card-header"><h2>Recent activity</h2><span class="hint">last 6 entries</span></div>'

@@ -103,6 +103,13 @@ window.Ledger.wirePageEvents = function(){
     Array.prototype.forEach.call(document.querySelectorAll("[data-link-pending]"), function(b){
       b.addEventListener("click", function(){ window.Ledger.openLinkTransferModal(b.getAttribute("data-link-pending")); });
     });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-link-refund]"), function(b){
+      b.addEventListener("click", function(){
+        var refundId = b.getAttribute("data-link-refund");
+        var refund = window.Ledger.DB.transactions.find(function(t){ return t.id === refundId; });
+        if(refund) window.Ledger.openTransactionModal(refund);
+      });
+    });
     window.Ledger.wireTxRowActions();
   }
 

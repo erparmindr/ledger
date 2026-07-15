@@ -1,7 +1,7 @@
 // Ledger service worker — caches the app shell for offline use and installability.
 // Bump CACHE_NAME whenever files change so returning users get the update
 // instead of a stale cached copy.
-const CACHE_NAME = "ledger-cache-v14";
+const CACHE_NAME = "ledger-cache-v15";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -12,7 +12,6 @@ const APP_SHELL = [
   "./css/styles.css",
   "./js/constants.js",
   "./js/utils.js",
-  "./js/services/storage.js",
   "./js/store.js",
   "./js/modals.js",
   "./js/modals/entity-modals.js",

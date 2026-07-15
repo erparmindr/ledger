@@ -411,6 +411,12 @@ window.Ledger.pendingTransfers = function(){
   }).sort(function(a,b){ return (b.date+b.id).localeCompare(a.date+a.id); });
 };
 
+window.Ledger.unlinkedRefunds = function(){
+  return window.Ledger.DB.transactions.filter(function(t){
+    return t.type === "refund" && !t.refundOf;
+  }).sort(function(a,b){ return (b.date+b.id).localeCompare(a.date+a.id); });
+};
+
 window.Ledger.openLinkTransferModal = function(txId){
   var tx = window.Ledger.DB.transactions.find(function(t){ return t.id === txId; });
   if(!tx || tx.type !== "transfer") return;
