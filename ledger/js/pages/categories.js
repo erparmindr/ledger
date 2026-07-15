@@ -23,6 +23,8 @@ window.Ledger.pages.renderCategoriesPage = function(){
   function renderCatItem(c){
     var count = txCounts[c.id] || 0;
     var subCount = c.subs ? c.subs.length : 0;
+    var typeColor = c.type === "expense" ? "var(--clay)" : c.type === "income" ? "var(--sage)" : "var(--brass)";
+    var typeSoft = c.type === "expense" ? "var(--clay-soft)" : c.type === "income" ? "var(--sage-soft)" : "var(--brass-soft)";
     var subsHtml = (c.subs || []).map(function(s){
       var subCount = txCounts[s.id] || 0;
       return '<div class="subcat-row">'
@@ -34,11 +36,11 @@ window.Ledger.pages.renderCategoriesPage = function(){
         + '</div>';
     }).join("");
 
-    return '<div class="category-row" style="flex-direction:column; align-items:stretch; padding:12px 0;">'
+    return '<div class="category-row" style="flex-direction:column; align-items:stretch; padding:12px 0; border-left:3px solid ' + typeColor + '; padding-left:12px; margin-left:4px; border-radius:0 var(--radius-sm) var(--radius-sm) 0; background:' + typeSoft + ';">'
       + '<div style="display:flex; justify-content:space-between; align-items:center;">'
       + '  <div style="display:flex; align-items:center; gap:10px;">'
       + '    <span style="font-weight:700; font-size:14px;">' + window.Ledger.escapeHtml(c.name) + '</span>'
-      + '    <span style="font-size:11px; color:var(--text-faint); background:var(--surface-2); padding:2px 8px; border-radius:var(--radius-pill);">' + count + ' tx' + (count !== 1 ? 's' : '') + '</span>'
+      + '    <span style="font-size:11px; color:var(--text-faint); background:var(--surface); padding:2px 8px; border-radius:var(--radius-pill);">' + count + ' tx' + (count !== 1 ? 's' : '') + '</span>'
       + (subCount > 0 ? '    <span style="font-size:11px; color:var(--text-faint);">' + subCount + ' sub' + (subCount !== 1 ? 's' : '') + '</span>' : '')
       + '  </div>'
       + '  <span style="display:flex; align-items:center; gap:2px;">'
@@ -55,18 +57,24 @@ window.Ledger.pages.renderCategoriesPage = function(){
     var cats = DB.categories.filter(function(c){ return c.type === type; });
     var placeholder = type === "transfer" ? "New transfer category" : "New " + type + " category";
     var emptyMsg = type === "transfer" ? "No transfer categories yet." : "No " + type + " categories yet.";
+    var typeColor = type === "expense" ? "var(--clay)" : type === "income" ? "var(--sage)" : "var(--brass)";
+    var typeSoft = type === "expense" ? "var(--clay-soft)" : type === "income" ? "var(--sage-soft)" : "var(--brass-soft)";
+
+    var addHtml = '<div class="inline-add" style="margin-bottom:12px; margin-top:0;">'
+      + '<input type="text" id="newCatName' + type.charAt(0).toUpperCase() + type.slice(1) + '" placeholder="' + placeholder + '" style="border-left:3px solid ' + typeColor + ';">'
+      + '<button class="btn btn-sm" id="addCatBtn' + type.charAt(0).toUpperCase() + type.slice(1) + '" style="background:' + typeColor + '; color:#fff;">Add</button>'
+      + '</div>';
 
     if(cats.length === 0){
-      return '<div style="text-align:center; padding:32px 0;">'
+      return addHtml
+        + '<div style="text-align:center; padding:32px 0;">'
         + '<div style="font-size:28px; margin-bottom:8px; opacity:0.4;">' + (type === "expense" ? "🏷️" : type === "income" ? "💰" : "🔄") + '</div>'
         + '<div class="faint" style="font-size:13px;">' + emptyMsg + '</div>'
-        + '<div class="faint" style="font-size:12px; margin-top:4px;">Add your first category below.</div>'
-        + '</div>'
-        + '<div class="inline-add"><input type="text" id="newCatName' + type.charAt(0).toUpperCase() + type.slice(1) + '" placeholder="' + placeholder + '"><button class="btn btn-sm" id="addCatBtn' + type.charAt(0).toUpperCase() + type.slice(1) + '">Add</button></div>';
+        + '<div class="faint" style="font-size:12px; margin-top:4px;">Add your first category above.</div>'
+        + '</div>';
     }
 
-    return '<div>' + cats.map(renderCatItem).join("") + '</div>'
-      + '<div class="inline-add"><input type="text" id="newCatName' + type.charAt(0).toUpperCase() + type.slice(1) + '" placeholder="' + placeholder + '"><button class="btn btn-sm" id="addCatBtn' + type.charAt(0).toUpperCase() + type.slice(1) + '">Add</button></div>';
+    return addHtml + '<div>' + cats.map(renderCatItem).join("") + '</div>';
   }
 
   function tabBtn(id, label, count, isActive){
