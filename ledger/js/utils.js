@@ -21,6 +21,18 @@ window.Ledger.fmtMoney = function fmtMoney(n, currency){
   var sym = symbols[currency] || (currency + " ");
   return (neg ? "\u2212" : "") + sym + str;
 };
+window.Ledger.fmtMoneyShort = function fmtMoneyShort(n, currency){
+  currency = currency || "USD";
+  var neg = n < 0;
+  var abs = Math.abs(n);
+  var symbols = {USD:"$",CAD:"$",EUR:"\u20AC",GBP:"\u00A3",INR:"\u20B9",AUD:"$",JPY:"\u00A5"};
+  var sym = symbols[currency] || (currency + " ");
+  var str;
+  if(abs >= 1000000) str = (abs/1000000).toFixed(1)+"M";
+  else if(abs >= 1000) str = (abs/1000).toFixed(1)+"k";
+  else str = abs.toFixed(0);
+  return (neg ? "\u2212" : "") + sym + str;
+};
 window.Ledger.todayISO = function todayISO(){
   var d = new Date();
   return d.getFullYear() + "-" + window.Ledger.pad2(d.getMonth()+1) + "-" + window.Ledger.pad2(d.getDate());

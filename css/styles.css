@@ -317,6 +317,27 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .grid-2{ display:flex; gap:14px; flex-wrap:wrap; }
 .grid-2 > *{ flex:1; min-width:240px; }
 
+/* ---- Utility classes (replace inline styles) ---- */
+.flex-between{ display:flex; align-items:center; justify-content:space-between; }
+.flex-center{ display:flex; align-items:center; }
+.flex-col{ display:flex; flex-direction:column; }
+.flex-wrap{ flex-wrap:wrap; }
+.gap-1{ gap:var(--sp-1); } .gap-2{ gap:var(--sp-2); } .gap-3{ gap:var(--sp-3); } .gap-4{ gap:var(--sp-4); } .gap-6{ gap:var(--sp-6); }
+.item-row{ display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border-soft); }
+.item-row:last-child{ border-bottom:none; }
+.item-row-body{ flex:1; min-width:0; }
+.item-row-ops{ display:flex; align-items:center; gap:var(--sp-2); }
+.pill-badge{ display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:var(--radius-pill); font-size:11.5px; font-weight:700; }
+.pill-badge.brass{ background:var(--brass-soft); color:var(--brass); }
+.pill-badge.sage{ background:var(--sage-soft); color:var(--sage); }
+.pill-badge.clay{ background:var(--clay-soft); color:var(--clay); }
+.pill-badge.blue{ background:var(--blue-soft); color:var(--blue); }
+.pill-badge .count{ background:currentColor; color:var(--bg); border-radius:50%; min-width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; }
+.text-xs{ font-size:var(--text-xs); } .text-sm{ font-size:var(--text-sm); } .text-base{ font-size:var(--text-base); } .text-md{ font-size:var(--text-md); } .text-lg{ font-size:var(--text-lg); }
+.font-num{ font-family:var(--font-num); font-variant-numeric:tabular-nums; }
+.truncate{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.w-full{ width:100%; }
+
 /* ---- Metric cards ---- */
 .metric{
   background:linear-gradient(155deg, var(--surface), var(--surface-2));
@@ -324,9 +345,32 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   border-radius:var(--radius);
   padding:18px 20px;
   box-shadow:var(--shadow-card);
+  transition:transform var(--transition-fast), box-shadow var(--transition-fast);
+  position:relative;
+  overflow:hidden;
 }
+.metric:hover{ transform:translateY(-2px); box-shadow:var(--shadow-lift); }
 .metric .lbl{ font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-faint); font-weight:700; margin-bottom:9px; }
 .metric .val{ font-family:var(--font-num); font-size:25px; font-weight:800; letter-spacing:-0.02em; }
+.metric .trend{ font-size:11px; font-weight:700; margin-top:4px; display:inline-flex; align-items:center; gap:3px; }
+.metric .trend.up{ color:var(--sage); }
+.metric .trend.down{ color:var(--clay); }
+.metric::before{ content:''; position:absolute; top:0; left:0; bottom:0; width:3px; border-radius:3px 0 0 3px; }
+.metric.income::before{ background:var(--sage); }
+.metric.income .val{ color:var(--sage); }
+.metric.expense::before{ background:var(--clay); }
+.metric.expense .val{ color:var(--clay); }
+.metric.net::before{ background:var(--brass); }
+.metric.net .val{ color:var(--brass); }
+.metric.balance::before{ background:var(--blue); }
+.metric.balance .val{ color:var(--blue); }
+.metric.hero{
+  background:linear-gradient(135deg, var(--surface-2), var(--surface));
+  padding:24px 28px;
+  border-radius:var(--radius-lg);
+}
+.metric.hero .val{ font-size:32px; letter-spacing:-0.03em; }
+.metric.hero::before{ width:4px; background:linear-gradient(180deg, var(--brass-bright), var(--brass)); }
 
 /* ============================================================
    FORM ELEMENTS — Modern styled
@@ -544,6 +588,28 @@ select:focus-visible{
 .acct-card .acct-ops{ display:flex; gap:2px; position:relative; z-index:1; }
 .acct-card .acct-ops .icon-btn{ min-width:auto; min-height:auto; padding:4px; }
 
+/* ---- Mini account cards (overview grid) ---- */
+.acct-grid{ display:flex; gap:var(--sp-3); flex-wrap:wrap; }
+.acct-mini-card{
+  flex:1; min-width:160px; cursor:pointer;
+  background:linear-gradient(155deg, var(--surface), var(--surface-2));
+  border:1px solid var(--border); border-radius:var(--radius);
+  padding:14px 16px; position:relative; overflow:hidden;
+  box-shadow:var(--shadow-card);
+  transition:all var(--transition-fast);
+}
+.acct-mini-card:hover{ transform:translateY(-2px); box-shadow:var(--shadow-lift); }
+.acct-mini-card::before{ content:''; position:absolute; top:-35%; right:-12%; width:80px; height:80px; border-radius:50%; filter:blur(1px); }
+.acct-mini-card.kind-credit{ background:linear-gradient(150deg, var(--clay-soft), var(--surface) 60%); border-color:rgba(226,80,47,0.2); }
+.acct-mini-card.kind-credit::before{ background:radial-gradient(circle, var(--clay-soft), transparent 70%); }
+.acct-mini-card.tone-sage{ background:linear-gradient(150deg, var(--sage-soft), var(--surface) 60%); border-color:rgba(31,157,110,0.15); }
+.acct-mini-card.tone-sage::before{ background:radial-gradient(circle, var(--sage-soft), transparent 70%); }
+[data-theme="dark"] .acct-mini-card.kind-credit{ background:linear-gradient(150deg, #241418, #160F11); }
+[data-theme="dark"] .acct-mini-card.tone-sage{ background:linear-gradient(150deg, #16201C, #101512); }
+.acct-mini-card .am-name{ font-size:11.5px; font-weight:600; color:var(--text-dim); position:relative; z-index:1; }
+.acct-mini-card .am-bal{ font-family:var(--font-num); font-size:17px; font-weight:800; margin-top:6px; letter-spacing:-0.02em; position:relative; z-index:1; }
+.acct-mini-card .am-cur{ font-size:10px; font-weight:700; color:var(--text-faint); margin-top:2px; position:relative; z-index:1; }
+
 .person-card{
   background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
   padding:16px 18px; display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -575,6 +641,53 @@ select:focus-visible{
   background:linear-gradient(135deg, var(--brass-bright), var(--brass));
   color:#241A02;
 }
+
+/* ---- Report tab bar ---- */
+.report-tabs{ display:flex; gap:2px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:3px; margin-bottom:var(--sp-5); }
+.report-tabs button{
+  flex:1; text-align:center; padding:8px 14px; border-radius:8px; font-size:12.5px; font-weight:700;
+  color:var(--text-faint); background:none; border:none; transition:all var(--transition-fast); cursor:pointer;
+}
+.report-tabs button:hover{ color:var(--text); }
+.report-tabs button.active{
+  background:linear-gradient(135deg, var(--brass-bright), var(--brass));
+  color:#241A02; box-shadow:0 2px 8px rgba(240,194,78,0.3);
+}
+[data-theme="dark"] .report-tabs button.active{ color:#1a1200; }
+
+/* ---- SVG Donut chart ---- */
+.donut-wrap{ display:flex; align-items:center; gap:var(--sp-6); flex-wrap:wrap; }
+.donut-wrap svg{ flex-shrink:0; }
+.donut-center{ font-family:var(--font-num); font-weight:800; }
+.donut-legend{ display:flex; flex-direction:column; gap:var(--sp-2); }
+.donut-legend-item{ display:flex; align-items:center; gap:var(--sp-2); font-size:12px; font-weight:600; color:var(--text-dim); }
+.donut-legend-dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.donut-legend-pct{ margin-left:auto; font-family:var(--font-num); font-weight:700; color:var(--text); min-width:36px; text-align:right; }
+
+/* ---- Bar chart (monthly trend) ---- */
+.bar-chart{ display:flex; align-items:flex-end; gap:var(--sp-3); height:140px; padding-top:var(--sp-4); }
+.bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+.bar-rect{ width:100%; border-radius:4px 4px 0 0; min-height:2px; transition:height 0.4s cubic-bezier(0.4,0,0.2,1); }
+.bar-label{ font-size:10px; font-weight:600; color:var(--text-faint); white-space:nowrap; }
+.bar-value{ font-size:10px; font-weight:700; font-family:var(--font-num); color:var(--text-dim); white-space:nowrap; }
+
+/* ---- Diverging bar chart (net flow) ---- */
+.div-chart{ display:flex; flex-direction:column; gap:var(--sp-3); }
+.div-row{ display:flex; align-items:center; gap:var(--sp-3); }
+.div-label{ width:120px; flex-shrink:0; font-size:12px; font-weight:600; color:var(--text-dim); text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.div-track{ flex:1; position:relative; height:22px; }
+.div-track-center{ position:absolute; left:50%; top:0; bottom:0; width:1px; background:var(--border); }
+.div-bar{ position:absolute; top:3px; height:16px; border-radius:3px; transition:width 0.4s cubic-bezier(0.4,0,0.2,1); }
+.div-bar.positive{ left:50%; background:var(--sage); border-radius:3px 0 0 3px; }
+.div-bar.negative{ right:50%; background:var(--clay); border-radius:0 3px 3px 0; }
+.div-amount{ width:80px; flex-shrink:0; font-size:11.5px; font-weight:700; font-family:var(--font-num); }
+
+/* ---- Sparkline ---- */
+.sparkline-wrap{ width:100%; height:60px; }
+.sparkline-wrap svg{ width:100%; height:100%; }
+.sparkline-path{ fill:none; stroke:var(--brass); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.sparkline-area{ fill:url(#sparkGrad); opacity:0.3; }
+.sparkline-dot{ fill:var(--brass); }
 
 /* ---- Recurring ---- */
 .bill-row{
@@ -741,6 +854,7 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   .grid-2{ flex-direction:column; }
   .metric{ padding:14px 16px; }
   .metric .val{ font-size:var(--text-xl); }
+  .metric.hero .val{ font-size:var(--text-2xl); }
   .card-header{ padding:14px 16px; }
   .card-pad{ padding:16px; }
   .form-row{ flex-direction:column; }
@@ -751,6 +865,12 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   .modal-body{ padding:16px; }
   .tx-row{ padding:12px 14px; gap:10px; }
   .tx-tab{ width:36px; height:36px; }
+  .donut-wrap{ flex-direction:column; align-items:flex-start; }
+  .div-label{ width:80px; font-size:11px; }
+  .div-amount{ width:60px; font-size:10.5px; }
+  .report-tabs{ overflow-x:auto; flex-wrap:nowrap; }
+  .report-tabs button{ white-space:nowrap; flex:none; padding:8px 12px; }
+  .acct-mini-card{ min-width:140px; }
 }
 
 /* ============================================================

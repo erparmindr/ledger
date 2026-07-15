@@ -66,7 +66,7 @@ window.Ledger.wirePageEvents = function(){
 
   if(window.Ledger.currentPage === "overview"){
     var navLink = document.querySelector("[data-nav-link]");
-    if(navLink) navLink.addEventListener("click", function(){ window.Ledger.navigateTo(navLink.getAttribute("data-nav-link")); });
+    if(navLink) navLink.addEventListener("click", function(e){ e.preventDefault(); window.Ledger.navigateTo(navLink.getAttribute("data-nav-link")); });
     Array.prototype.forEach.call(document.querySelectorAll("[data-link-pending]"), function(b){
       b.addEventListener("click", function(){ window.Ledger.openLinkTransferModal(b.getAttribute("data-link-pending")); });
     });
@@ -74,7 +74,14 @@ window.Ledger.wirePageEvents = function(){
       b.addEventListener("click", function(){
         var refundId = b.getAttribute("data-link-refund");
         var refund = window.Ledger.DB.transactions.find(function(t){ return t.id === refundId; });
-        if(refund) window.Ledger.openTransactionModal(refund);
+        if(refund) window.Ledger.openTxModal(refund);
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-acct-click]"), function(el){
+      el.addEventListener("click", function(){
+        var acctId = el.getAttribute("data-acct-click");
+        window.Ledger.registerFilters.account = acctId;
+        window.Ledger.navigateTo("transactions");
       });
     });
     window.Ledger.wireTxRowActions();
@@ -163,10 +170,10 @@ window.Ledger.wirePageEvents = function(){
     Array.prototype.forEach.call(document.querySelectorAll("[data-add-sub]"), function(b){
       b.addEventListener("click", function(){
         var catId = b.getAttribute("data-add-sub");
-        var name = prompt("Subcategory name:");
-        if(!name) return;
-        var cat = window.Ledger.DB.categories.find(function(c){ return c.id===catId; });
-        if(cat){ cat.subs.push({ id: window.Ledger.uid(), name: name }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Subcategory added"); }
+        window.Ledger.openTextPromptModal("Add subcategory", "Subcategory name", "", function(name){
+          var cat = window.Ledger.DB.categories.find(function(c){ return c.id===catId; });
+          if(cat){ cat.subs.push({ id: window.Ledger.uid(), name: name }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Subcategory added"); }
+        });
       });
     });
     // Rename category
@@ -175,9 +182,9 @@ window.Ledger.wirePageEvents = function(){
         var catId = b.getAttribute("data-rename-cat");
         var cat = window.Ledger.DB.categories.find(function(c){ return c.id===catId; });
         if(!cat) return;
-        var name = prompt("Rename category:", cat.name);
-        if(!name) return;
-        cat.name = name; window.Ledger.saveData(); window.Ledger.renderPage();
+        window.Ledger.openTextPromptModal("Rename category", "Category name", cat.name, function(name){
+          cat.name = name; window.Ledger.saveData(); window.Ledger.renderPage();
+        });
       });
     });
     // Delete category (with usage warning)
@@ -208,9 +215,9 @@ window.Ledger.wirePageEvents = function(){
         if(!cat) return;
         var sub = cat.subs.find(function(s){ return s.id===parts[1]; });
         if(!sub) return;
-        var name = prompt("Rename subcategory:", sub.name);
-        if(!name) return;
-        sub.name = name; window.Ledger.saveData(); window.Ledger.renderPage();
+        window.Ledger.openTextPromptModal("Rename subcategory", "Subcategory name", sub.name, function(name){
+          sub.name = name; window.Ledger.saveData(); window.Ledger.renderPage();
+        });
       });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-del-sub]"), function(b){
@@ -264,13 +271,28 @@ window.Ledger.wirePageEvents = function(){
   }
 
   if(window.Ledger.currentPage === "reports"){
-    var mp = document.getElementById("monthPicker");
-    if(mp) mp.addEventListener("change", function(){ window.Ledger.reportState.month = mp.value; window.Ledger.renderPage(); });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-chartmode]"), function(b){
-      b.addEventListener("click", function(){ window.Ledger.reportState.chartMode = b.getAttribute("data-chartmode"); window.Ledger.renderPage(); });
+    ["rDatePreset","rAccount","rCurrency","rCategory"].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.addEventListener("change", function(){
+        window.Ledger.reportState.datePreset = document.getElementById("rDatePreset").value;
+        window.Ledger.reportState.account = document.getElementById("rAccount").value;
+        window.Ledger.reportState.currency = document.getElementById("rCurrency").value;
+        window.Ledger.reportState.category = document.getElementById("rCategory").value;
+        if(id === "rCategory") window.Ledger.reportState.category = el.value;
+        window.Ledger.renderPage();
+      });
     });
-    var dlBackup = document.getElementById("downloadBackupBtn");
-    if(dlBackup) dlBackup.addEventListener("click", window.Ledger.exportBackup);
+    var rFrom = document.getElementById("rDateFrom");
+    var rTo = document.getElementById("rDateTo");
+    if(rFrom) rFrom.addEventListener("change", function(){ window.Ledger.reportState.dateFrom = rFrom.value; window.Ledger.renderPage(); });
+    if(rTo) rTo.addEventListener("change", function(){ window.Ledger.reportState.dateTo = rTo.value; window.Ledger.renderPage(); });
+    var rSearch = document.getElementById("rSearch");
+    if(rSearch) rSearch.addEventListener("input", function(){ window.Ledger.reportState.search = rSearch.value; });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-rtab]"), function(b){
+      b.addEventListener("click", function(){ window.Ledger.reportState.tab = b.getAttribute("data-rtab"); window.Ledger.renderPage(); });
+    });
+    var exportReportCsv = document.getElementById("exportReportCsv");
+    if(exportReportCsv) exportReportCsv.addEventListener("click", window.Ledger.exportCsv);
   }
 
   if(window.Ledger.currentPage === "scheduled"){
