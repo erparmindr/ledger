@@ -82,6 +82,9 @@ window.Ledger.pages.renderRegisterPage = function(){
     }
   }
 
+  var hasAnyTx = window.Ledger.DB.transactions.length > 0;
+  var isEmpty = list.length === 0;
+
   /* ---- Summary stats ---- */
   var totalIncome = 0, totalExpense = 0, totalTransfer = 0;
   list.forEach(function(t){
@@ -90,12 +93,6 @@ window.Ledger.pages.renderRegisterPage = function(){
     else if(t.type === "transfer") totalTransfer++;
     else if(t.type === "refund") totalIncome += t.amount;
   });
-  var primaryCur = "USD";
-  if(list.length > 0){
-    var firstAcc = window.Ledger.findAccount(list[0].account);
-    if(!firstAcc && list[0].fromType==="account") firstAcc = window.Ledger.findAccount(list[0].fromId);
-    if(firstAcc) primaryCur = firstAcc.currency;
-  }
 
   var chipsHtml = '<div class="reg-summary">'
     + '<div class="reg-chip dot-sage"><span class="chip-dot"></span>Income <span class="chip-val pos">+' + window.Ledger.fmtMoneyShort(totalIncome) + '</span></div>'
@@ -133,12 +130,39 @@ window.Ledger.pages.renderRegisterPage = function(){
     : '';
   function filteredCls(val){ return val !== "all" ? ' is-filtered' : ''; }
 
-  /* ---- Column headers ---- */
-  var colHdrCls = 'tx-col-header';
+  /* ---- Toolbar: search + filters + export ---- */
+  var toolbarHtml = '<div class="filters-bar">'
+    + '<div class="search-inline"><span class="s-icon">&#9906;</span><input type="text" id="regSearch" placeholder="Search..." value="' + window.Ledger.escapeHtml(f.search) + '"></div>'
+    + '<select id="fAccount" class="' + filteredCls(f.account) + '">' + accOpts + '</select>'
+    + '<select id="fCurrency" class="' + filteredCls(f.currency) + '">' + curOpts + '</select>'
+    + '<select id="fCategory" class="' + filteredCls(f.category) + '">' + catOpts + '</select>'
+    + '<select id="fSubcategory" class="' + filteredCls(f.subcategory) + '">' + subOpts + '</select>'
+    + '<select id="fType" class="' + filteredCls(f.type) + '">'
+    + '  <option value="all" ' + (f.type==="all"?"selected":"") + '>All types</option>'
+    + '  <option value="expense" ' + (f.type==="expense"?"selected":"") + '>Expense</option>'
+    + '  <option value="income" ' + (f.type==="income"?"selected":"") + '>Income</option>'
+    + '  <option value="transfer" ' + (f.type==="transfer"?"selected":"") + '>Transfer</option>'
+    + '  <option value="refund" ' + (f.type==="refund"?"selected":"") + '>Refund</option>'
+    + '</select>'
+    + '<select id="fDatePreset" class="' + filteredCls(f.datePreset) + '">' + window.Ledger.DATE_PRESETS.map(function(p){
+      return '<option value="'+p.id+'" '+(f.datePreset===p.id?"selected":"")+'>'+p.label+'</option>';
+    }).join("") + '</select>'
+    + (f.datePreset === "custom" ? (
+      '<input type="date" id="fDateFrom" value="' + f.dateFrom + '">'
+      + '<input type="date" id="fDateTo" value="' + f.dateTo + '">'
+    ) : "")
+    + clearBtnHtml
+    + '<span class="spacer"></span>'
+    + '<button class="btn btn-sm" id="exportCsvBtn"' + (!hasAnyTx ? ' disabled title="Add transactions before exporting"' : '') + '>Export CSV</button>'
+    + '</div>';
+
+  /* ---- Column headers (always shown) ---- */
+  var colHdrCls = 'tx-col-header show-type';
   if(showRunning) colHdrCls += ' show-runbal';
   var colHeaders = '<div class="' + colHdrCls + '">'
     + '<span class="col-date">Date</span>'
     + '<span class="col-desc">Description</span>'
+    + '<span class="col-type">Type</span>'
     + '<span class="col-cat">Category</span>'
     + '<span class="col-acct">Account</span>'
     + '<span class="col-amt">Amount</span>'
@@ -147,8 +171,7 @@ window.Ledger.pages.renderRegisterPage = function(){
 
   /* ---- Transaction list or empty state ---- */
   var listHtml;
-  if(list.length === 0){
-    var hasAnyTx = window.Ledger.DB.transactions.length > 0;
+  if(isEmpty){
     if(hasAnyTx){
       listHtml = '<div class="register-empty">'
         + '<div class="empty-state">'
@@ -157,8 +180,10 @@ window.Ledger.pages.renderRegisterPage = function(){
         + '</svg></div>'
         + '<div class="big">No matching transactions</div>'
         + '<div class="empty-desc">Try adjusting your filters or search query to find what you\'re looking for.</div>'
-        + (hasActiveFilters ? '<div class="empty-cta"><button class="btn btn-sm" id="clearFiltersBtn2">Clear filters</button></div>' : '')
-        + '</div></div>';
+        + '<div class="empty-cta" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">'
+        + (hasActiveFilters ? '<button class="btn btn-sm" id="clearFiltersBtn2">Clear filters</button>' : '')
+        + '<button class="btn btn-sm btn-primary" onclick="window.Ledger.openTxModal(null)">+ New transaction</button>'
+        + '</div></div></div>';
     } else {
       listHtml = '<div class="register-empty">'
         + '<div class="empty-state">'
@@ -177,38 +202,15 @@ window.Ledger.pages.renderRegisterPage = function(){
   }
 
   /* ---- Register header ---- */
-  var headerHint = showRunning ? ' &middot; running balance shown' : '';
-
   return ''
-    + '<div class="card">'
-    + '  <div class="filters-bar">'
-    + '    <select id="fAccount" class="' + filteredCls(f.account) + '">' + accOpts + '</select>'
-    + '    <select id="fCurrency" class="' + filteredCls(f.currency) + '">' + curOpts + '</select>'
-    + '    <select id="fCategory" class="' + filteredCls(f.category) + '">' + catOpts + '</select>'
-    + '    <select id="fSubcategory" class="' + filteredCls(f.subcategory) + '">' + subOpts + '</select>'
-    + '    <select id="fType" class="' + filteredCls(f.type) + '">'
-    + '      <option value="all" ' + (f.type==="all"?"selected":"") + '>All types</option>'
-    + '      <option value="expense" ' + (f.type==="expense"?"selected":"") + '>Expense</option>'
-    + '      <option value="income" ' + (f.type==="income"?"selected":"") + '>Income</option>'
-    + '      <option value="transfer" ' + (f.type==="transfer"?"selected":"") + '>Transfer</option>'
-    + '      <option value="refund" ' + (f.type==="refund"?"selected":"") + '>Refund</option>'
-    + '    </select>'
-    + '    <select id="fDatePreset" class="' + filteredCls(f.datePreset) + '">' + window.Ledger.DATE_PRESETS.map(function(p){
-          return '<option value="'+p.id+'" '+(f.datePreset===p.id?"selected":"")+'>'+p.label+'</option>';
-        }).join("") + '</select>'
-    + (f.datePreset === "custom" ? (
-        '<input type="date" id="fDateFrom" value="' + f.dateFrom + '">'
-        + '<input type="date" id="fDateTo" value="' + f.dateTo + '">'
-      ) : "")
-    + clearBtnHtml
-    + '    <button class="btn btn-sm" id="exportCsvBtn" style="margin-left:auto;">Export CSV</button>'
-    + '  </div>'
-    + (list.length > 0 ? chipsHtml : '')
+    + '<div class="card" id="registerCard">'
+    + toolbarHtml
+    + (hasAnyTx ? chipsHtml : '')
     + '  <div class="card-header">'
     + '    <div class="reg-header-left"><h2>Register</h2><span class="reg-count">' + list.length + ' transaction' + (list.length !== 1 ? 's' : '') + '</span></div>'
     + '    <span class="hint">' + (showRunning ? 'running balance shown' : '') + '</span>'
     + '  </div>'
-    + (list.length > 0 ? colHeaders : '')
+    + colHeaders
     + '  <div>' + listHtml + '</div>'
     + '</div>';
 };

@@ -52,6 +52,8 @@ window.Ledger.navigateTo = function(page){
   document.getElementById("pageTitle").textContent = window.Ledger.NAV_ITEMS.find(function(n){ return n.id===page; }).label;
   document.getElementById("pageSubtitle").textContent = window.Ledger.getPageSubtitle(page);
   document.getElementById("globalSearchWrap").style.display = (page === "transactions") ? "flex" : "none";
+  var fab = document.getElementById("newTxBtn");
+  if(fab && page !== "transactions") fab.classList.remove("fab-hidden");
   window.Ledger.renderNav();
   window.Ledger.renderPage();
 };
@@ -126,6 +128,19 @@ window.Ledger.wirePageEvents = function(){
     if(dTo) dTo.addEventListener("change", function(){ window.Ledger.registerFilters.dateTo = dTo.value; window.Ledger.renderPage(); });
     var exportBtn = document.getElementById("exportCsvBtn");
     if(exportBtn) exportBtn.addEventListener("click", window.Ledger.exportCsv);
+    var regSearch = document.getElementById("regSearch");
+    if(regSearch){
+      var regSearchTimer = null;
+      regSearch.addEventListener("input", function(){
+        clearTimeout(regSearchTimer);
+        regSearchTimer = setTimeout(function(){
+          window.Ledger.registerFilters.search = regSearch.value;
+          window.Ledger.renderPage();
+          var newInput = document.getElementById("regSearch");
+          if(newInput){ newInput.focus(); newInput.setSelectionRange(newInput.value.length, newInput.value.length); }
+        }, 200);
+      });
+    }
     function wireClearFilters(btnId){
       var btn = document.getElementById(btnId);
       if(btn) btn.addEventListener("click", function(){
@@ -136,6 +151,13 @@ window.Ledger.wirePageEvents = function(){
     }
     wireClearFilters("clearFiltersBtn");
     wireClearFilters("clearFiltersBtn2");
+    /* Hide FAB when register is empty (no transactions or no matches) */
+    var fab = document.getElementById("newTxBtn");
+    var regCard = document.getElementById("registerCard");
+    if(fab && regCard){
+      var emptyEl = regCard.querySelector(".register-empty");
+      if(emptyEl){ fab.classList.add("fab-hidden"); } else { fab.classList.remove("fab-hidden"); }
+    }
   }
 
   if(window.Ledger.currentPage === "accounts"){
