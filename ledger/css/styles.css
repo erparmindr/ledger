@@ -529,7 +529,6 @@ select:focus-visible{
   .tx-row .main{ flex:1 0 60%; }
   .tx-col-header .col-type{ display:block; }
   .tx-col-header .col-cat{ display:block; }
-  .filters-bar{ flex-wrap:wrap; overflow-x:visible; }
 }
 
 .empty-state{
@@ -546,19 +545,18 @@ select:focus-visible{
 
 /* ---- Filters bar (toolbar) ---- */
 .filters-bar{
-  display:flex; gap:8px; flex-wrap:nowrap; align-items:center;
+  display:flex; gap:8px; flex-wrap:wrap; align-items:center;
   padding:14px 18px; border-bottom:1px solid var(--border-soft);
   background:color-mix(in srgb, var(--surface) 85%, var(--surface-2) 15%);
-  overflow-x:auto; overflow-y:hidden;
 }
 .filters-bar select{
   height:34px; padding:0 30px 0 10px; font-size:12px; font-weight:600;
-  border-radius:var(--radius-md); min-width:0; flex:0 1 auto;
+  border-radius:var(--radius-md); min-width:0;
 }
 .filters-bar select:hover{ border-color:var(--text-dim); background-color:var(--surface-hi); }
 .filters-bar select:focus-visible{ outline:none; border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
 .filters-bar select.is-filtered{ border-color:var(--brass); box-shadow:0 0 0 1px var(--brass-soft); }
-.filters-bar .cd-wrap{ width:auto; min-width:120px; flex:0 1 auto; }
+.filters-bar .cd-wrap{ width:auto; min-width:120px; }
 .filters-bar .cd-trigger{
   padding:7px 30px 7px 12px;
   font-size:12px;
@@ -568,17 +566,17 @@ select:focus-visible{
   height:34px; background:var(--surface-2);
   border:1px solid var(--border); border-radius:var(--radius-md);
   padding:0 10px; font-size:12px; color:var(--text); font-weight:600;
-  transition:all var(--transition-fast); flex:0 1 auto;
+  transition:all var(--transition-fast);
 }
 .filters-bar input[type="date"]:hover{ border-color:var(--text-dim); }
 .filters-bar input[type="date"]:focus{ outline:none; border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
-.filters-bar .btn{ height:34px; padding:0 14px; font-size:12px; flex:0 0 auto; }
+.filters-bar .btn{ height:34px; padding:0 14px; font-size:12px; }
 .filters-bar .btn:disabled{ opacity:.4; cursor:not-allowed; pointer-events:none; }
 
 /* ============================================================
    SEARCHABLE COMBBOX — category filter (Slack/Notion style)
    ============================================================ */
-.cb-wrap{ position:relative; flex:0 0 auto; }
+.cb-wrap{ position:relative; }
 .cb-trigger{
   display:inline-flex; align-items:center; gap:6px;
   height:34px; padding:0 30px 0 10px;
@@ -678,7 +676,7 @@ select:focus-visible{
   background:none; border:1px solid var(--border); border-radius:var(--radius-pill);
   padding:0 12px; height:34px; font-size:11px; font-weight:700; color:var(--text-faint);
   cursor:pointer; transition:all var(--transition-fast); white-space:nowrap;
-  display:inline-flex; align-items:center; flex:0 0 auto;
+  display:inline-flex; align-items:center;
 }
 .clear-filters:hover{ border-color:var(--clay); color:var(--clay); background:var(--clay-soft); }
 .filters-bar .spacer{ flex:1; min-width:0; }
