@@ -114,6 +114,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   display:flex;
   flex-direction:column;
   padding:22px 0;
+  position:sticky;
+  top:0;
+  height:100vh;
 }
 .brand{
   font-weight:800;
