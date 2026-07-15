@@ -134,10 +134,11 @@ window.Ledger.pages.renderOverviewPage = function(){
       var toneClass = isCredit ? "kind-credit" : "tone-sage";
       var balCls = (isCredit && bal < 0) ? " neg" : "";
       var typeAbrv = a.type === "credit_card" ? "CC" : a.type === "savings" ? "SAV" : a.type === "cash" ? "CASH" : "CHK";
+      var typeLabel = a.type === "credit_card" ? "Credit Card" : a.type === "savings" ? "Savings" : a.type === "cash" ? "Cash" : "Checking";
       return '<div class="acct-mini-card '+toneClass+'" data-acct-click="'+a.id+'">'
         + '<div class="am-top"><div class="am-name">'+window.Ledger.escapeHtml(a.name)+'</div><span class="am-badge '+toneClass+'">'+typeAbrv+'</span></div>'
         + '<div class="am-bal num'+balCls+'">'+window.Ledger.fmtMoney(bal, a.currency)+'</div>'
-        + '<div class="am-cur">'+a.currency+'</div>'
+        + '<div class="am-meta">'+typeLabel+' &middot; '+a.currency+'</div>'
         + '</div>';
     }).join("") + '</div>';
   }
@@ -180,7 +181,14 @@ window.Ledger.pages.renderOverviewPage = function(){
 
   var donutHtml;
   if(topCats.length === 0){
-    donutHtml = '<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></div><div class="big">No categorized spending</div><div class="empty-desc">Expenses in this period will appear here.</div></div>';
+    donutHtml = '<div class="empty-state">'
+      + '<div class="empty-icon empty-icon--line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+      + '<rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/>'
+      + '</svg></div>'
+      + '<div class="big">No categorized spending</div>'
+      + '<div class="empty-desc">Your spending breakdown will appear here once you log expenses with categories.</div>'
+      + '<div class="empty-cta"><button class="btn btn-sm" data-nav-link="transactions">Add transaction &rarr;</button></div>'
+      + '</div>';
   } else {
     donutHtml = '<div class="donut-wrap">'
       + window.Ledger.svgDonut(topCats, 140, 20, "Total", window.Ledger.fmtMoneyShort(spendTotal))
@@ -256,11 +264,16 @@ window.Ledger.pages.renderOverviewPage = function(){
   var sparkW = 280, sparkH = 56, sparkPad = 4;
   var sparkHtml;
   if(!hasTrendData){
-    sparkHtml = '<div class="sparkline-placeholder"><svg viewBox="0 0 '+sparkW+' '+sparkH+'" preserveAspectRatio="none">'
-      + '<line x1="0" y1="'+(sparkH*0.25)+'" x2="'+sparkW+'" y2="'+(sparkH*0.25)+'" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="4 4"/>'
-      + '<line x1="0" y1="'+(sparkH*0.5)+'" x2="'+sparkW+'" y2="'+(sparkH*0.5)+'" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="4 4"/>'
-      + '<line x1="0" y1="'+(sparkH*0.75)+'" x2="'+sparkW+'" y2="'+(sparkH*0.75)+'" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="4 4"/>'
-      + '</svg></div>';
+    sparkHtml = '<div class="spark-empty">'
+      + '<div class="spark-empty-chart"><svg viewBox="0 0 '+sparkW+' '+sparkH+'" preserveAspectRatio="none">'
+      + '<line x1="0" y1="'+(sparkH*0.25)+'" x2="'+sparkW+'" y2="'+(sparkH*0.25)+'" stroke="var(--border-soft)" stroke-width="0.5" stroke-dasharray="3 3"/>'
+      + '<line x1="0" y1="'+(sparkH*0.5)+'" x2="'+sparkW+'" y2="'+(sparkH*0.5)+'" stroke="var(--border-soft)" stroke-width="0.5" stroke-dasharray="3 3"/>'
+      + '<line x1="0" y1="'+(sparkH*0.75)+'" x2="'+sparkW+'" y2="'+(sparkH*0.75)+'" stroke="var(--border-soft)" stroke-width="0.5" stroke-dasharray="3 3"/>'
+      + '<line x1="0" y1="'+(sparkH-1)+'" x2="'+sparkW+'" y2="'+(sparkH-1)+'" stroke="var(--border)" stroke-width="1"/>'
+      + '</svg></div>'
+      + '<div class="spark-empty-msg">No spending data yet</div>'
+      + '<div class="spark-empty-desc">Your trend will appear after you add expenses.</div>'
+      + '</div>';
   } else {
   var sparkPoints = trendVals.map(function(v, idx){
     var x = trendVals.length === 1 ? sparkW/2 : sparkPad + (idx / (trendVals.length-1)) * (sparkW - sparkPad*2);
@@ -335,7 +348,14 @@ window.Ledger.pages.renderOverviewPage = function(){
 
   var upcomingHtml;
   if(upcoming.length === 0){
-    upcomingHtml = '<div class="empty-state" style="padding:24px 20px;"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg></div><div class="big">Nothing due soon</div><div class="empty-desc">Recurring items due within 7 days will appear here.</div></div>';
+    upcomingHtml = '<div class="empty-state" style="padding:24px 20px;">'
+      + '<div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'
+      + '<rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 14h.01"/>'
+      + '</svg></div>'
+      + '<div class="big">All clear</div>'
+      + '<div class="empty-desc">No recurring items due within 7 days. Set up scheduled transactions to automate your tracking.</div>'
+      + '<div class="empty-cta"><button class="btn btn-sm" data-nav-link="scheduled">Set up recurring &rarr;</button></div>'
+      + '</div>';
   } else {
     upcomingHtml = upcoming.map(function(x){
       var r = x.r;
