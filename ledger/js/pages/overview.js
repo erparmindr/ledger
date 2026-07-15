@@ -126,7 +126,7 @@ window.Ledger.pages.renderOverviewPage = function(){
   /* ---- Account grid ---- */
   var acctGridHtml;
   if(accs.length === 0){
-    acctGridHtml = '<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></div><div class="big">No accounts yet</div><div class="empty-desc">Create an account to get started.</div></div>';
+    acctGridHtml = '<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></div><div class="big">No accounts yet</div><div class="empty-desc">Create an account to get started.</div><div class="empty-cta"><button class="btn btn-sm btn-primary" data-nav-link="accounts">Create account &rarr;</button></div></div>';
   } else {
     acctGridHtml = '<div class="acct-grid">' + accs.map(function(a){
       var bal = window.Ledger.accountBalance(a.id);
@@ -153,8 +153,8 @@ window.Ledger.pages.renderOverviewPage = function(){
   }
 
   var cashFlowHtml = '<div class="grid-2">'
-    + '<div class="metric income"><div class="lbl">Income this month</div><div class="val"><span class="msign">+</span>'+window.Ledger.fmtMoney(incVal, primaryCur)+'</div>'+trendArrow(incVal, incLast)+'</div>'
-    + '<div class="metric expense"><div class="lbl">Expenses this month</div><div class="val"><span class="msign">\u2212</span>'+window.Ledger.fmtMoney(expVal, primaryCur)+'</div>'+trendArrow(expVal, expLast)+'</div>'
+    + '<div class="metric income"><div class="metric-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="lbl">Income this month</div><div class="val"><span class="msign">+</span>'+window.Ledger.fmtMoney(incVal, primaryCur)+'</div>'+trendArrow(incVal, incLast)+'</div>'
+    + '<div class="metric expense"><div class="metric-icon"><svg viewBox="0 0 24 24"><path d="M2 12h20"/><path d="m17 8-5-5-5 5"/><rect x="6" y="14" width="12" height="6" rx="1"/></svg></div><div class="lbl">Expenses this month</div><div class="val"><span class="msign">\u2212</span>'+window.Ledger.fmtMoney(expVal, primaryCur)+'</div>'+trendArrow(expVal, expLast)+'</div>'
     + '</div>';
 
   /* ---- Top spending categories (mini donut) ---- */

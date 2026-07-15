@@ -30,10 +30,27 @@ window.Ledger.renderNav = function(){
   });
 };
 
+window.Ledger.getPageSubtitle = function(page){
+  if(page === "overview"){
+    var d = new Date();
+    return d.toLocaleDateString(undefined, {weekday:"long", month:"long", day:"numeric", year:"numeric"});
+  }
+  if(page === "transactions"){
+    var txCount = window.Ledger.DB.transactions.length;
+    return txCount + " transaction" + (txCount !== 1 ? "s" : "");
+  }
+  if(page === "accounts"){
+    var aCount = window.Ledger.DB.accounts.length;
+    return aCount + " account" + (aCount !== 1 ? "s" : "");
+  }
+  return "";
+};
+
 window.Ledger.navigateTo = function(page){
   window.Ledger.currentPage = page;
   localStorage.setItem("ledger_page", page);
   document.getElementById("pageTitle").textContent = window.Ledger.NAV_ITEMS.find(function(n){ return n.id===page; }).label;
+  document.getElementById("pageSubtitle").textContent = window.Ledger.getPageSubtitle(page);
   document.getElementById("globalSearchWrap").style.display = (page === "transactions") ? "flex" : "none";
   window.Ledger.renderNav();
   window.Ledger.renderPage();
@@ -65,8 +82,9 @@ window.Ledger.wirePageEvents = function(){
   if(btn) btn.onclick = function(){ window.Ledger.openTxModal(null); };
 
   if(window.Ledger.currentPage === "overview"){
-    var navLink = document.querySelector("[data-nav-link]");
-    if(navLink) navLink.addEventListener("click", function(e){ e.preventDefault(); window.Ledger.navigateTo(navLink.getAttribute("data-nav-link")); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-nav-link]"), function(el){
+      el.addEventListener("click", function(e){ e.preventDefault(); e.stopPropagation(); window.Ledger.navigateTo(el.getAttribute("data-nav-link")); });
+    });
     Array.prototype.forEach.call(document.querySelectorAll("[data-link-pending]"), function(b){
       b.addEventListener("click", function(){ window.Ledger.openLinkTransferModal(b.getAttribute("data-link-pending")); });
     });
@@ -415,6 +433,7 @@ window.Ledger.__LEDGER_INIT__ = function(){
   }
   var navItem = window.Ledger.NAV_ITEMS.find(function(n){ return n.id === window.Ledger.currentPage; });
   document.getElementById("pageTitle").textContent = navItem ? navItem.label : "Overview";
+  document.getElementById("pageSubtitle").textContent = window.Ledger.getPageSubtitle(window.Ledger.currentPage);
   document.getElementById("globalSearchWrap").style.display = (window.Ledger.currentPage === "transactions") ? "flex" : "none";
 
   window.Ledger.renderNav();
