@@ -64,7 +64,12 @@ window.Ledger.renderTxRow = function(t, opts){
     var accName = (window.Ledger.findAccount(t.account)||{}).name || "?";
     subLabel = accName + (catLabel ? " &middot; " + catLabel : "");
     if(t.type === "refund"){
-      subLabel = accName + (catLabel ? " &middot; refund \u2190 " + catLabel : " &middot; refund");
+      if(t.refundOf){
+        var origTx = window.Ledger.DB.transactions.find(function(x){ return x.id === t.refundOf; });
+        subLabel = accName + ' &middot; <span style="color:var(--sage);">refund of</span> ' + window.Ledger.escapeHtml(origTx ? (origTx.desc || "transaction") : "original");
+      } else {
+        subLabel = accName + (catLabel ? " &middot; refund \u2190 " + catLabel : " &middot; refund");
+      }
       amtDisp = '<span class="pos">+' + window.Ledger.fmtMoney(t.amount, currency) + '</span>';
     } else {
       amtDisp = '<span class="' + (t.type==="income"?"pos":"neg") + '">' + (t.type==="income"?"+":"\u2212") + window.Ledger.fmtMoney(t.amount, currency) + '</span>';

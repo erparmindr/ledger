@@ -60,6 +60,12 @@ window.Ledger.openTxModal = function(existing){
     + '      <div class="field"><label>Category</label><select id="txCategory">' + catOptions(t.type==='income'?'income':'expense') + '</select></div>'
     + '    </div>'
     + '    <div class="field" id="subcatField" style="display:none;"><label>Subcategory <span class="faint">(required)</span></label><select id="txSubcategory"></select></div>'
+    + '    <div id="refundPickerField" style="display:' + (t.type==='refund'?'flex':'none') + '; flex-direction:column; gap:8px;">'
+    + '      <label>Select original transaction <span class="faint">(the expense you\'re refunding)</span></label>'
+    + '      <input type="text" id="refundSearch" placeholder="Filter by description, date, or amount..." style="font-size:13px; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text);">'
+    + '      <div id="refundResults" style="max-height:220px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius);"></div>'
+    + '      <div id="refundSelected" style="display:none; font-size:12px; color:var(--sage); padding:6px 0;"></div>'
+    + '    </div>'
     + (t.type !== 'income' && t.type !== 'refund' ? (
         '    <div style="display:flex; gap:16px; padding-top:2px;">'
         + '      <button type="button" id="openCategorySplitBtn" class="icon-btn" style="font-size:11.5px; font-weight:700; color:var(--brass); padding:2px 0;">&#8862; Split across categories</button>'
@@ -131,6 +137,11 @@ window.Ledger.openTxModal = function(existing){
         var splitBtns = document.getElementById("openCategorySplitBtn");
         var friendBtns = document.getElementById("openFriendSplitBtn");
         if(splitBtns) splitBtns.closest("div").style.display = (currentType === "refund" || currentType === "income") ? "none" : "flex";
+        // Show/hide refund picker
+        var refundPicker = document.getElementById("refundPickerField");
+        if(refundPicker) refundPicker.style.display = currentType === "refund" ? "flex" : "none";
+        if(currentType === "refund"){ refundOf = null; renderRefundResults(); }
+        else { refundOf = null; }
       });
     });
 
@@ -235,6 +246,98 @@ window.Ledger.openTxModal = function(existing){
         refreshSplitBanner();
       });
     });
+
+    // ---- Refund picker: link to original transaction ----
+    var refundOf = (isEdit && t.refundOf) ? t.refundOf : null;
+
+    function getRefundCandidates(){
+      var amt = parseFloat(document.getElementById("txAmount").value);
+      var searchEl = document.getElementById("refundSearch");
+      var q = searchEl ? searchEl.value.trim().toLowerCase() : "";
+      var candidates = window.Ledger.DB.transactions.filter(function(tx){
+        if(tx.type !== "expense" && tx.type !== "income") return false;
+        if(tx.type === "transfer") return false;
+        if(q){
+          var desc = (tx.desc || "").toLowerCase();
+          var date = tx.date || "";
+          var amtStr = String(tx.amount);
+          if(desc.indexOf(q) === -1 && date.indexOf(q) === -1 && amtStr.indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+      candidates.sort(function(a, b){
+        if(amt){
+          var aMatch = Math.abs(a.amount - amt) < 0.005;
+          var bMatch = Math.abs(b.amount - amt) < 0.005;
+          if(aMatch && !bMatch) return -1;
+          if(!aMatch && bMatch) return 1;
+        }
+        return b.date.localeCompare(a.date);
+      });
+      return candidates.slice(0, 30);
+    }
+
+    function renderRefundResults(){
+      var results = getRefundCandidates();
+      var container = document.getElementById("refundResults");
+      if(!container) return;
+      if(results.length === 0){
+        container.innerHTML = '<div style="padding:12px; font-size:12px; color:var(--text-faint);">No matching transactions</div>';
+        return;
+      }
+      var amt = parseFloat(document.getElementById("txAmount").value) || 0;
+      container.innerHTML = results.map(function(tx){
+        var acc = window.Ledger.findAccount(tx.account);
+        var catName = window.Ledger.categoryName(tx.category);
+        var isSel = refundOf === tx.id;
+        var isAmtMatch = amt > 0 && Math.abs(tx.amount - amt) < 0.005;
+        var cur = acc ? acc.currency : "USD";
+        return '<div class="refund-result" data-txid="' + tx.id + '" style="padding:8px 12px; cursor:pointer; border-bottom:1px solid var(--border-soft); font-size:12px; display:flex; justify-content:space-between; align-items:center;' + (isSel ? ' background:var(--sage-soft);' : '') + (isAmtMatch && !isSel ? ' border-left:3px solid var(--sage);' : '') + '">'
+          + '<div>'
+          + '  <div style="font-weight:600;">' + window.Ledger.escapeHtml(tx.desc || "Transaction") + '</div>'
+          + '  <div style="color:var(--text-faint); font-size:11px;">' + tx.date + ' \u00b7 ' + window.Ledger.escapeHtml(acc ? acc.name : "?") + ' \u00b7 ' + window.Ledger.escapeHtml(catName) + '</div>'
+          + '</div>'
+          + '<div style="font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap;">' + window.Ledger.fmtMoney(tx.amount, cur) + '</div>'
+          + '</div>';
+      }).join("");
+      Array.prototype.forEach.call(container.querySelectorAll(".refund-result"), function(el){
+        el.addEventListener("click", function(){
+          refundOf = el.getAttribute("data-txid");
+          var tx = window.Ledger.DB.transactions.find(function(x){ return x.id === refundOf; });
+          if(tx){
+            var catSel = document.getElementById("txCategory");
+            if(catSel && tx.category){ catSel.value = tx.category; catSel.dispatchEvent(new Event("change")); }
+            var confirmEl = document.getElementById("refundSelected");
+            if(confirmEl){
+              var acc = window.Ledger.findAccount(tx.account);
+              confirmEl.style.display = "block";
+              confirmEl.innerHTML = 'Linked to: <b>' + window.Ledger.escapeHtml(tx.desc || "Transaction") + '</b> (' + tx.date + ', ' + window.Ledger.fmtMoney(tx.amount, acc ? acc.currency : "USD") + ')';
+            }
+          }
+          renderRefundResults();
+        });
+      });
+    }
+
+    var refundSearchEl = document.getElementById("refundSearch");
+    if(refundSearchEl) refundSearchEl.addEventListener("input", renderRefundResults);
+    var amtInput = document.getElementById("txAmount");
+    if(amtInput) amtInput.addEventListener("input", function(){
+      var picker = document.getElementById("refundPickerField");
+      if(picker && picker.style.display !== "none") renderRefundResults();
+    });
+    if(currentType === "refund") renderRefundResults();
+    if(refundOf){
+      var origTx = window.Ledger.DB.transactions.find(function(x){ return x.id === refundOf; });
+      if(origTx){
+        var ce = document.getElementById("refundSelected");
+        if(ce){
+          var oAcc = window.Ledger.findAccount(origTx.account);
+          ce.style.display = "block";
+          ce.innerHTML = 'Linked to: <b>' + window.Ledger.escapeHtml(origTx.desc || "Transaction") + '</b> (' + origTx.date + ', ' + window.Ledger.fmtMoney(origTx.amount, oAcc ? oAcc.currency : "USD") + ')';
+        }
+      }
+    }
 
     document.getElementById("saveTxBtn").addEventListener("click", function(){
       var desc = document.getElementById("txDesc").value.trim();
@@ -350,6 +453,7 @@ window.Ledger.openTxModal = function(existing){
           desc: desc || fallbackDesc, notes:notes, account:account, category:category, subcategory:subcategory,
           created: isEdit ? t.created : Date.now()
         };
+        if(currentType === "refund" && refundOf) rec2.refundOf = refundOf;
         window.Ledger.commitTransaction(rec2, isEdit);
       }
     });
@@ -508,7 +612,7 @@ window.Ledger.openCategorySplitModal = function(totalAmount, existingSplits, onD
       return '<div class="form-row" data-split-row="'+i+'" style="align-items:flex-end;">'
         + '  <div class="field"><label>Category</label><select class="splitCatSel" data-idx="'+i+'">'+thisOpts+'</select></div>'
         + '  <div class="field" style="max-width:130px;"><label>Amount</label><input type="number" class="splitAmtInput" data-idx="'+i+'" step="0.01" min="0" value="'+r.amount+'"></div>'
-        + '  <button type="button" class="icon-btn danger splitRemoveBtn" data-idx="'+i+'" title="Remove row" style="margin-bottom:9px;">&times;</button>'
+        + '  <button type="button" class="icon-btn danger splitRemoveBtn" data-idx="'+i+'" title="Remove row" style="margin-bottom:9px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
         + '</div>';
     }).join("");
 
@@ -594,7 +698,7 @@ window.Ledger.openFriendSplitModal = function(totalAmount, existing, onDone){
       return '<div class="form-row" data-friend-row="'+i+'" style="align-items:flex-end;">'
         + '  <div class="field"><label>Friend</label><select class="friendPersonSel" data-idx="'+i+'">'+thisOpts+'</select></div>'
         + '  <div class="field" style="max-width:130px;"><label>Their share</label><input type="number" class="friendAmtInput" data-idx="'+i+'" step="0.01" min="0" value="'+s.amount+'"></div>'
-        + '  <button type="button" class="icon-btn danger friendRemoveBtn" data-idx="'+i+'" title="Remove" style="margin-bottom:9px;">&times;</button>'
+        + '  <button type="button" class="icon-btn danger friendRemoveBtn" data-idx="'+i+'" title="Remove" style="margin-bottom:9px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
         + '</div>';
     }).join("");
 
