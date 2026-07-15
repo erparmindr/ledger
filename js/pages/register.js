@@ -82,6 +82,7 @@ window.Ledger.pages.renderRegisterPage = function(){
     }
   }
 
+  var f = window.Ledger.registerFilters;
   var hasAnyTx = window.Ledger.DB.transactions.length > 0;
   var isEmpty = list.length === 0;
 
@@ -187,7 +188,6 @@ window.Ledger.pages.renderRegisterPage = function(){
   }
 
   /* ---- Active filter detection ---- */
-  var f = window.Ledger.registerFilters;
   var hasActiveFilters = (f.account!=="all" || f.currency!=="all" || f.category!=="all" || f.subcategory!=="all" || f.type!=="all" || f.datePreset!=="all" || f.search.trim()!=="");
   var clearBtnHtml = hasActiveFilters
     ? '<button class="clear-filters" id="clearFiltersBtn">Clear filters</button>'
