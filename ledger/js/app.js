@@ -69,8 +69,9 @@ window.Ledger.renderSidebarBalance = function(){
 
 window.Ledger.navigateTo = function(page){
   window.Ledger.currentPage = page;
+  localStorage.setItem("ledger_page", page);
   document.getElementById("pageTitle").textContent = window.Ledger.NAV_ITEMS.find(function(n){ return n.id===page; }).label;
-  document.getElementById("globalSearchWrap").style.display = (page === "register") ? "flex" : "none";
+  document.getElementById("globalSearchWrap").style.display = (page === "transactions") ? "flex" : "none";
   window.Ledger.renderNav();
   window.Ledger.renderPage();
 };
@@ -480,13 +481,27 @@ document.getElementById("globalSearch") && document.getElementById("globalSearch
    INIT
    ============================================================ */
 window.Ledger.__LEDGER_INIT__ = function(){
+  // Restore theme from localStorage
+  var savedTheme = localStorage.getItem("ledger_theme");
+  if(savedTheme) window.Ledger.currentTheme = savedTheme;
   window.Ledger.applyTheme(window.Ledger.currentTheme);
+
+  // Restore page from localStorage
+  var savedPage = localStorage.getItem("ledger_page");
+  if(savedPage && window.Ledger.NAV_ITEMS.some(function(n){ return n.id === savedPage; })){
+    window.Ledger.currentPage = savedPage;
+  }
+  var navItem = window.Ledger.NAV_ITEMS.find(function(n){ return n.id === window.Ledger.currentPage; });
+  document.getElementById("pageTitle").textContent = navItem ? navItem.label : "Overview";
+  document.getElementById("globalSearchWrap").style.display = (window.Ledger.currentPage === "transactions") ? "flex" : "none";
+
   window.Ledger.renderNav();
   window.Ledger.renderPage();
 };
 
 window.Ledger.applyTheme = function(t){
   window.Ledger.currentTheme = t;
+  localStorage.setItem("ledger_theme", t);
   document.body.setAttribute("data-theme", t);
   Array.prototype.forEach.call(document.querySelectorAll("[data-theme-btn]"), function(b){
     b.classList.toggle("active", b.getAttribute("data-theme-btn") === t);
