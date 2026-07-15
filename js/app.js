@@ -28,29 +28,6 @@ window.Ledger.renderNav = function(){
       document.getElementById("sidebarBackdrop").classList.remove("show");
     });
   });
-  window.Ledger.renderSidebarBalance();
-};
-
-window.Ledger.renderSidebarBalance = function(){
-  var el = document.getElementById("sidebarBalance");
-  if(!el) return;
-  var accs = window.Ledger.activeAccounts();
-  if(accs.length === 0){
-    el.innerHTML = '<div class="sb-lbl">Total balance</div><div class="sb-val faint" style="font-size:14px;">No accounts yet</div>';
-    return;
-  }
-  var byCurrency = {};
-  accs.forEach(function(a){
-    byCurrency[a.currency] = (byCurrency[a.currency] || 0) + window.Ledger.accountBalance(a.id);
-  });
-  var primaryCur = Object.keys(byCurrency)[0];
-  var total = byCurrency[primaryCur];
-  var extraCurCount = Object.keys(byCurrency).length - 1;
-
-  el.innerHTML = ''
-    + '<div class="sb-lbl">Total balance</div>'
-    + '<div class="sb-val">' + window.Ledger.fmtMoney(total, primaryCur) + '</div>'
-    + (extraCurCount > 0 ? '<div class="faint" style="font-size:10.5px; margin-top:3px;">+' + extraCurCount + ' other currenc' + (extraCurCount===1?'y':'ies') + '</div>' : '');
 };
 
 window.Ledger.navigateTo = function(page){
