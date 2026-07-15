@@ -70,10 +70,14 @@ window.Ledger.periodLabel = function(id){
 };
 
 window.Ledger.periodPillHtml = function(selectedId, dataAttr){
-  return '<select class="overview-pill-select" data-period="'+dataAttr+'">'
+  var label = window.Ledger.periodLabel(selectedId);
+  return '<div class="pill-dropdown" data-pill-dropdown="'+dataAttr+'">'
+    + '<button class="pill-trigger">'+window.Ledger.escapeHtml(label)+'<svg width="8" height="8" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+    + '<div class="pill-menu">'
     + window.Ledger.OVERVIEW_PERIODS.map(function(p){
-      return '<option value="'+p.id+'" '+(selectedId===p.id?"selected":"")+'>'+p.label+'</option>';
-    }).join("") + '</select>';
+      return '<div class="pill-option'+(selectedId===p.id?' active':'')+'" data-pill-val="'+p.id+'">'+p.label+'</div>';
+    }).join("")
+    + '</div></div>';
 };
 
 /* ============================================================

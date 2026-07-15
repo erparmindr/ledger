@@ -84,13 +84,28 @@ window.Ledger.wirePageEvents = function(){
         window.Ledger.navigateTo("transactions");
       });
     });
-    Array.prototype.forEach.call(document.querySelectorAll(".overview-pill-select"), function(sel){
-      sel.addEventListener("change", function(){
-        var key = sel.getAttribute("data-period");
-        window.Ledger.overviewState[key] = sel.value;
-        window.Ledger.saveOverviewState();
-        setTimeout(function(){ window.Ledger.renderPage(); }, 50);
+    Array.prototype.forEach.call(document.querySelectorAll(".pill-dropdown"), function(dd){
+      var trigger = dd.querySelector(".pill-trigger");
+      trigger.addEventListener("click", function(e){
+        e.stopPropagation();
+        var wasOpen = dd.classList.contains("open");
+        document.querySelectorAll(".pill-dropdown.open").forEach(function(x){ x.classList.remove("open"); });
+        if(!wasOpen) dd.classList.add("open");
       });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".pill-option"), function(opt){
+      opt.addEventListener("click", function(e){
+        e.stopPropagation();
+        var dd = opt.closest(".pill-dropdown");
+        var key = dd.getAttribute("data-pill-dropdown");
+        window.Ledger.overviewState[key] = opt.getAttribute("data-pill-val");
+        window.Ledger.saveOverviewState();
+        dd.classList.remove("open");
+        window.Ledger.renderPage();
+      });
+    });
+    document.addEventListener("click", function(){
+      document.querySelectorAll(".pill-dropdown.open").forEach(function(x){ x.classList.remove("open"); });
     });
     window.Ledger.wireTxRowActions();
   }
