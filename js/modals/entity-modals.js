@@ -56,13 +56,13 @@ window.Ledger.openTxModal = function(existing){
     + '  </div>'
     + '  <div id="exIncFields" style="display:' + (t.type==='transfer'?'none':'flex') + '; flex-direction:column; gap:14px;">'
     + '    <div class="form-row">'
-    + '      <div class="field"><label>Account</label><select id="txAccount">' + accOptsAll + '</select></div>'
+    + '      <div class="field"><label id="txAccountLabel">' + (t.type==='refund'?'Refund to account':'Account') + '</label><select id="txAccount">' + accOptsAll + '</select></div>'
     + '      <div class="field"><label>Category</label><select id="txCategory">' + catOptions(t.type==='income'?'income':'expense') + '</select></div>'
     + '    </div>'
     + '    <div class="field" id="subcatField" style="display:none;"><label>Subcategory <span class="faint">(required)</span></label><select id="txSubcategory"></select></div>'
     + '    <div id="refundPickerField" style="display:' + (t.type==='refund'?'flex':'none') + '; flex-direction:column; gap:8px;">'
     + '      <label>Select original transaction <span class="faint">(the expense you\'re refunding)</span></label>'
-    + '      <input type="text" id="refundSearch" placeholder="Filter by description, date, or amount..." style="font-size:13px; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text);">'
+      + '      <input type="text" id="refundSearch" placeholder="Search by description, date, amount, or account..." style="font-size:13px; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text);">'
     + '      <div id="refundResults" style="max-height:220px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius);"></div>'
     + '      <div id="refundSelected" style="display:none; font-size:12px; color:var(--sage); padding:6px 0;"></div>'
     + '    </div>'
@@ -140,6 +140,9 @@ window.Ledger.openTxModal = function(existing){
         // Show/hide refund picker
         var refundPicker = document.getElementById("refundPickerField");
         if(refundPicker) refundPicker.style.display = currentType === "refund" ? "flex" : "none";
+        // Update account label for refund
+        var accLabel = document.getElementById("txAccountLabel");
+        if(accLabel) accLabel.textContent = currentType === "refund" ? "Refund to account" : "Account";
         if(currentType === "refund"){ refundOf = null; renderRefundResults(); }
         else { refundOf = null; }
       });
@@ -254,18 +257,27 @@ window.Ledger.openTxModal = function(existing){
       var amt = parseFloat(document.getElementById("txAmount").value);
       var searchEl = document.getElementById("refundSearch");
       var q = searchEl ? searchEl.value.trim().toLowerCase() : "";
-      var candidates = window.Ledger.DB.transactions.filter(function(tx){
-        if(tx.type !== "expense" && tx.type !== "income") return false;
-        if(tx.type === "transfer") return false;
+
+      // Build set of already-refunded transaction IDs
+      var refundedIds = {};
+      window.Ledger.DB.transactions.forEach(function(tx){
+        if(tx.type === "refund" && tx.refundOf) refundedIds[tx.refundOf] = true;
+      });
+
+      var allExpenses = window.Ledger.DB.transactions.filter(function(tx){
+        if(tx.type !== "expense") return false;
         if(q){
           var desc = (tx.desc || "").toLowerCase();
           var date = tx.date || "";
           var amtStr = String(tx.amount);
-          if(desc.indexOf(q) === -1 && date.indexOf(q) === -1 && amtStr.indexOf(q) === -1) return false;
+          var acc = window.Ledger.findAccount(tx.account);
+          var accName = acc ? acc.name.toLowerCase() : "";
+          if(desc.indexOf(q) === -1 && date.indexOf(q) === -1 && amtStr.indexOf(q) === -1 && accName.indexOf(q) === -1) return false;
         }
         return true;
       });
-      candidates.sort(function(a, b){
+
+      allExpenses.sort(function(a, b){
         if(amt){
           var aMatch = Math.abs(a.amount - amt) < 0.005;
           var bMatch = Math.abs(b.amount - amt) < 0.005;
@@ -274,32 +286,54 @@ window.Ledger.openTxModal = function(existing){
         }
         return b.date.localeCompare(a.date);
       });
-      return candidates.slice(0, 30);
+
+      var suggested = allExpenses.filter(function(tx){ return !refundedIds[tx.id]; });
+      return { suggested: suggested.slice(0, 10), all: allExpenses.slice(0, 30) };
+    }
+
+    function renderRefundResultItem(tx, showOrigAcc){
+      var acc = window.Ledger.findAccount(tx.account);
+      var catName = window.Ledger.categoryName(tx.category);
+      var isSel = refundOf === tx.id;
+      var amt = parseFloat(document.getElementById("txAmount").value) || 0;
+      var isAmtMatch = amt > 0 && Math.abs(tx.amount - amt) < 0.005;
+      var cur = acc ? acc.currency : "USD";
+      var isRefunded = window.Ledger.DB.transactions.some(function(x){ return x.type === "refund" && x.refundOf === tx.id && x.id !== refundOf; });
+      return '<div class="refund-result" data-txid="' + tx.id + '" style="padding:8px 12px; cursor:pointer; border-bottom:1px solid var(--border-soft); font-size:12px; display:flex; justify-content:space-between; align-items:center;' + (isSel ? ' background:var(--sage-soft);' : '') + (isAmtMatch && !isSel ? ' border-left:3px solid var(--sage);' : '') + (isRefunded ? ' opacity:0.5;' : '') + '">'
+        + '<div>'
+        + '  <div style="font-weight:600;">' + window.Ledger.escapeHtml(tx.desc || "Transaction") + (isRefunded ? ' <span style="color:var(--sage); font-size:10px;">(already refunded)</span>' : '') + '</div>'
+        + '  <div style="color:var(--text-faint); font-size:11px;">' + tx.date + ' \u00b7 ' + window.Ledger.escapeHtml(acc ? acc.name : "?") + ' \u00b7 ' + window.Ledger.escapeHtml(catName) + '</div>'
+        + '</div>'
+        + '<div style="font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap;">' + window.Ledger.fmtMoney(tx.amount, cur) + '</div>'
+        + '</div>';
     }
 
     function renderRefundResults(){
-      var results = getRefundCandidates();
+      var candidates = getRefundCandidates();
       var container = document.getElementById("refundResults");
       if(!container) return;
-      if(results.length === 0){
-        container.innerHTML = '<div style="padding:12px; font-size:12px; color:var(--text-faint);">No matching transactions</div>';
+
+      var hasSuggested = candidates.suggested.length > 0;
+      var hasAll = candidates.all.length > 0;
+
+      if(!hasSuggested && !hasAll){
+        container.innerHTML = '<div style="padding:12px; font-size:12px; color:var(--text-faint);">No matching expenses</div>';
         return;
       }
-      var amt = parseFloat(document.getElementById("txAmount").value) || 0;
-      container.innerHTML = results.map(function(tx){
-        var acc = window.Ledger.findAccount(tx.account);
-        var catName = window.Ledger.categoryName(tx.category);
-        var isSel = refundOf === tx.id;
-        var isAmtMatch = amt > 0 && Math.abs(tx.amount - amt) < 0.005;
-        var cur = acc ? acc.currency : "USD";
-        return '<div class="refund-result" data-txid="' + tx.id + '" style="padding:8px 12px; cursor:pointer; border-bottom:1px solid var(--border-soft); font-size:12px; display:flex; justify-content:space-between; align-items:center;' + (isSel ? ' background:var(--sage-soft);' : '') + (isAmtMatch && !isSel ? ' border-left:3px solid var(--sage);' : '') + '">'
-          + '<div>'
-          + '  <div style="font-weight:600;">' + window.Ledger.escapeHtml(tx.desc || "Transaction") + '</div>'
-          + '  <div style="color:var(--text-faint); font-size:11px;">' + tx.date + ' \u00b7 ' + window.Ledger.escapeHtml(acc ? acc.name : "?") + ' \u00b7 ' + window.Ledger.escapeHtml(catName) + '</div>'
-          + '</div>'
-          + '<div style="font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap;">' + window.Ledger.fmtMoney(tx.amount, cur) + '</div>'
-          + '</div>';
-      }).join("");
+
+      var html = "";
+      if(hasSuggested){
+        html += '<div style="padding:6px 12px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--sage); background:var(--sage-soft); border-bottom:1px solid var(--border-soft);">Suggested &mdash; not yet refunded</div>';
+        html += candidates.suggested.map(function(tx){ return renderRefundResultItem(tx, true); }).join("");
+      }
+      if(hasAll){
+        if(hasSuggested){
+          html += '<div style="padding:6px 12px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint); background:var(--surface-2); border-bottom:1px solid var(--border-soft);">All expenses</div>';
+        }
+        html += candidates.all.map(function(tx){ return renderRefundResultItem(tx, true); }).join("");
+      }
+
+      container.innerHTML = html;
       Array.prototype.forEach.call(container.querySelectorAll(".refund-result"), function(el){
         el.addEventListener("click", function(){
           refundOf = el.getAttribute("data-txid");
@@ -309,9 +343,18 @@ window.Ledger.openTxModal = function(existing){
             if(catSel && tx.category){ catSel.value = tx.category; catSel.dispatchEvent(new Event("change")); }
             var confirmEl = document.getElementById("refundSelected");
             if(confirmEl){
-              var acc = window.Ledger.findAccount(tx.account);
+              var origAcc = window.Ledger.findAccount(tx.account);
+              var refundAccSel = document.getElementById("txAccount");
+              var refundAccName = "";
+              if(refundAccSel){
+                var refundAcc = window.Ledger.findAccount(refundAccSel.value);
+                refundAccName = refundAcc ? refundAcc.name : "";
+              }
+              var isCrossAccount = origAcc && refundAccName && origAcc.name !== refundAccName;
               confirmEl.style.display = "block";
-              confirmEl.innerHTML = 'Linked to: <b>' + window.Ledger.escapeHtml(tx.desc || "Transaction") + '</b> (' + tx.date + ', ' + window.Ledger.fmtMoney(tx.amount, acc ? acc.currency : "USD") + ')';
+              confirmEl.innerHTML = 'Linked to: <b>' + window.Ledger.escapeHtml(tx.desc || "Transaction") + '</b> ('
+                + tx.date + ', ' + window.Ledger.fmtMoney(tx.amount, origAcc ? origAcc.currency : "USD")
+                + (isCrossAccount ? ') &mdash; paid with <b>' + window.Ledger.escapeHtml(origAcc.name) + '</b>, refund to <b>' + window.Ledger.escapeHtml(refundAccName) + '</b>' : ')');
             }
           }
           renderRefundResults();
@@ -326,6 +369,12 @@ window.Ledger.openTxModal = function(existing){
       var picker = document.getElementById("refundPickerField");
       if(picker && picker.style.display !== "none") renderRefundResults();
     });
+    // Re-render when refund account changes (to update cross-account display)
+    var refundAccSel = document.getElementById("txAccount");
+    if(refundAccSel) refundAccSel.addEventListener("change", function(){
+      var picker = document.getElementById("refundPickerField");
+      if(picker && picker.style.display !== "none" && refundOf) renderRefundResults();
+    });
     if(currentType === "refund") renderRefundResults();
     if(refundOf){
       var origTx = window.Ledger.DB.transactions.find(function(x){ return x.id === refundOf; });
@@ -333,8 +382,14 @@ window.Ledger.openTxModal = function(existing){
         var ce = document.getElementById("refundSelected");
         if(ce){
           var oAcc = window.Ledger.findAccount(origTx.account);
+          var rAccSel2 = document.getElementById("txAccount");
+          var rAccName2 = "";
+          if(rAccSel2){ var rA2 = window.Ledger.findAccount(rAccSel2.value); rAccName2 = rA2 ? rA2.name : ""; }
+          var isCross2 = oAcc && rAccName2 && oAcc.name !== rAccName2;
           ce.style.display = "block";
-          ce.innerHTML = 'Linked to: <b>' + window.Ledger.escapeHtml(origTx.desc || "Transaction") + '</b> (' + origTx.date + ', ' + window.Ledger.fmtMoney(origTx.amount, oAcc ? oAcc.currency : "USD") + ')';
+          ce.innerHTML = 'Linked to: <b>' + window.Ledger.escapeHtml(origTx.desc || "Transaction") + '</b> ('
+            + origTx.date + ', ' + window.Ledger.fmtMoney(origTx.amount, oAcc ? oAcc.currency : "USD")
+            + (isCross2 ? ') &mdash; paid with <b>' + window.Ledger.escapeHtml(oAcc.name) + '</b>, refund to <b>' + window.Ledger.escapeHtml(rAccName2) + '</b>' : ')');
         }
       }
     }
