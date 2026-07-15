@@ -89,7 +89,7 @@ window.Ledger.wirePageEvents = function(){
         var key = sel.getAttribute("data-period");
         window.Ledger.overviewState[key] = sel.value;
         window.Ledger.saveOverviewState();
-        window.Ledger.renderPage();
+        setTimeout(function(){ window.Ledger.renderPage(); }, 50);
       });
     });
     window.Ledger.wireTxRowActions();
