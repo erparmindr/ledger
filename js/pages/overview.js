@@ -126,15 +126,16 @@ window.Ledger.pages.renderOverviewPage = function(){
   /* ---- Account grid ---- */
   var acctGridHtml;
   if(accs.length === 0){
-    acctGridHtml = '<div class="empty-state" style="padding:30px;"><div class="big">No accounts yet</div>Create an account to get started.</div>';
+    acctGridHtml = '<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></div><div class="big">No accounts yet</div><div class="empty-desc">Create an account to get started.</div></div>';
   } else {
     acctGridHtml = '<div class="acct-grid">' + accs.map(function(a){
       var bal = window.Ledger.accountBalance(a.id);
       var isCredit = a.type === "credit_card";
       var toneClass = isCredit ? "kind-credit" : "tone-sage";
       var balCls = (isCredit && bal < 0) ? " neg" : "";
+      var typeAbrv = a.type === "credit_card" ? "CC" : a.type === "savings" ? "SAV" : a.type === "cash" ? "CASH" : "CHK";
       return '<div class="acct-mini-card '+toneClass+'" data-acct-click="'+a.id+'">'
-        + '<div class="am-name">'+window.Ledger.escapeHtml(a.name)+'</div>'
+        + '<div class="am-top"><div class="am-name">'+window.Ledger.escapeHtml(a.name)+'</div><span class="am-badge '+toneClass+'">'+typeAbrv+'</span></div>'
         + '<div class="am-bal num'+balCls+'">'+window.Ledger.fmtMoney(bal, a.currency)+'</div>'
         + '<div class="am-cur">'+a.currency+'</div>'
         + '</div>';
@@ -152,8 +153,8 @@ window.Ledger.pages.renderOverviewPage = function(){
   }
 
   var cashFlowHtml = '<div class="grid-2">'
-    + '<div class="metric income"><div class="lbl">Income this month</div><div class="val">+'+window.Ledger.fmtMoney(incVal, primaryCur)+'</div>'+trendArrow(incVal, incLast)+'</div>'
-    + '<div class="metric expense"><div class="lbl">Expenses this month</div><div class="val">\u2212'+window.Ledger.fmtMoney(expVal, primaryCur)+'</div>'+trendArrow(expVal, expLast)+'</div>'
+    + '<div class="metric income"><div class="lbl">Income this month</div><div class="val"><span class="msign">+</span>'+window.Ledger.fmtMoney(incVal, primaryCur)+'</div>'+trendArrow(incVal, incLast)+'</div>'
+    + '<div class="metric expense"><div class="lbl">Expenses this month</div><div class="val"><span class="msign">\u2212</span>'+window.Ledger.fmtMoney(expVal, primaryCur)+'</div>'+trendArrow(expVal, expLast)+'</div>'
     + '</div>';
 
   /* ---- Top spending categories (mini donut) ---- */
@@ -179,7 +180,7 @@ window.Ledger.pages.renderOverviewPage = function(){
 
   var donutHtml;
   if(topCats.length === 0){
-    donutHtml = '<div class="empty-state" style="padding:30px;"><div class="big">No categorized spending</div>Expenses in this period will appear here.</div>';
+    donutHtml = '<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></div><div class="big">No categorized spending</div><div class="empty-desc">Expenses in this period will appear here.</div></div>';
   } else {
     donutHtml = '<div class="donut-wrap">'
       + window.Ledger.svgDonut(topCats, 140, 20, "Total", window.Ledger.fmtMoneyShort(spendTotal))
@@ -251,7 +252,16 @@ window.Ledger.pages.renderOverviewPage = function(){
 
   var trendVals = trendData.map(function(m){ return m.amt; });
   var trendMax = Math.max.apply(null, trendVals.concat([1]));
+  var hasTrendData = trendVals.some(function(v){ return v > 0; });
   var sparkW = 280, sparkH = 56, sparkPad = 4;
+  var sparkHtml;
+  if(!hasTrendData){
+    sparkHtml = '<div class="sparkline-placeholder"><svg viewBox="0 0 '+sparkW+' '+sparkH+'" preserveAspectRatio="none">'
+      + '<line x1="0" y1="'+(sparkH*0.25)+'" x2="'+sparkW+'" y2="'+(sparkH*0.25)+'" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="4 4"/>'
+      + '<line x1="0" y1="'+(sparkH*0.5)+'" x2="'+sparkW+'" y2="'+(sparkH*0.5)+'" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="4 4"/>'
+      + '<line x1="0" y1="'+(sparkH*0.75)+'" x2="'+sparkW+'" y2="'+(sparkH*0.75)+'" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="4 4"/>'
+      + '</svg></div>';
+  } else {
   var sparkPoints = trendVals.map(function(v, idx){
     var x = trendVals.length === 1 ? sparkW/2 : sparkPad + (idx / (trendVals.length-1)) * (sparkW - sparkPad*2);
     var y = sparkH - sparkPad - ((Math.max(v,0)/trendMax) * (sparkH - sparkPad*2));
@@ -268,6 +278,7 @@ window.Ledger.pages.renderOverviewPage = function(){
     + '<div style="display:flex; justify-content:space-between; font-size:9.5px; font-weight:600; color:var(--text-faint); padding:0 2px;">'
     + trendData.map(function(m){ return '<span>'+m.label+'</span>'; }).join("")
     + '</div></div>';
+  }
 
   /* ---- Pending transfers ---- */
   var pendingTfers = window.Ledger.pendingTransfers ? window.Ledger.pendingTransfers() : [];
@@ -324,7 +335,7 @@ window.Ledger.pages.renderOverviewPage = function(){
 
   var upcomingHtml;
   if(upcoming.length === 0){
-    upcomingHtml = '<div class="empty-state" style="padding:24px;"><div class="big" style="font-size:14px;">Nothing due soon</div>Recurring items due within 7 days will appear here.</div>';
+    upcomingHtml = '<div class="empty-state" style="padding:24px 20px;"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg></div><div class="big">Nothing due soon</div><div class="empty-desc">Recurring items due within 7 days will appear here.</div></div>';
   } else {
     upcomingHtml = upcoming.map(function(x){
       var r = x.r;
@@ -342,7 +353,7 @@ window.Ledger.pages.renderOverviewPage = function(){
   /* ---- Recent activity ---- */
   var recentTx = window.Ledger.DB.transactions.slice().sort(function(a,b){ return (b.date+b.id).localeCompare(a.date+a.id); }).slice(0,6);
   var recentHtml = recentTx.length === 0
-    ? '<div class="empty-state"><div class="big">No entries yet</div>Use "New transaction" to add your first one.</div>'
+    ? '<div class="empty-state" style="padding:36px 20px;"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg></div><div class="big">No entries yet</div><div class="empty-desc">Use "New transaction" to add your first one.</div></div>'
     : recentTx.map(window.Ledger.renderTxRow).join("");
 
   /* ---- Assemble ---- */
@@ -362,9 +373,8 @@ window.Ledger.pages.renderOverviewPage = function(){
     + pendingHtml
     + unlinkedHtml
     + '<div class="card section-gap">'
-    + '  <div class="card-header"><h2>Upcoming</h2><span class="hint">next 7 days</span></div>'
+    + '  <div class="card-header"><h2>Upcoming</h2><div class="card-header-right"><span class="hint">next 7 days</span><button class="btn btn-sm" data-nav-link="scheduled">Manage &rarr;</button></div></div>'
     + '  <div class="card-pad" style="padding-top:6px; padding-bottom:6px;">' + upcomingHtml + '</div>'
-    + '  <div style="padding:0 20px 16px;"><button class="btn btn-sm" data-nav-link="scheduled">Manage scheduled &rarr;</button></div>'
     + '</div>'
     + '<div class="card section-gap">'
     + '  <div class="card-header"><h2>Recent activity</h2><span class="hint">last 6 entries &middot; <a href="#" data-nav-link="transactions" style="color:var(--brass); font-weight:700;">View all &rarr;</a></span></div>'
