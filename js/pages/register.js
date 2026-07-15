@@ -82,6 +82,29 @@ window.Ledger.pages.renderRegisterPage = function(){
     }
   }
 
+  /* ---- Summary stats ---- */
+  var totalIncome = 0, totalExpense = 0, totalTransfer = 0;
+  list.forEach(function(t){
+    if(t.type === "income") totalIncome += t.amount;
+    else if(t.type === "expense") totalExpense += t.amount;
+    else if(t.type === "transfer") totalTransfer++;
+    else if(t.type === "refund") totalIncome += t.amount;
+  });
+  var primaryCur = "USD";
+  if(list.length > 0){
+    var firstAcc = window.Ledger.findAccount(list[0].account);
+    if(!firstAcc && list[0].fromType==="account") firstAcc = window.Ledger.findAccount(list[0].fromId);
+    if(firstAcc) primaryCur = firstAcc.currency;
+  }
+
+  var chipsHtml = '<div class="reg-summary">'
+    + '<div class="reg-chip dot-sage"><span class="chip-dot"></span>Income <span class="chip-val pos">+' + window.Ledger.fmtMoneyShort(totalIncome) + '</span></div>'
+    + '<div class="reg-chip dot-clay"><span class="chip-dot"></span>Expenses <span class="chip-val neg">\u2212' + window.Ledger.fmtMoneyShort(totalExpense) + '</span></div>'
+    + '<div class="reg-chip dot-brass"><span class="chip-dot"></span>Transfers <span class="chip-val">' + totalTransfer + '</span></div>'
+    + '<div class="reg-chip dot-dim"><span class="chip-dot"></span>' + list.length + ' transaction' + (list.length !== 1 ? 's' : '') + '</div>'
+    + '</div>';
+
+  /* ---- Filter options ---- */
   var accOpts = '<option value="all">All accounts</option>' + window.Ledger.DB.accounts.map(function(a){
     return '<option value="' + a.id + '" ' + (window.Ledger.registerFilters.account===a.id?'selected':'') + '>' + window.Ledger.escapeHtml(a.name) + '</option>';
   }).join("");
@@ -102,34 +125,90 @@ window.Ledger.pages.renderRegisterPage = function(){
     }
   }
 
-  var listHtml = list.length === 0
-    ? '<div class="empty-state"><div class="big">No matching entries</div>Try adjusting your filters, or add a new transaction.</div>'
-    : list.map(function(t){ return window.Ledger.renderTxRow(t, {showRunningBalance:showRunning, runningBalance:runBalMap[t.id]}); }).join("");
+  /* ---- Active filter detection ---- */
+  var f = window.Ledger.registerFilters;
+  var hasActiveFilters = (f.account!=="all" || f.currency!=="all" || f.category!=="all" || f.subcategory!=="all" || f.type!=="all" || f.datePreset!=="all" || f.search.trim()!=="");
+  var clearBtnHtml = hasActiveFilters
+    ? '<button class="clear-filters" id="clearFiltersBtn">Clear filters</button>'
+    : '';
+  function filteredCls(val){ return val !== "all" ? ' is-filtered' : ''; }
+
+  /* ---- Column headers ---- */
+  var colHdrCls = 'tx-col-header';
+  if(showRunning) colHdrCls += ' show-runbal';
+  var colHeaders = '<div class="' + colHdrCls + '">'
+    + '<span class="col-date">Date</span>'
+    + '<span class="col-desc">Description</span>'
+    + '<span class="col-cat">Category</span>'
+    + '<span class="col-acct">Account</span>'
+    + '<span class="col-amt">Amount</span>'
+    + (showRunning ? '<span class="col-runbal">Balance</span>' : '')
+    + '</div>';
+
+  /* ---- Transaction list or empty state ---- */
+  var listHtml;
+  if(list.length === 0){
+    var hasAnyTx = window.Ledger.DB.transactions.length > 0;
+    if(hasAnyTx){
+      listHtml = '<div class="register-empty">'
+        + '<div class="empty-state">'
+        + '<div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'
+        + '<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/>'
+        + '</svg></div>'
+        + '<div class="big">No matching transactions</div>'
+        + '<div class="empty-desc">Try adjusting your filters or search query to find what you\'re looking for.</div>'
+        + (hasActiveFilters ? '<div class="empty-cta"><button class="btn btn-sm" id="clearFiltersBtn2">Clear filters</button></div>' : '')
+        + '</div></div>';
+    } else {
+      listHtml = '<div class="register-empty">'
+        + '<div class="empty-state">'
+        + '<div class="empty-icon empty-icon--line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">'
+        + '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/>'
+        + '</svg></div>'
+        + '<div class="big">No transactions yet</div>'
+        + '<div class="empty-desc">Start tracking your finances by adding your first transaction or importing a statement.</div>'
+        + '<div class="empty-cta" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">'
+        + '<button class="btn btn-sm btn-primary" onclick="window.Ledger.openTxModal(null)">+ New transaction</button>'
+        + '<button class="btn btn-sm" onclick="window.Ledger.navigateTo(\'settings\')">Import statement</button>'
+        + '</div></div></div>';
+    }
+  } else {
+    listHtml = list.map(function(t){ return window.Ledger.renderTxRow(t, {showRunningBalance:showRunning, runningBalance:runBalMap[t.id]}); }).join("");
+  }
+
+  /* ---- Register header ---- */
+  var headerHint = showRunning ? ' &middot; running balance shown' : '';
 
   return ''
     + '<div class="card">'
     + '  <div class="filters-bar">'
-    + '    <select id="fAccount">' + accOpts + '</select>'
-    + '    <select id="fCurrency">' + curOpts + '</select>'
-    + '    <select id="fCategory">' + catOpts + '</select>'
-    + '    <select id="fSubcategory">' + subOpts + '</select>'
-    + '    <select id="fType">'
-    + '      <option value="all" ' + (window.Ledger.registerFilters.type==="all"?"selected":"") + '>All types</option>'
-    + '      <option value="expense" ' + (window.Ledger.registerFilters.type==="expense"?"selected":"") + '>Expense</option>'
-    + '      <option value="income" ' + (window.Ledger.registerFilters.type==="income"?"selected":"") + '>Income</option>'
-    + '      <option value="transfer" ' + (window.Ledger.registerFilters.type==="transfer"?"selected":"") + '>Transfer</option>'
-    + '      <option value="refund" ' + (window.Ledger.registerFilters.type==="refund"?"selected":"") + '>Refund</option>'
+    + '    <select id="fAccount" class="' + filteredCls(f.account) + '">' + accOpts + '</select>'
+    + '    <select id="fCurrency" class="' + filteredCls(f.currency) + '">' + curOpts + '</select>'
+    + '    <select id="fCategory" class="' + filteredCls(f.category) + '">' + catOpts + '</select>'
+    + '    <select id="fSubcategory" class="' + filteredCls(f.subcategory) + '">' + subOpts + '</select>'
+    + '    <select id="fType" class="' + filteredCls(f.type) + '">'
+    + '      <option value="all" ' + (f.type==="all"?"selected":"") + '>All types</option>'
+    + '      <option value="expense" ' + (f.type==="expense"?"selected":"") + '>Expense</option>'
+    + '      <option value="income" ' + (f.type==="income"?"selected":"") + '>Income</option>'
+    + '      <option value="transfer" ' + (f.type==="transfer"?"selected":"") + '>Transfer</option>'
+    + '      <option value="refund" ' + (f.type==="refund"?"selected":"") + '>Refund</option>'
     + '    </select>'
-    + '    <select id="fDatePreset">' + window.Ledger.DATE_PRESETS.map(function(p){
-          return '<option value="'+p.id+'" '+(window.Ledger.registerFilters.datePreset===p.id?"selected":"")+'>'+p.label+'</option>';
+    + '    <select id="fDatePreset" class="' + filteredCls(f.datePreset) + '">' + window.Ledger.DATE_PRESETS.map(function(p){
+          return '<option value="'+p.id+'" '+(f.datePreset===p.id?"selected":"")+'>'+p.label+'</option>';
         }).join("") + '</select>'
-    + (window.Ledger.registerFilters.datePreset === "custom" ? (
-        '<input type="date" id="fDateFrom" value="' + window.Ledger.registerFilters.dateFrom + '">'
-        + '<input type="date" id="fDateTo" value="' + window.Ledger.registerFilters.dateTo + '">'
+    + (f.datePreset === "custom" ? (
+        '<input type="date" id="fDateFrom" value="' + f.dateFrom + '">'
+        + '<input type="date" id="fDateTo" value="' + f.dateTo + '">'
       ) : "")
+    + clearBtnHtml
     + '    <button class="btn btn-sm" id="exportCsvBtn" style="margin-left:auto;">Export CSV</button>'
     + '  </div>'
-    + '  <div class="card-header"><h2>Register</h2><span class="hint">' + list.length + ' entr' + (list.length===1?'y':'ies') + (showRunning ? ' &middot; running balance shown' : '') + '</span></div>'
+    + (list.length > 0 ? chipsHtml : '')
+    + '  <div class="card-header">'
+    + '    <div class="reg-header-left"><h2>Register</h2><span class="reg-count">' + list.length + ' transaction' + (list.length !== 1 ? 's' : '') + '</span></div>'
+    + '    <span class="hint">' + (showRunning ? 'running balance shown' : '') + '</span>'
+    + '  </div>'
+    + (list.length > 0 ? colHeaders : '')
     + '  <div>' + listHtml + '</div>'
     + '</div>';
 };

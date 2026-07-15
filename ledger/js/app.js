@@ -126,6 +126,16 @@ window.Ledger.wirePageEvents = function(){
     if(dTo) dTo.addEventListener("change", function(){ window.Ledger.registerFilters.dateTo = dTo.value; window.Ledger.renderPage(); });
     var exportBtn = document.getElementById("exportCsvBtn");
     if(exportBtn) exportBtn.addEventListener("click", window.Ledger.exportCsv);
+    function wireClearFilters(btnId){
+      var btn = document.getElementById(btnId);
+      if(btn) btn.addEventListener("click", function(){
+        window.Ledger.registerFilters = { account:"all", currency:"all", category:"all", subcategory:"all", type:"all", datePreset:"all", dateFrom:"", dateTo:"", search:"" };
+        var gs = document.getElementById("globalSearch"); if(gs) gs.value = "";
+        window.Ledger.renderPage();
+      });
+    }
+    wireClearFilters("clearFiltersBtn");
+    wireClearFilters("clearFiltersBtn2");
   }
 
   if(window.Ledger.currentPage === "accounts"){

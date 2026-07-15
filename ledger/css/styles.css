@@ -527,6 +527,7 @@ select:focus-visible{
 @media (max-width:760px){
   .tx-row{ flex-wrap:wrap; }
   .tx-row .main{ flex:1 0 60%; }
+  .tx-col-header .col-cat{ display:block; }
 }
 
 .empty-state{
@@ -566,6 +567,59 @@ select:focus-visible{
   border-color:var(--brass);
   box-shadow:0 0 0 3px var(--brass-soft);
 }
+.filters-bar select.is-filtered{
+  border-color:var(--brass);
+  box-shadow:0 0 0 1px var(--brass-soft);
+}
+.clear-filters{
+  background:none; border:1px solid var(--border); border-radius:var(--radius-pill);
+  padding:5px 12px; font-size:11px; font-weight:700; color:var(--text-faint);
+  cursor:pointer; transition:all var(--transition-fast); white-space:nowrap;
+  margin-left:4px;
+}
+.clear-filters:hover{ border-color:var(--clay); color:var(--clay); background:var(--clay-soft); }
+
+/* ---- Register summary chips ---- */
+.reg-summary{ display:flex; gap:8px; flex-wrap:wrap; padding:14px 20px; border-bottom:1px solid var(--border-soft); }
+.reg-chip{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 12px; border-radius:var(--radius-pill);
+  font-size:11.5px; font-weight:700;
+  background:var(--surface-2); border:1px solid var(--border-soft);
+  transition:border-color var(--transition-fast);
+}
+.reg-chip:hover{ border-color:var(--border); }
+.reg-chip .chip-dot{ width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.reg-chip .chip-val{ font-family:var(--font-num); font-variant-numeric:tabular-nums; font-weight:800; }
+.reg-chip.dot-sage .chip-dot{ background:var(--sage); }
+.reg-chip.dot-clay .chip-dot{ background:var(--clay); }
+.reg-chip.dot-brass .chip-dot{ background:var(--brass); }
+.reg-chip.dot-dim .chip-dot{ background:var(--text-faint); }
+
+/* ---- Register header ---- */
+.reg-header-left{ display:flex; align-items:baseline; gap:10px; }
+.reg-count{ font-size:12px; font-weight:600; color:var(--text-faint); }
+
+/* ---- Transaction column headers ---- */
+.tx-col-header{
+  display:flex; align-items:center; gap:14px;
+  padding:10px 18px; border-bottom:1px solid var(--border);
+  background:var(--surface-2);
+  font-size:10.5px; font-weight:700; color:var(--text-faint);
+  text-transform:uppercase; letter-spacing:0.06em;
+}
+.tx-col-header .col-date{ width:90px; flex-shrink:0; }
+.tx-col-header .col-desc{ flex:1; }
+.tx-col-header .col-cat{ width:120px; flex-shrink:0; display:none; }
+.tx-col-header .col-acct{ width:100px; flex-shrink:0; display:none; }
+.tx-col-header .col-amt{ width:100px; flex-shrink:0; text-align:right; }
+.tx-col-header .col-runbal{ width:80px; flex-shrink:0; text-align:right; display:none; }
+.tx-col-header.show-cat .col-cat{ display:block; }
+.tx-col-header.show-acct .col-acct{ display:block; }
+.tx-col-header.show-runbal .col-runbal{ display:block; }
+
+/* ---- Register empty state (enhanced) ---- */
+.register-empty{ padding:48px 24px; text-align:center; }
 
 /* ---- Account / People cards ---- */
 .acct-card{
@@ -926,6 +980,13 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   .acct-card{ padding:12px 14px; gap:12px; }
   .acct-card .bal{ font-size:15px; }
   .acct-card .nm{ font-size:14px; }
+  .reg-summary{ padding:10px 16px; gap:6px; }
+  .reg-chip{ padding:4px 10px; font-size:10.5px; }
+  .tx-col-header{ padding:8px 14px; font-size:9.5px; }
+  .tx-col-header .col-cat{ display:none!important; }
+  .tx-col-header .col-acct{ display:none!important; }
+  .tx-col-header .col-runbal{ display:none!important; }
+  .filters-bar .clear-filters{ margin-left:0; margin-top:4px; }
 }
 
 /* ============================================================
