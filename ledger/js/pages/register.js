@@ -101,6 +101,73 @@ window.Ledger.pages.renderRegisterPage = function(){
     + '<div class="reg-chip dot-dim"><span class="chip-dot"></span>' + list.length + ' transaction' + (list.length !== 1 ? 's' : '') + '</div>'
     + '</div>';
 
+  /* ---- Recently used categories ---- */
+  var recentCatIds = [];
+  var recentCatSet = {};
+  var recentCats = [];
+  var lookback = window.Ledger.DB.transactions.slice().sort(function(a,b){ return (b.date+b.id).localeCompare(a.date+a.id); }).slice(0,30);
+  for(var ri=0; ri<lookback.length && recentCatIds.length<5; ri++){
+    var rt = lookback[ri];
+    if(rt.category && !recentCatSet[rt.category]){
+      recentCatSet[rt.category] = 1;
+      recentCatIds.push(rt.category);
+    }
+  }
+  recentCatIds.forEach(function(cid){
+    var c = window.Ledger.findCategory(cid);
+    if(c) recentCats.push({id:c.id, name:c.name});
+  });
+
+  /* ---- All categories ---- */
+  var allCats = window.Ledger.DB.categories.map(function(c){ return {id:c.id, name:c.name}; });
+
+  /* ---- Category combobox ---- */
+  var selectedCatName = "All categories";
+  var selectedCatId = f.category;
+  if(selectedCatId !== "all"){
+    var selCat = window.Ledger.findCategory(selectedCatId);
+    if(selCat) selectedCatName = selCat.name;
+  }
+  var cbDefaultCls = selectedCatId === "all" ? " is-default" : "";
+  var cbFilteredCls = selectedCatId !== "all" ? " is-filtered" : "";
+
+  var catComboboxHtml = '<div class="cb-wrap' + (selectedCatId !== "all" ? " open-selected" : "") + '" id="cbCategory" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-label="Filter by category">'
+    + '<button class="cb-trigger' + cbFilteredCls + '" type="button" tabindex="0">'
+    + '<span class="cb-text' + cbDefaultCls + '">' + window.Ledger.escapeHtml(selectedCatName) + '</span>'
+    + '<svg class="cb-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>'
+    + '</button>'
+    + '<div class="cb-dropdown" role="listbox" aria-label="Categories">'
+    + '<div class="cb-search-wrap">'
+    + '<svg class="cb-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>'
+    + '<input type="text" class="cb-search" placeholder="Search categories..." aria-label="Search categories" autocomplete="off">'
+    + '</div>'
+    + '<div class="cb-scroll" id="cbCategoryScroll">'
+    + '<div class="cb-item" role="option" data-val="all" aria-selected="' + (selectedCatId==="all"?"true":"false") + '">'
+    + '<span class="cb-item-label">All categories</span>'
+    + '<svg class="cb-item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+    + '</div>'
+    + (recentCats.length > 0 ? '<div class="cb-section-recent">'
+    + '<div class="cb-divider"></div>'
+    + '<div class="cb-section-label">Recently used</div>'
+    + recentCats.map(function(c){
+      return '<div class="cb-item" role="option" data-val="' + c.id + '" aria-selected="' + (selectedCatId===c.id?"true":"false") + '">'
+        + '<span class="cb-item-label">' + window.Ledger.escapeHtml(c.name) + '</span>'
+        + '<svg class="cb-item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+        + '</div>';
+    }).join("") + '</div>' : '')
+    + '<div class="cb-section-all">'
+    + '<div class="cb-divider"></div>'
+    + '<div class="cb-section-label">All categories</div>'
+    + allCats.map(function(c){
+      return '<div class="cb-item" role="option" data-val="' + c.id + '" aria-selected="' + (selectedCatId===c.id?"true":"false") + '">'
+        + '<span class="cb-item-label">' + window.Ledger.escapeHtml(c.name) + '</span>'
+        + '<svg class="cb-item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+        + '</div>';
+    }).join("")
+    + '</div>'
+    + '</div>'
+    + '</div>';
+
   /* ---- Filter options ---- */
   var accOpts = '<option value="all">All accounts</option>' + window.Ledger.DB.accounts.map(function(a){
     return '<option value="' + a.id + '" ' + (window.Ledger.registerFilters.account===a.id?'selected':'') + '>' + window.Ledger.escapeHtml(a.name) + '</option>';
@@ -108,9 +175,6 @@ window.Ledger.pages.renderRegisterPage = function(){
   var curSet = {}; window.Ledger.DB.accounts.forEach(function(a){ curSet[a.currency]=1; });
   var curOpts = '<option value="all">All currencies</option>' + Object.keys(curSet).map(function(c){
     return '<option value="' + c + '" ' + (window.Ledger.registerFilters.currency===c?'selected':'') + '>' + c + '</option>';
-  }).join("");
-  var catOpts = '<option value="all">All categories</option>' + window.Ledger.DB.categories.map(function(c){
-    return '<option value="' + c.id + '" ' + (window.Ledger.registerFilters.category===c.id?'selected':'') + '>' + window.Ledger.escapeHtml(c.name) + '</option>';
   }).join("");
   var subOpts = '<option value="all">All subcategories</option>';
   if(window.Ledger.registerFilters.category !== "all"){
@@ -130,12 +194,11 @@ window.Ledger.pages.renderRegisterPage = function(){
     : '';
   function filteredCls(val){ return val !== "all" ? ' is-filtered' : ''; }
 
-  /* ---- Toolbar: search + filters + export ---- */
+  /* ---- Toolbar: filters + export ---- */
   var toolbarHtml = '<div class="filters-bar">'
-    + '<div class="search-inline"><span class="s-icon">&#9906;</span><input type="text" id="regSearch" placeholder="Search..." value="' + window.Ledger.escapeHtml(f.search) + '"></div>'
     + '<select id="fAccount" class="' + filteredCls(f.account) + '">' + accOpts + '</select>'
     + '<select id="fCurrency" class="' + filteredCls(f.currency) + '">' + curOpts + '</select>'
-    + '<select id="fCategory" class="' + filteredCls(f.category) + '">' + catOpts + '</select>'
+    + catComboboxHtml
     + '<select id="fSubcategory" class="' + filteredCls(f.subcategory) + '">' + subOpts + '</select>'
     + '<select id="fType" class="' + filteredCls(f.type) + '">'
     + '  <option value="all" ' + (f.type==="all"?"selected":"") + '>All types</option>'
