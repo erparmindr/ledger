@@ -41,7 +41,7 @@ window.Ledger.pages.renderAccountsPage = function(){
     : '';
 
   return ''
-    + '<div class="card card-pad" style="overflow:hidden;">'
+    + '<div class="card card-pad">'
     + '  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">'
     + '    <h2 style="font-size:16px; font-weight:800; margin:0;">Accounts</h2>'
     + '    <button class="btn btn-primary btn-sm" id="addAcctBtn">+ Add account</button>'
