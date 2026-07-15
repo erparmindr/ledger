@@ -100,12 +100,8 @@ window.Ledger.wirePageEvents = function(){
         var key = dd.getAttribute("data-pill-dropdown");
         window.Ledger.overviewState[key] = opt.getAttribute("data-pill-val");
         window.Ledger.saveOverviewState();
-        dd.classList.remove("open");
         window.Ledger.renderPage();
       });
-    });
-    document.addEventListener("click", function(){
-      document.querySelectorAll(".pill-dropdown.open").forEach(function(x){ x.classList.remove("open"); });
     });
     window.Ledger.wireTxRowActions();
   }
@@ -479,6 +475,11 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   window.Ledger.__LEDGER_INIT__();
+
+  /* Close pill dropdowns when clicking outside (once) */
+  document.addEventListener("click", function(){
+    document.querySelectorAll(".pill-dropdown.open").forEach(function(x){ x.classList.remove("open"); });
+  });
 
   if("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
     window.addEventListener("load", function(){
