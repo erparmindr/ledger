@@ -84,28 +84,6 @@ window.Ledger.wirePageEvents = function(){
         window.Ledger.navigateTo("transactions");
       });
     });
-    /* Pill dropdown: event delegation on pageContent */
-    document.getElementById("pageContent").addEventListener("click", function(e){
-      var trigger = e.target.closest(".pill-trigger");
-      if(trigger){
-        e.stopPropagation();
-        var dd = trigger.closest(".pill-dropdown");
-        var wasOpen = dd.classList.contains("open");
-        document.querySelectorAll(".pill-dropdown.open").forEach(function(x){ x.classList.remove("open"); });
-        if(!wasOpen) dd.classList.add("open");
-        return;
-      }
-      var opt = e.target.closest(".pill-option");
-      if(opt){
-        e.stopPropagation();
-        var dd2 = opt.closest(".pill-dropdown");
-        var key = dd2.getAttribute("data-pill-dropdown");
-        window.Ledger.overviewState[key] = opt.getAttribute("data-pill-val");
-        window.Ledger.saveOverviewState();
-        window.Ledger.renderPage();
-        return;
-      }
-    });
     window.Ledger.wireTxRowActions();
   }
 
@@ -482,6 +460,29 @@ document.addEventListener("DOMContentLoaded", function(){
   /* Close pill dropdowns when clicking outside (once) */
   document.addEventListener("click", function(){
     document.querySelectorAll(".pill-dropdown.open").forEach(function(x){ x.classList.remove("open"); });
+  });
+
+  /* Pill dropdown: event delegation (once) */
+  document.getElementById("pageContent").addEventListener("click", function(e){
+    var trigger = e.target.closest(".pill-trigger");
+    if(trigger){
+      e.stopPropagation();
+      var dd = trigger.closest(".pill-dropdown");
+      var wasOpen = dd.classList.contains("open");
+      document.querySelectorAll(".pill-dropdown.open").forEach(function(x){ x.classList.remove("open"); });
+      if(!wasOpen) dd.classList.add("open");
+      return;
+    }
+    var opt = e.target.closest(".pill-option");
+    if(opt){
+      e.stopPropagation();
+      var dd2 = opt.closest(".pill-dropdown");
+      var key = dd2.getAttribute("data-pill-dropdown");
+      window.Ledger.overviewState[key] = opt.getAttribute("data-pill-val");
+      window.Ledger.saveOverviewState();
+      window.Ledger.renderPage();
+      return;
+    }
   });
 
   if("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
