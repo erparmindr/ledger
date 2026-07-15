@@ -60,18 +60,25 @@ window.Ledger.renderTxRow = function(t, opts){
     subLabel = accName2 + ' &middot; <span class="faint">cross-currency transfer</span>';
     amtDisp = '<span style="color:var(--brass);">' + (t.type==="income"?"+":"\u2212") + window.Ledger.fmtMoney(t.amount, currency) + '</span>';
   } else {
-    mainLabel = t.desc;
     var accName = (window.Ledger.findAccount(t.account)||{}).name || "?";
-    subLabel = accName + (catLabel ? " &middot; " + catLabel : "");
+
     if(t.type === "refund"){
       if(t.refundOf){
         var origTx = window.Ledger.DB.transactions.find(function(x){ return x.id === t.refundOf; });
-        subLabel = accName + ' &middot; <span style="color:var(--sage);">refund of</span> ' + window.Ledger.escapeHtml(origTx ? (origTx.desc || "transaction") : "original");
+        var origDate = origTx ? new Date(origTx.date + "T00:00:00").toLocaleDateString(undefined, {month:"short", day:"numeric"}) : "";
+        mainLabel = "Refund: " + window.Ledger.escapeHtml(origTx ? (origTx.desc || "transaction") : "original") + (origDate ? " (" + origDate + ")" : "");
+        subLabel = accName + (catLabel ? " &middot; " + catLabel : "");
       } else {
-        subLabel = accName + (catLabel ? " &middot; refund \u2190 " + catLabel : " &middot; refund");
+        mainLabel = t.desc || "Refund";
+        subLabel = accName + (catLabel ? " &middot; " + catLabel : "");
       }
       amtDisp = '<span class="pos">+' + window.Ledger.fmtMoney(t.amount, currency) + '</span>';
     } else {
+      mainLabel = t.desc;
+      subLabel = accName + (catLabel ? " &middot; " + catLabel : "");
+      // Check if this expense has been refunded
+      var isRefunded = window.Ledger.DB.transactions.some(function(x){ return x.type === "refund" && x.refundOf === t.id; });
+      if(isRefunded) subLabel += ' &middot; <span style="color:var(--sage); font-weight:600;">refunded</span>';
       amtDisp = '<span class="' + (t.type==="income"?"pos":"neg") + '">' + (t.type==="income"?"+":"\u2212") + window.Ledger.fmtMoney(t.amount, currency) + '</span>';
     }
   }
