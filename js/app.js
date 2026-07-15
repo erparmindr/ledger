@@ -61,7 +61,8 @@ window.Ledger.renderPage = function(){
    EVENT WIRING (per-page, called after every render)
    ============================================================ */
 window.Ledger.wirePageEvents = function(){
-  document.getElementById("newTxBtn").onclick = function(){ window.Ledger.openTxModal(null); };
+  var btn = document.getElementById("newTxBtn");
+  if(btn) btn.onclick = function(){ window.Ledger.openTxModal(null); };
 
   if(window.Ledger.currentPage === "overview"){
     var navLink = document.querySelector("[data-nav-link]");
@@ -103,7 +104,7 @@ window.Ledger.wirePageEvents = function(){
   }
 
   if(window.Ledger.currentPage === "accounts"){
-    document.getElementById("addAcctBtn").addEventListener("click", function(){ window.Ledger.openAccountModal(null); });
+    el = document.getElementById("addAcctBtn"); if(el) el.addEventListener("click", function(){ window.Ledger.openAccountModal(null); });
     Array.prototype.forEach.call(document.querySelectorAll("[data-edit-acct]"), function(b){
       b.addEventListener("click", function(){ window.Ledger.openAccountModal(window.Ledger.findAccount(b.getAttribute("data-edit-acct"))); });
     });
@@ -313,29 +314,25 @@ window.Ledger.wirePageEvents = function(){
   }
 
   if(window.Ledger.currentPage === "settings"){
-    document.getElementById("exportBackupBtn").addEventListener("click", window.Ledger.exportBackup);
-    document.getElementById("importBackupBtn").addEventListener("click", function(){ document.getElementById("importBackupFile").click(); });
-    document.getElementById("importBackupFile").addEventListener("change", function(e){
+    var el;
+    el = document.getElementById("exportBackupBtn"); if(el) el.addEventListener("click", window.Ledger.exportBackup);
+    el = document.getElementById("importBackupBtn"); if(el) el.addEventListener("click", function(){ document.getElementById("importBackupFile").click(); });
+    el = document.getElementById("importBackupFile"); if(el) el.addEventListener("change", function(e){
       if(e.target.files[0]) window.Ledger.importBackupFile(e.target.files[0]);
       e.target.value = "";
     });
-    document.getElementById("importCsvBtn").addEventListener("click", function(){ document.getElementById("importCsvFile").click(); });
-    document.getElementById("importCsvFile").addEventListener("change", function(e){
+    el = document.getElementById("importCsvBtn"); if(el) el.addEventListener("click", function(){ document.getElementById("importCsvFile").click(); });
+    el = document.getElementById("importCsvFile"); if(el) el.addEventListener("change", function(e){
       if(e.target.files[0]) window.Ledger.openCsvImportModal(e.target.files[0]);
       e.target.value = "";
     });
-    document.getElementById("importStatementBtn").addEventListener("click", function(){ window.Ledger.openStatementPasteModal(); });
-    document.getElementById("resetAllBtn").addEventListener("click", function(){
+    el = document.getElementById("importStatementBtn"); if(el) el.addEventListener("click", function(){ window.Ledger.openStatementPasteModal(); });
+    el = document.getElementById("resetAllBtn"); if(el) el.addEventListener("click", function(){
       window.Ledger.openConfirmModal(
         "Reset all data?",
         "This will permanently delete all accounts, transactions, people, categories and recurring items from this browser. Export a backup first if you want to keep anything. This cannot be undone.",
         function(){
-          var fresh = window.Ledger.defaultData();
-          window.Ledger.DB.accounts = fresh.accounts;
-          window.Ledger.DB.people = fresh.people;
-          window.Ledger.DB.transactions = fresh.transactions;
-          window.Ledger.DB.categories = fresh.categories;
-          window.Ledger.DB.recurring = fresh.recurring;
+          window.Ledger.DB = window.Ledger.defaultData();
           window.Ledger.saveData();
           window.Ledger.navigateTo("overview");
           window.Ledger.showToast("All data cleared — fresh start");
