@@ -642,6 +642,22 @@ select:focus-visible{
   color:#241A02;
 }
 
+/* ---- Overview period dropdown ---- */
+.overview-period-select{
+  appearance:none; -webkit-appearance:none; -moz-appearance:none;
+  background-color:var(--surface-2);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 8px center; background-size:12px;
+  padding:5px 26px 5px 10px; border:1px solid var(--border); border-radius:var(--radius-sm);
+  font-size:11px; font-weight:600; color:var(--text-dim); cursor:pointer;
+  transition:all var(--transition-fast);
+}
+[data-theme="dark"] .overview-period-select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%238D96A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.overview-period-select:hover{ border-color:var(--text-dim); }
+.overview-period-select:focus-visible{ outline:none; border-color:var(--brass); box-shadow:0 0 0 2px var(--brass-soft); }
+
 /* ---- Report tab bar ---- */
 .report-tabs{ display:flex; gap:2px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:3px; margin-bottom:var(--sp-5); }
 .report-tabs button{

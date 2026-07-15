@@ -2,6 +2,81 @@ window.Ledger = window.Ledger || {};
 window.Ledger.pages = window.Ledger.pages || {};
 
 /* ============================================================
+   OVERVIEW STATE (persisted to localStorage)
+   ============================================================ */
+window.Ledger.overviewState = {
+  spendPeriod: "month",
+  trendPeriod: "6months"
+};
+(function(){
+  try {
+    var saved = JSON.parse(localStorage.getItem("ledger_overview_state"));
+    if(saved){
+      if(saved.spendPeriod) window.Ledger.overviewState.spendPeriod = saved.spendPeriod;
+      if(saved.trendPeriod) window.Ledger.overviewState.trendPeriod = saved.trendPeriod;
+    }
+  } catch(e){}
+})();
+window.Ledger.saveOverviewState = function(){
+  localStorage.setItem("ledger_overview_state", JSON.stringify(window.Ledger.overviewState));
+};
+
+/* ============================================================
+   DATE RANGE HELPER
+   ============================================================ */
+window.Ledger.overviewDateRange = function(preset){
+  var now = new Date();
+  var from = null, to = null;
+  if(preset === "week"){
+    from = new Date(now); from.setDate(now.getDate()-6); from.setHours(0,0,0,0);
+    to = now;
+  } else if(preset === "month"){
+    from = new Date(now.getFullYear(), now.getMonth(), 1);
+    to = now;
+  } else if(preset === "3months"){
+    from = new Date(now.getFullYear(), now.getMonth()-2, 1);
+    to = now;
+  } else if(preset === "6months"){
+    from = new Date(now.getFullYear(), now.getMonth()-5, 1);
+    to = now;
+  } else if(preset === "year"){
+    from = new Date(now.getFullYear(), 0, 1);
+    to = now;
+  }
+  var toStr = to ? (to.getFullYear()+"-"+window.Ledger.pad2(to.getMonth()+1)+"-"+window.Ledger.pad2(to.getDate())) : null;
+  var fromStr = from ? (from.getFullYear()+"-"+window.Ledger.pad2(from.getMonth()+1)+"-"+window.Ledger.pad2(from.getDate())) : null;
+  return {from:fromStr, to:toStr};
+};
+
+window.Ledger.overviewMatchDate = function(dateStr, preset){
+  if(preset === "all") return true;
+  var range = window.Ledger.overviewDateRange(preset);
+  if(range.from && dateStr < range.from) return false;
+  if(range.to && dateStr > range.to) return false;
+  return true;
+};
+
+window.Ledger.OVERVIEW_PERIODS = [
+  {id:"week", label:"This week"},
+  {id:"month", label:"This month"},
+  {id:"3months", label:"Last 3 months"},
+  {id:"6months", label:"Last 6 months"},
+  {id:"year", label:"This year"}
+];
+
+window.Ledger.periodLabel = function(id){
+  var p = window.Ledger.OVERVIEW_PERIODS.find(function(x){ return x.id===id; });
+  return p ? p.label : id;
+};
+
+window.Ledger.periodSelectHtml = function(selectedId, dataAttr){
+  return '<select class="overview-period-select" data-period="'+dataAttr+'">'
+    + window.Ledger.OVERVIEW_PERIODS.map(function(p){
+      return '<option value="'+p.id+'" '+(selectedId===p.id?"selected":"")+'>'+p.label+'</option>';
+    }).join("") + '</select>';
+};
+
+/* ============================================================
    OVERVIEW PAGE
    ============================================================ */
 window.Ledger.pages.renderOverviewPage = function(){
@@ -9,6 +84,8 @@ window.Ledger.pages.renderOverviewPage = function(){
   var thisMonth = window.Ledger.monthKeyOf(window.Ledger.todayISO());
   var lastMonth = new Date(); lastMonth.setMonth(lastMonth.getMonth()-1);
   var lastMonthKey = lastMonth.getFullYear()+"-"+window.Ledger.pad2(lastMonth.getMonth()+1);
+  var spendPeriod = window.Ledger.overviewState.spendPeriod;
+  var trendPeriod = window.Ledger.overviewState.trendPeriod;
 
   /* ---- Income & Expenses this month + last month for trends ---- */
   var incomeThis = {}, incomeLast = {}, expenseThis = {}, expenseLast = {};
@@ -31,7 +108,6 @@ window.Ledger.pages.renderOverviewPage = function(){
     }
   });
 
-  /* Pick primary currency (first account's currency, or USD) */
   var allCurSet = {};
   accs.forEach(function(a){ allCurSet[a.currency]=1; });
   Object.keys(incomeThis).forEach(function(c){ allCurSet[c]=1; });
@@ -42,8 +118,6 @@ window.Ledger.pages.renderOverviewPage = function(){
   var incLast = incomeLast[primaryCur]||0;
   var expVal = expenseThis[primaryCur]||0;
   var expLast = expenseLast[primaryCur]||0;
-  var incTrend = incLast > 0 ? Math.round(((incVal-incLast)/incLast)*100) : (incVal > 0 ? 100 : 0);
-  var expTrend = expLast > 0 ? Math.round(((expVal-expLast)/expLast)*100) : (expVal > 0 ? 100 : 0);
 
   /* ---- Account grid ---- */
   var acctGridHtml;
@@ -63,7 +137,7 @@ window.Ledger.pages.renderOverviewPage = function(){
     }).join("") + '</div>';
   }
 
-  /* ---- Cash flow metrics (income & expenses only, no net) ---- */
+  /* ---- Cash flow metrics ---- */
   function trendArrow(val, last){
     if(last === 0) return val > 0 ? '<span class="trend up">new</span>' : '';
     var pct = Math.round(((val-last)/last)*100);
@@ -80,13 +154,15 @@ window.Ledger.pages.renderOverviewPage = function(){
 
   /* ---- Top spending categories (mini donut) ---- */
   var catTotals = {};
+  var spendTotal = 0;
   window.Ledger.DB.transactions.forEach(function(t){
     if(t.type !== "expense" && t.type !== "refund") return;
-    if(window.Ledger.monthKeyOf(t.date) !== thisMonth) return;
+    if(!window.Ledger.overviewMatchDate(t.date, spendPeriod)) return;
     var acc = window.Ledger.findAccount(t.account);
     var cur = acc ? acc.currency : "USD";
     if(cur !== primaryCur) return;
     var sign = t.type === "refund" ? -1 : 1;
+    spendTotal += t.amount * sign;
     if(t.categorySplits && t.categorySplits.length){
       t.categorySplits.forEach(function(s){ catTotals[s.categoryId] = (catTotals[s.categoryId]||0) + (s.amount * sign); });
     } else if(t.category){
@@ -96,54 +172,97 @@ window.Ledger.pages.renderOverviewPage = function(){
   var topCats = Object.keys(catTotals).map(function(catId){
     return {catId:catId, label:window.Ledger.categoryName(catId), amt:catTotals[catId], color:window.Ledger.categoryColor(catId)};
   }).sort(function(a,b){ return b.amt - a.amt; }).slice(0,5);
-  var totalExpense = topCats.reduce(function(s,c){ return s+Math.abs(c.amt); },0);
 
   var donutHtml;
   if(topCats.length === 0){
-    donutHtml = '<div class="empty-state" style="padding:30px;"><div class="big">No categorized spending</div>Expenses this month will appear here.</div>';
+    donutHtml = '<div class="empty-state" style="padding:30px;"><div class="big">No categorized spending</div>Expenses in this period will appear here.</div>';
   } else {
     donutHtml = '<div class="donut-wrap">'
-      + window.Ledger.svgDonut(topCats, 140, 20, "Total", window.Ledger.fmtMoneyShort(totalExpense))
-      + window.Ledger.donutLegend(topCats, totalExpense)
+      + window.Ledger.svgDonut(topCats, 140, 20, "Total", window.Ledger.fmtMoneyShort(spendTotal))
+      + window.Ledger.donutLegend(topCats, spendTotal)
       + '</div>';
   }
 
-  /* ---- 6-month spending sparkline ---- */
+  /* ---- Spending trend (adaptive to period) ---- */
+  var trendData = [];
   var now = new Date();
-  var sparkMonths = [];
-  for(var i=5; i>=0; i--){
-    var d = new Date(now.getFullYear(), now.getMonth()-i, 1);
-    var mk = d.getFullYear()+"-"+window.Ledger.pad2(d.getMonth()+1);
-    var label = d.toLocaleDateString(undefined, {month:"short"});
-    sparkMonths.push({mk:mk, label:label, amt:0});
+  if(trendPeriod === "week"){
+    /* Daily bars for last 7 days */
+    for(var i=6; i>=0; i--){
+      var dd = new Date(now); dd.setDate(now.getDate()-i);
+      var ds = dd.getFullYear()+"-"+window.Ledger.pad2(dd.getMonth()+1)+"-"+window.Ledger.pad2(dd.getDate());
+      var dayLabel = dd.toLocaleDateString(undefined, {weekday:"short"});
+      trendData.push({key:ds, label:dayLabel, amt:0});
+    }
+    window.Ledger.DB.transactions.forEach(function(t){
+      if(t.type !== "expense" && t.type !== "refund") return;
+      var acc = window.Ledger.findAccount(t.account);
+      var cur = acc ? acc.currency : "USD";
+      if(cur !== primaryCur) return;
+      var m = trendData.find(function(x){ return x.key===t.date; });
+      if(m) m.amt += t.amount * (t.type==="refund" ? -1 : 1);
+    });
+  } else if(trendPeriod === "month"){
+    /* Weekly bars for current month */
+    var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    var monthEnd = new Date(now);
+    var wk = 1;
+    var wkStart = new Date(monthStart);
+    while(wkStart <= monthEnd){
+      var wkEnd = new Date(wkStart); wkEnd.setDate(wkEnd.getDate()+6);
+      if(wkEnd > monthEnd) wkEnd = monthEnd;
+      var wkFrom = wkStart.getFullYear()+"-"+window.Ledger.pad2(wkStart.getMonth()+1)+"-"+window.Ledger.pad2(wkStart.getDate());
+      var wkTo = wkEnd.getFullYear()+"-"+window.Ledger.pad2(wkEnd.getMonth()+1)+"-"+window.Ledger.pad2(wkEnd.getDate());
+      trendData.push({key:wkFrom+"|"+wkTo, label:"Wk "+wk, amt:0, from:wkFrom, to:wkTo});
+      wkStart = new Date(wkEnd); wkStart.setDate(wkStart.getDate()+1);
+      wk++;
+    }
+    window.Ledger.DB.transactions.forEach(function(t){
+      if(t.type !== "expense" && t.type !== "refund") return;
+      var acc = window.Ledger.findAccount(t.account);
+      var cur = acc ? acc.currency : "USD";
+      if(cur !== primaryCur) return;
+      var m = trendData.find(function(x){ return t.date >= x.from && t.date <= x.to; });
+      if(m) m.amt += t.amount * (t.type==="refund" ? -1 : 1);
+    });
+  } else {
+    /* Monthly bars */
+    var numMonths = trendPeriod === "3months" ? 3 : trendPeriod === "6months" ? 6 : 12;
+    for(var j=numMonths-1; j>=0; j--){
+      var dm = new Date(now.getFullYear(), now.getMonth()-j, 1);
+      var mk = dm.getFullYear()+"-"+window.Ledger.pad2(dm.getMonth()+1);
+      var label = dm.toLocaleDateString(undefined, {month:"short"});
+      trendData.push({key:mk, label:label, amt:0});
+    }
+    window.Ledger.DB.transactions.forEach(function(t){
+      if(t.type !== "expense" && t.type !== "refund") return;
+      var acc = window.Ledger.findAccount(t.account);
+      var cur = acc ? acc.currency : "USD";
+      if(cur !== primaryCur) return;
+      var mk = window.Ledger.monthKeyOf(t.date);
+      var m = trendData.find(function(x){ return x.key===mk; });
+      if(m) m.amt += t.amount * (t.type==="refund" ? -1 : 1);
+    });
   }
-  window.Ledger.DB.transactions.forEach(function(t){
-    if(t.type !== "expense" && t.type !== "refund") return;
-    var acc = window.Ledger.findAccount(t.account);
-    var cur = acc ? acc.currency : "USD";
-    if(cur !== primaryCur) return;
-    var mk = window.Ledger.monthKeyOf(t.date);
-    var m = sparkMonths.find(function(x){ return x.mk===mk; });
-    if(m) m.amt += t.amount * (t.type==="refund" ? -1 : 1);
-  });
-  var sparkVals = sparkMonths.map(function(m){ return m.amt; });
-  var sparkMax = Math.max.apply(null, sparkVals.concat([1]));
-  var sparkW = 240, sparkH = 50, sparkPad = 4;
-  var sparkPoints = sparkVals.map(function(v, idx){
-    var x = sparkPad + (idx / (sparkVals.length-1)) * (sparkW - sparkPad*2);
-    var y = sparkH - sparkPad - ((Math.max(v,0)/sparkMax) * (sparkH - sparkPad*2));
+
+  var trendVals = trendData.map(function(m){ return m.amt; });
+  var trendMax = Math.max.apply(null, trendVals.concat([1]));
+  var sparkW = 280, sparkH = 56, sparkPad = 4;
+  var sparkPoints = trendVals.map(function(v, idx){
+    var x = trendVals.length === 1 ? sparkW/2 : sparkPad + (idx / (trendVals.length-1)) * (sparkW - sparkPad*2);
+    var y = sparkH - sparkPad - ((Math.max(v,0)/trendMax) * (sparkH - sparkPad*2));
     return x+","+y;
   }).join(" ");
   var sparkAreaPoints = sparkPoints + " " + (sparkW-sparkPad)+","+(sparkH-sparkPad) + " "+sparkPad+","+(sparkH-sparkPad);
-  var sparkHtml = '<div style="display:flex; align-items:center; gap:var(--sp-4); flex-wrap:wrap;">'
-    + '<div class="sparkline-wrap" style="flex:1; min-width:180px;">'
+  var sparkHtml = '<div>'
+    + '<div class="sparkline-wrap" style="margin-bottom:var(--sp-2);">'
     + '<svg viewBox="0 0 '+sparkW+' '+sparkH+'" preserveAspectRatio="none">'
     + '<defs><linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--brass)" stop-opacity="0.4"/><stop offset="100%" stop-color="var(--brass)" stop-opacity="0"/></linearGradient></defs>'
     + '<polygon points="'+sparkAreaPoints+'" class="sparkline-area"/>'
     + '<polyline points="'+sparkPoints+'" class="sparkline-path"/>'
     + '</svg></div>'
-    + '<div style="display:flex; gap:var(--sp-3); font-size:10px; font-weight:600; color:var(--text-faint);">'
-    + sparkMonths.map(function(m){ return '<span>'+m.label+'</span>'; }).join("")
+    + '<div style="display:flex; justify-content:space-between; font-size:9.5px; font-weight:600; color:var(--text-faint); padding:0 2px;">'
+    + trendData.map(function(m){ return '<span>'+m.label+'</span>'; }).join("")
     + '</div></div>';
 
   /* ---- Pending transfers ---- */
@@ -228,11 +347,11 @@ window.Ledger.pages.renderOverviewPage = function(){
     + '<div class="section-gap">' + cashFlowHtml + '</div>'
     + '<div class="section-gap" style="display:flex; gap:16px; flex-wrap:wrap;">'
     + '  <div class="card" style="flex:1; min-width:280px;">'
-    + '    <div class="card-header"><h2>Top spending</h2><span class="hint">this month</span></div>'
+    + '    <div class="card-header"><h2>Top spending</h2>' + window.Ledger.periodSelectHtml(spendPeriod, "spend") + '</div>'
     + '    <div class="card-pad">' + donutHtml + '</div>'
     + '  </div>'
     + '  <div class="card" style="flex:1; min-width:280px;">'
-    + '    <div class="card-header"><h2>Spending trend</h2><span class="hint">6 months</span></div>'
+    + '    <div class="card-header"><h2>Spending trend</h2>' + window.Ledger.periodSelectHtml(trendPeriod, "trend") + '</div>'
     + '    <div class="card-pad">' + sparkHtml + '</div>'
     + '  </div>'
     + '</div>'

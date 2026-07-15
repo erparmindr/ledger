@@ -84,6 +84,14 @@ window.Ledger.wirePageEvents = function(){
         window.Ledger.navigateTo("transactions");
       });
     });
+    Array.prototype.forEach.call(document.querySelectorAll(".overview-period-select"), function(sel){
+      sel.addEventListener("change", function(){
+        var key = sel.getAttribute("data-period");
+        window.Ledger.overviewState[key] = sel.value;
+        window.Ledger.saveOverviewState();
+        window.Ledger.renderPage();
+      });
+    });
     window.Ledger.wireTxRowActions();
   }
 
