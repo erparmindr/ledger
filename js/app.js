@@ -112,13 +112,12 @@ window.Ledger.wirePageEvents = function(){
       b.addEventListener("click", function(){
         var id = b.getAttribute("data-del-acct");
         var used = window.Ledger.DB.transactions.some(function(t){ return t.account===id || (t.fromType==="account"&&t.fromId===id) || (t.toType==="account"&&t.toId===id); });
-        if(used){
-          window.Ledger.openConfirmModal("Delete account?", "This account has transactions linked to it. Deleting it will not delete those transactions, but they'll show as referencing a missing account. Continue?", function(){
-            window.Ledger.DB.accounts = window.Ledger.DB.accounts.filter(function(a){ return a.id!==id; }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Account deleted");
-          });
-        } else {
+        var msg = used
+          ? "This account has transactions linked to it. Deleting it will not delete those transactions, but they'll show as referencing a missing account. Continue?"
+          : "Are you sure you want to delete this account? This can't be undone.";
+        window.Ledger.openConfirmModal("Delete account?", msg, function(){
           window.Ledger.DB.accounts = window.Ledger.DB.accounts.filter(function(a){ return a.id!==id; }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Account deleted");
-        }
+        });
       });
     });
   }
