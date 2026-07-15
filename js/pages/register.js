@@ -161,18 +161,18 @@ window.Ledger.pages.renderRegisterPage = function(){
 
   /* ---- Toolbar: filters + export ---- */
   var toolbarHtml = '<div class="filters-bar">'
-    + '<select id="fAccount" class="' + filteredCls(f.account) + '">' + accOpts + '</select>'
-    + '<select id="fCurrency" class="' + filteredCls(f.currency) + '">' + curOpts + '</select>'
+    + '<select id="fAccount" data-no-cd class="' + filteredCls(f.account) + '">' + accOpts + '</select>'
+    + '<select id="fCurrency" data-no-cd class="' + filteredCls(f.currency) + '">' + curOpts + '</select>'
     + catComboboxHtml
-    + '<select id="fSubcategory" class="' + filteredCls(f.subcategory) + '">' + subOpts + '</select>'
-    + '<select id="fType" class="' + filteredCls(f.type) + '">'
+    + '<select id="fSubcategory" data-no-cd class="' + filteredCls(f.subcategory) + '">' + subOpts + '</select>'
+    + '<select id="fType" data-no-cd class="' + filteredCls(f.type) + '">'
     + '  <option value="all" ' + (f.type==="all"?"selected":"") + '>All types</option>'
     + '  <option value="expense" ' + (f.type==="expense"?"selected":"") + '>Expense</option>'
     + '  <option value="income" ' + (f.type==="income"?"selected":"") + '>Income</option>'
     + '  <option value="transfer" ' + (f.type==="transfer"?"selected":"") + '>Transfer</option>'
     + '  <option value="refund" ' + (f.type==="refund"?"selected":"") + '>Refund</option>'
     + '</select>'
-    + '<select id="fDatePreset" class="' + filteredCls(f.datePreset) + '">' + window.Ledger.DATE_PRESETS.map(function(p){
+    + '<select id="fDatePreset" data-no-cd class="' + filteredCls(f.datePreset) + '">' + window.Ledger.DATE_PRESETS.map(function(p){
       return '<option value="'+p.id+'" '+(f.datePreset===p.id?"selected":"")+'>'+p.label+'</option>';
     }).join("") + '</select>'
     + (f.datePreset === "custom" ? (

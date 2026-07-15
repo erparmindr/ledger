@@ -2,9 +2,11 @@ window.Ledger = window.Ledger || {};
 
 /* ============================================================
    CUSTOM DROPDOWN — replaces native <select> with themed dropdowns
+   Skips selects marked with data-no-cd (e.g. Transactions toolbar).
    ============================================================ */
+window.Ledger._cdGlobalListener = false;
 window.Ledger.initCustomDropdowns = function(){
-  var selects = document.querySelectorAll("select:not(.cd-initialized)");
+  var selects = document.querySelectorAll("select:not(.cd-initialized):not([data-no-cd])");
   Array.prototype.forEach.call(selects, function(sel){
     sel.classList.add("cd-initialized");
     sel.style.display = "none";
@@ -65,7 +67,10 @@ window.Ledger.initCustomDropdowns = function(){
     });
   });
 
-  document.addEventListener("click", function(){
-    document.querySelectorAll(".cd-wrap.open").forEach(function(w){ w.classList.remove("open"); });
-  });
+  if(!window.Ledger._cdGlobalListener){
+    window.Ledger._cdGlobalListener = true;
+    document.addEventListener("click", function(){
+      document.querySelectorAll(".cd-wrap.open").forEach(function(w){ w.classList.remove("open"); });
+    });
+  }
 };
