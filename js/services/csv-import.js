@@ -128,6 +128,7 @@ window.Ledger.openCsvImportModal = function(file){
       + '  </div>'
       + '  <div id="signedRow" class="form-row" style="display:' + (!defaultSplit ? 'flex' : 'none') + ';">'
       + '    <div class="field"><label>Amount column <span class="faint">(negative = expense)</span></label><select id="mapAmount">' + selOpts(guessAmt) + '</select></div>'
+      + '    <div class="field" style="display:flex; align-items:flex-end; padding-bottom:2px;"><label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:11.5px; color:var(--text-dim);"><input type="checkbox" id="invertSign"> Invert sign (positive = expense)</label></div>'
       + '  </div>'
       + '  <div id="splitRow" class="form-row" style="display:' + (defaultSplit ? 'flex' : 'none') + ';">'
       + '    <div class="field"><label>Debit column <span class="faint">(money out)</span></label><select id="mapDebit">' + selOpts(guessDr) + '</select></div>'
@@ -184,9 +185,15 @@ window.Ledger.openCsvImportModal = function(file){
 
           var amt, type;
           if(!isSplitMode){
-            var rawAmt = (r[amtIdx]||"").replace(/[^0-9.\-]/g,"");
-            amt = parseFloat(rawAmt);
+            var rawAmt = (r[amtIdx]||"").trim();
+            // Handle parenthetical negatives: ($45.20) or (1,234.56)
+            var isParenNeg = /^\(.*\)$/.test(rawAmt);
+            var cleaned = rawAmt.replace(/[^0-9.\-]/g,"");
+            amt = parseFloat(cleaned);
             if(isNaN(amt) || amt === 0) return;
+            if(isParenNeg) amt = -amt;
+            // Invert sign toggle: positive = expense
+            if(document.getElementById("invertSign") && document.getElementById("invertSign").checked) amt = -amt;
             type = amt < 0 ? "expense" : "income";
             amt = Math.abs(amt);
           } else {
