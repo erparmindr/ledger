@@ -1,7 +1,7 @@
 // Ledger service worker — caches the app shell for offline use and installability.
 // Bump CACHE_NAME whenever files change so returning users get the update
 // instead of a stale cached copy.
-const CACHE_NAME = "ledger-cache-v54";
+const CACHE_NAME = "ledger-cache-v55";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -13,6 +13,7 @@ const APP_SHELL = [
   "./js/constants.js",
   "./js/utils.js",
   "./js/store.js",
+  "./js/services/storage.js",
   "./js/modals.js",
   "./js/modals/entity-modals.js",
   "./js/components/transaction-row.js",
@@ -20,6 +21,7 @@ const APP_SHELL = [
   "./js/pages/overview.js",
   "./js/pages/register.js",
   "./js/pages/accounts.js",
+  "./js/pages/categories.js",
   "./js/pages/people.js",
   "./js/pages/reports.js",
   "./js/pages/recurring.js",
@@ -72,17 +74,17 @@ self.addEventListener("fetch", function(event){
         caches.open(CACHE_NAME).then(function(cache){ cache.put(event.request, clone); });
         return response;
       }).catch(function(){
-        return caches.match(event.request);
+        return caches.match(event.request, { ignoreSearch: true });
       })
     );
   } else {
     // Cache first for other assets (icons, fonts, etc.)
     event.respondWith(
-      caches.match(event.request).then(function(cached){
+      caches.match(event.request, { ignoreSearch: true }).then(function(cached){
         if(cached) return cached;
         return fetch(event.request).catch(function(){
           if(event.request.mode === "navigate"){
-            return caches.match("./index.html");
+            return caches.match("./index.html", { ignoreSearch: true });
           }
         });
       })

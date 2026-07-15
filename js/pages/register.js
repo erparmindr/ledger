@@ -42,7 +42,11 @@ window.Ledger.filteredTransactions = function(){
       else if(t.toType==="account"){ var a3=window.Ledger.findAccount(t.toId); cur = a3?a3.currency:null; }
       if(cur !== f.currency) return false;
     }
-    if(f.category !== "all" && t.category !== f.category) return false;
+    if(f.category !== "all"){
+      if(t.categorySplits && t.categorySplits.length){
+        if(!t.categorySplits.some(function(s){ return s.categoryId === f.category; })) return false;
+      } else if(t.category !== f.category) return false;
+    }
     if(f.subcategory !== "all" && t.subcategory !== f.subcategory) return false;
     if(!window.Ledger.matchesDatePreset(t.date, f.datePreset, f.dateFrom, f.dateTo)) return false;
     if(f.search && f.search.trim()){

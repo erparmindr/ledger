@@ -99,15 +99,15 @@ window.Ledger.pages.renderOverviewPage = function(){
     var cur = acc ? acc.currency : null;
     if(!cur) return;
     if(t.type === "income"){
-      incomeThis[cur] = (incomeThis[cur]||0) + t.amount;
+      if(mk === thisMonth) incomeThis[cur] = (incomeThis[cur]||0) + t.amount;
       if(mk === lastMonthKey) incomeLast[cur] = (incomeLast[cur]||0) + t.amount;
     }
     if(t.type === "expense"){
-      expenseThis[cur] = (expenseThis[cur]||0) + t.amount;
+      if(mk === thisMonth) expenseThis[cur] = (expenseThis[cur]||0) + t.amount;
       if(mk === lastMonthKey) expenseLast[cur] = (expenseLast[cur]||0) + t.amount;
     }
     if(t.type === "refund"){
-      expenseThis[cur] = (expenseThis[cur]||0) - t.amount;
+      if(mk === thisMonth) expenseThis[cur] = (expenseThis[cur]||0) - t.amount;
       if(mk === lastMonthKey) expenseLast[cur] = (expenseLast[cur]||0) - t.amount;
     }
   });

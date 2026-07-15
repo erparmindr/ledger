@@ -288,7 +288,7 @@ window.Ledger.openTxModal = function(existing){
           var s = 0;
           if(amt && Math.abs(tx.amount - amt) < 0.005) s += 100;
           // Description word overlap with refund description
-          var refundDesc = (desc || "").toLowerCase();
+          var refundDesc = (q || "").toLowerCase();
           var txDesc = (tx.desc || "").toLowerCase();
           if(refundDesc && txDesc){
             var rWords = refundDesc.split(/\s+/).filter(function(w){ return w.length > 2; });
@@ -458,6 +458,7 @@ window.Ledger.openTxModal = function(existing){
           fromType:fromType, fromId:fromId, toType:toType, toId:toId,
           created: isEdit ? t.created : Date.now()
         };
+        if(isEdit && t.linkId){ window.Ledger.deleteTransactionsByLink(t.linkId); }
         window.Ledger.commitTransaction(rec, isEdit);
         window.Ledger.closeModal();
         window.Ledger.showToast(isEdit ? "Transaction updated" : "Transaction added");
