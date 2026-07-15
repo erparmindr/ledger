@@ -16,7 +16,7 @@ window.Ledger.pages.renderAccountsPage = function(){
       ? '<button class="icon-btn" data-unarchive-acct="' + a.id + '" title="Unarchive" aria-label="Unarchive"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg></button>'
       : '<button class="icon-btn" data-edit-acct="' + a.id + '" title="Edit" aria-label="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
       + '<button class="icon-btn" data-archive-acct="' + a.id + '" title="Archive" aria-label="Archive"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg></button>';
-    return '<div class="acct-card' + (isCredit?' kind-credit':'') + (archived?' archived':'') + '>'
+    return '<div class="acct-card' + (isCredit?' kind-credit':'') + (archived?' archived':'') + '">'
       + '<div class="acct-card-left">'
       + '  <div class="nm">' + escapeHtml(a.name) + (archived?' <span class="faint">(archived)</span>':'') + '</div>'
       + '  <div class="acct-type-label">' + typeLabel + ' &middot; ' + a.currency + '</div>'
