@@ -542,6 +542,7 @@ select:focus-visible{
 .acct-card.tone-sage .tag{ background:var(--sage-soft); color:var(--sage); }
 .acct-card.kind-credit .tag{ background:var(--clay-soft); color:var(--clay); }
 .acct-card .acct-ops{ display:flex; gap:2px; position:relative; z-index:1; }
+.acct-card .acct-ops .icon-btn{ min-width:auto; min-height:auto; padding:4px; }
 
 .person-card{
   background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
