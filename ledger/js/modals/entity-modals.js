@@ -266,6 +266,11 @@ window.Ledger.openTxModal = function(existing){
 
       var allExpenses = window.Ledger.DB.transactions.filter(function(tx){
         if(tx.type !== "expense") return false;
+        // Limit to last 6 months for relevance/performance
+        var sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        var cutoff = sixMonthsAgo.getFullYear() + "-" + String(sixMonthsAgo.getMonth()+1).padStart(2,"0") + "-" + String(sixMonthsAgo.getDate()).padStart(2,"0");
+        if(tx.date < cutoff) return false;
         if(q){
           var desc = (tx.desc || "").toLowerCase();
           var date = tx.date || "";

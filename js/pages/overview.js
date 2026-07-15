@@ -154,6 +154,16 @@ window.Ledger.pages.renderOverviewPage = function(){
     + '  <div class="metric"><div class="lbl">Expenses this month (' + primaryCur + ')</div><div class="val neg">' + window.Ledger.fmtMoney(expenseVal, primaryCur) + '</div></div>'
     + '  <div class="metric"><div class="lbl">Net this month (' + primaryCur + ')</div><div class="val ' + (net>=0?'pos':'neg') + '">' + (net>=0?'+':'') + window.Ledger.fmtMoney(net, primaryCur) + '</div></div>'
     + '</div>'
+    + (pendingTfers.length > 0 || unlinked.length > 0 ? '<div class="section-gap" style="display:flex; gap:10px; flex-wrap:wrap;">'
+    + (pendingTfers.length > 0 ? '<span style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:20px; background:var(--clay-soft); font-size:12px; font-weight:600; cursor:pointer;" onclick="window.Ledger.navigateTo(\'overview\'); setTimeout(function(){ var el=document.querySelector(\'[data-link-pending]\'); if(el) el.scrollIntoView({behavior:\'smooth\'}); },100);">'
+    + '  <span style="background:var(--clay); color:#fff; border-radius:50%; min-width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:700;">' + pendingTfers.length + '</span>'
+    + '  pending transfer' + (pendingTfers.length !== 1 ? 's' : '')
+    + '</span>' : '')
+    + (unlinked.length > 0 ? '<span style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:20px; background:var(--sage-soft); font-size:12px; font-weight:600; cursor:pointer;" onclick="window.Ledger.navigateTo(\'overview\'); setTimeout(function(){ var el=document.querySelector(\'[data-link-refund]\'); if(el) el.scrollIntoView({behavior:\'smooth\'}); },100);">'
+    + '  <span style="background:var(--sage); color:#fff; border-radius:50%; min-width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:700;">' + unlinked.length + '</span>'
+    + '  unlinked refund' + (unlinked.length !== 1 ? 's' : '')
+    + '</span>' : '')
+    + '</div>' : '')
     + '<div class="section-gap" style="display:flex; gap:16px; flex-wrap:wrap;">'
     + '  <div class="card" style="flex:1; min-width:280px;">'
     + '    <div class="card-header"><h2>Top spending categories</h2><span class="hint">this month</span></div>'
