@@ -18,7 +18,7 @@ window.Ledger.pages.renderAccountsPage = function(){
       + '  <div class="nm">' + escapeHtml(a.name) + ' &middot; ' + a.currency + (a.archived?' &middot; archived':'') + '</div>'
       + '  <div class="bal num ' + (isCredit && bal<0 ? 'neg' : '') + '">' + fmtMoney(bal, a.currency) + '</div>'
       + '</div>'
-      + '<div style="text-align:right;">'
+      + '<div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">'
       + '  <div class="tag">' + typeLabel + '</div>'
       + '  <div class="acct-ops">'
       + '    <button class="icon-btn" data-edit-acct="' + a.id + '" title="Edit" aria-label="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
