@@ -45,26 +45,12 @@ window.Ledger.renderSidebarBalance = function(){
   });
   var primaryCur = Object.keys(byCurrency)[0];
   var total = byCurrency[primaryCur];
-
-  var thisMonth = window.Ledger.monthKeyOf(window.Ledger.todayISO());
-  var income = 0, expense = 0;
-  window.Ledger.DB.transactions.forEach(function(t){
-    if(window.Ledger.monthKeyOf(t.date) !== thisMonth) return;
-    var acc = window.Ledger.findAccount(t.account);
-    var cur = acc ? acc.currency : "USD";
-    if(cur !== primaryCur) return;
-    if(t.type === "income") income += t.amount;
-    if(t.type === "expense") expense += t.amount;
-    if(t.type === "refund") expense -= t.amount;
-  });
-  var net = income - expense;
   var extraCurCount = Object.keys(byCurrency).length - 1;
 
   el.innerHTML = ''
     + '<div class="sb-lbl">Total balance</div>'
     + '<div class="sb-val">' + window.Ledger.fmtMoney(total, primaryCur) + '</div>'
-    + (extraCurCount > 0 ? '<div class="faint" style="font-size:10.5px; margin-top:3px;">+' + extraCurCount + ' other currenc' + (extraCurCount===1?'y':'ies') + '</div>' : '')
-    + '<div class="sb-sub"><span>Net this month</span><span class="sb-net-val ' + (net>=0?'pos':'neg') + '">' + (net>=0?'+':'') + window.Ledger.fmtMoney(net, primaryCur) + '</span></div>';
+    + (extraCurCount > 0 ? '<div class="faint" style="font-size:10.5px; margin-top:3px;">+' + extraCurCount + ' other currenc' + (extraCurCount===1?'y':'ies') + '</div>' : '');
 };
 
 window.Ledger.navigateTo = function(page){
