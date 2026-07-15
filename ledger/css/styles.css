@@ -642,19 +642,23 @@ select:focus-visible{
   color:#241A02;
 }
 
-/* ---- Overview pill selector ---- */
-.overview-pills{ display:flex; gap:2px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-pill); padding:2px; }
-.overview-pill{
-  padding:4px 10px; border-radius:var(--radius-pill); font-size:10px; font-weight:700;
-  color:var(--text-faint); background:none; border:none; cursor:pointer;
-  transition:all var(--transition-fast); white-space:nowrap;
-}
-.overview-pill:hover{ color:var(--text); }
-.overview-pill.active{
+/* ---- Overview pill-styled dropdown ---- */
+.overview-pill-select{
+  appearance:none; -webkit-appearance:none; -moz-appearance:none;
   background:linear-gradient(135deg, var(--brass-bright), var(--brass));
-  color:#241A02; box-shadow:0 1px 4px rgba(240,194,78,0.3);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23241A02' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 8px center; background-size:10px;
+  padding:5px 24px 5px 12px; border:none; border-radius:var(--radius-pill);
+  font-size:10.5px; font-weight:700; color:#241A02; cursor:pointer;
+  box-shadow:0 1px 4px rgba(240,194,78,0.3);
+  transition:all var(--transition-fast);
 }
-[data-theme="dark"] .overview-pill.active{ color:#1a1200; }
+[data-theme="dark"] .overview-pill-select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%231a1200' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  color:#1a1200;
+}
+.overview-pill-select:hover{ box-shadow:0 2px 8px rgba(240,194,78,0.45); transform:translateY(-1px); }
+.overview-pill-select:active{ transform:translateY(0); }
 
 /* ---- Report tab bar ---- */
 .report-tabs{ display:flex; gap:2px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:3px; margin-bottom:var(--sp-5); }

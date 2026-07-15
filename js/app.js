@@ -84,11 +84,10 @@ window.Ledger.wirePageEvents = function(){
         window.Ledger.navigateTo("transactions");
       });
     });
-    Array.prototype.forEach.call(document.querySelectorAll(".overview-pill"), function(btn){
-      btn.addEventListener("click", function(){
-        var group = btn.closest(".overview-pills");
-        var key = group.getAttribute("data-pills");
-        window.Ledger.overviewState[key] = btn.getAttribute("data-period-val");
+    Array.prototype.forEach.call(document.querySelectorAll(".overview-pill-select"), function(sel){
+      sel.addEventListener("change", function(){
+        var key = sel.getAttribute("data-period");
+        window.Ledger.overviewState[key] = sel.value;
         window.Ledger.saveOverviewState();
         window.Ledger.renderPage();
       });
