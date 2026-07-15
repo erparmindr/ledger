@@ -231,14 +231,16 @@ window.Ledger.pages.renderRegisterPage = function(){
 
   /* ---- Register header ---- */
   return ''
-    + '<div class="card" id="registerCard">'
-    + toolbarHtml
-    + (hasAnyTx ? chipsHtml : '')
+    + '<div id="registerCard">'
+    + '<div class="reg-section">' + toolbarHtml + '</div>'
+    + (hasAnyTx ? '<div class="reg-section">' + chipsHtml + '</div>' : '')
+    + '<div class="reg-section">'
     + '  <div class="card-header">'
     + '    <div class="reg-header-left"><h2>Register</h2><span class="reg-count">' + list.length + ' transaction' + (list.length !== 1 ? 's' : '') + '</span></div>'
     + '    <span class="hint">' + (showRunning ? 'running balance shown' : '') + '</span>'
     + '  </div>'
-    + colHeaders
-    + '  <div>' + listHtml + '</div>'
+    + '</div>'
+    + '<div class="reg-section">' + colHeaders + '</div>'
+    + '<div class="reg-section">' + listHtml + '</div>'
     + '</div>';
 };
