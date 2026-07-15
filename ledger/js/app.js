@@ -108,16 +108,20 @@ window.Ledger.wirePageEvents = function(){
     Array.prototype.forEach.call(document.querySelectorAll("[data-edit-acct]"), function(b){
       b.addEventListener("click", function(){ window.Ledger.openAccountModal(window.Ledger.findAccount(b.getAttribute("data-edit-acct"))); });
     });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-del-acct]"), function(b){
+    Array.prototype.forEach.call(document.querySelectorAll("[data-archive-acct]"), function(b){
       b.addEventListener("click", function(){
-        var id = b.getAttribute("data-del-acct");
-        var used = window.Ledger.DB.transactions.some(function(t){ return t.account===id || (t.fromType==="account"&&t.fromId===id) || (t.toType==="account"&&t.toId===id); });
-        var msg = used
-          ? "This account has transactions linked to it. Deleting it will not delete those transactions, but they'll show as referencing a missing account. Continue?"
-          : "Are you sure you want to delete this account? This can't be undone.";
-        window.Ledger.openConfirmModal("Delete account?", msg, function(){
-          window.Ledger.DB.accounts = window.Ledger.DB.accounts.filter(function(a){ return a.id!==id; }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Account deleted");
+        var id = b.getAttribute("data-archive-acct");
+        var a = window.Ledger.findAccount(id);
+        window.Ledger.openConfirmModal("Archive account?", "Archive \"" + (a?a.name:"") + "\"? It will be hidden from active lists but all transactions stay intact. You can unarchive it later from the Archived section.", function(){
+          a.archived = true; window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Account archived");
         });
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-unarchive-acct]"), function(b){
+      b.addEventListener("click", function(){
+        var id = b.getAttribute("data-unarchive-acct");
+        var a = window.Ledger.findAccount(id);
+        if(a){ a.archived = false; window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Account restored"); }
       });
     });
   }

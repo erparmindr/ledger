@@ -110,10 +110,10 @@ window.Ledger.openStatementPasteModal = function(){
    ============================================================ */
 
 window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, source, onBack){
-  var accOpts = window.Ledger.DB.accounts.map(function(a){
+  var accOpts = window.Ledger.DB.accounts.filter(function(a){ return !a.archived; }).map(function(a){
     return '<option value="'+a.id+'" '+(a.id===preselectedAccount?'selected':'')+'>'+window.Ledger.escapeHtml(a.name)+'</option>';
   }).join("");
-  var toAccOpts = '<option value="">Choose account&hellip;</option>' + window.Ledger.DB.accounts.map(function(a){
+  var toAccOpts = '<option value="">Choose account&hellip;</option>' + window.Ledger.DB.accounts.filter(function(a){ return !a.archived; }).map(function(a){
     return '<option value="'+a.id+'">'+window.Ledger.escapeHtml(a.name)+'</option>';
   }).join("");
 
@@ -431,7 +431,7 @@ window.Ledger.openLinkTransferModal = function(txId){
 
   var fromAcc = window.Ledger.findAccount(tx.fromId);
   var fromName = fromAcc ? fromAcc.name : "Unknown";
-  var otherAccs = window.Ledger.DB.accounts.filter(function(a){ return a.id !== tx.fromId; });
+  var otherAccs = window.Ledger.DB.accounts.filter(function(a){ return a.id !== tx.fromId && !a.archived; });
   var otherAccOpts = otherAccs.map(function(a){
     return '<option value="'+a.id+'">'+window.Ledger.escapeHtml(a.name)+'</option>';
   }).join("");

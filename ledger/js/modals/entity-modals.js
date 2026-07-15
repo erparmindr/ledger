@@ -27,7 +27,7 @@ window.Ledger.openTxModal = function(existing){
     }
   }
 
-  var accOptsAll = window.Ledger.DB.accounts.map(function(a){ return '<option value="'+a.id+'">'+window.Ledger.escapeHtml(a.name)+' ('+a.currency+')</option>'; }).join("");
+  var accOptsAll = window.Ledger.DB.accounts.filter(function(a){ return !a.archived; }).map(function(a){ return '<option value="'+a.id+'">'+window.Ledger.escapeHtml(a.name)+' ('+a.currency+')</option>'; }).join("");
   var peopleOpts = window.Ledger.DB.people.map(function(p){ return '<option value="'+p.id+'">'+window.Ledger.escapeHtml(p.name)+' ('+p.currency+')</option>'; }).join("");
 
   function catOptions(forType){

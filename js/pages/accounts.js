@@ -8,29 +8,40 @@ window.Ledger.pages.renderAccountsPage = function(){
   var fmtMoney = window.Ledger.fmtMoney;
   var escapeHtml = window.Ledger.escapeHtml;
 
-  var cards = DB.accounts.map(function(a){
+  function renderCard(a, archived){
     var bal = accountBalance(a.id);
     var isCredit = a.type === "credit_card";
     var tone = isCredit ? "tone-clay" : "tone-sage";
     var typeLabel = ACCOUNT_TYPES.find(function(t){ return t.id===a.type; }).label;
-    return '<div class="acct-card ' + (isCredit?'kind-credit':'') + ' ' + tone + (a.archived?'" style="opacity:.55;':'"') + '>'
+    var ops = archived
+      ? '<button class="icon-btn" data-unarchive-acct="' + a.id + '" title="Unarchive" aria-label="Unarchive"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg></button>'
+      : '<button class="icon-btn" data-edit-acct="' + a.id + '" title="Edit" aria-label="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
+      + '<button class="icon-btn" data-archive-acct="' + a.id + '" title="Archive" aria-label="Archive"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg></button>';
+    return '<div class="acct-card ' + (isCredit?'kind-credit':'') + ' ' + tone + (archived?' style="opacity:.55;"':'') + '>'
       + '<div class="info">'
-      + '  <div class="nm">' + escapeHtml(a.name) + ' &middot; ' + a.currency + (a.archived?' &middot; archived':'') + '</div>'
+      + '  <div class="nm">' + escapeHtml(a.name) + ' &middot; ' + a.currency + (archived?' &middot; archived':'') + '</div>'
       + '  <div class="bal num ' + (isCredit && bal<0 ? 'neg' : '') + '">' + fmtMoney(bal, a.currency) + '</div>'
       + '</div>'
       + '<div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">'
       + '  <div class="tag">' + typeLabel + '</div>'
-      + '  <div class="acct-ops">'
-      + '    <button class="icon-btn" data-edit-acct="' + a.id + '" title="Edit" aria-label="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
-      + '    <button class="icon-btn danger" data-del-acct="' + a.id + '" title="Delete" aria-label="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
-      + '  </div>'
+      + '  <div class="acct-ops">' + ops + '</div>'
       + '</div>'
       + '</div>';
-  }).join("");
-
-  if(DB.accounts.length === 0){
-    cards = '<div class="empty-state"><div class="big">No accounts yet</div>Add your first account to get started.</div>';
   }
+
+  var active = DB.accounts.filter(function(a){ return !a.archived; });
+  var archived = DB.accounts.filter(function(a){ return a.archived; });
+
+  var activeCards = active.length
+    ? active.map(function(a){ return renderCard(a, false); }).join("")
+    : '<div class="empty-state"><div class="big">No accounts yet</div>Add your first account to get started.</div>';
+
+  var archivedSection = archived.length
+    ? '<div class="card card-pad section-gap">'
+    + '  <h2 style="font-size:16px; font-weight:800; margin:0 0 14px; color:var(--text-faint);">Archived</h2>'
+    + '  <div style="display:flex; flex-direction:column; gap:10px;">' + archived.map(function(a){ return renderCard(a, true); }).join("") + '</div>'
+    + '</div>'
+    : '';
 
   return ''
     + '<div class="card card-pad">'
@@ -38,6 +49,7 @@ window.Ledger.pages.renderAccountsPage = function(){
     + '    <h2 style="font-size:16px; font-weight:800; margin:0;">Accounts</h2>'
     + '    <button class="btn btn-primary btn-sm" id="addAcctBtn">+ Add account</button>'
     + '  </div>'
-    + '  <div style="display:flex; flex-direction:column; gap:10px;">' + cards + '</div>'
-    + '</div>';
+    + '  <div style="display:flex; flex-direction:column; gap:10px;">' + activeCards + '</div>'
+    + '</div>'
+    + archivedSection;
 };

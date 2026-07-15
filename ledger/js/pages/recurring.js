@@ -31,7 +31,7 @@ window.Ledger.pages.renderRecurringPage = function(){
     rows = '<div class="empty-state"><div class="big">No recurring transactions</div>Add subscriptions or fixed bills below to get due-date prompts.</div>';
   }
 
-  var accOpts = window.Ledger.DB.accounts.map(function(a){ return '<option value="'+a.id+'">'+window.Ledger.escapeHtml(a.name)+'</option>'; }).join("");
+  var accOpts = window.Ledger.DB.accounts.filter(function(a){ return !a.archived; }).map(function(a){ return '<option value="'+a.id+'">'+window.Ledger.escapeHtml(a.name)+'</option>'; }).join("");
 
   return ''
     + '<div class="card">'

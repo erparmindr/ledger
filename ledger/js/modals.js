@@ -74,7 +74,7 @@ window.Ledger.openConfirmModal = function (title, message, onConfirm) {
 
 window.Ledger.openMarkPaidModal = function (debtItem) {
   var person = window.Ledger.findPerson(debtItem.personId);
-  var accOpts = window.Ledger.DB.accounts.map(function (a) {
+  var accOpts = window.Ledger.DB.accounts.filter(function (a) { return !a.archived; }).map(function (a) {
     return '<option value="' + a.id + '">' + window.Ledger.escapeHtml(a.name) + ' (' + a.currency + ')</option>';
   }).join("");
   var html = ''

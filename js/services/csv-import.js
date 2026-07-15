@@ -67,7 +67,7 @@ window.Ledger.openCsvImportModal = function(file){
 
     var tdFormat = isTDCSV();
 
-    var accOpts = window.Ledger.DB.accounts.map(function(a){ return '<option value="'+a.id+'">'+window.Ledger.escapeHtml(a.name)+'</option>'; }).join("");
+    var accOpts = window.Ledger.DB.accounts.filter(function(a){ return !a.archived; }).map(function(a){ return '<option value="'+a.id+'">'+window.Ledger.escapeHtml(a.name)+'</option>'; }).join("");
     var headerOpts = '<option value="">Skip / not present</option>' + headers.map(function(h,i){ return '<option value="'+i+'">'+window.Ledger.escapeHtml(h)+'</option>'; }).join("");
 
     function autoDetect(keywords){
