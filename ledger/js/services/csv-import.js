@@ -135,6 +135,10 @@ window.Ledger.openCsvImportModal = function(file){
       + '    <div class="field"><label>Credit column <span class="faint">(money in)</span></label><select id="mapCredit">' + selOpts(guessCr) + '</select></div>'
       + '  </div>'
       + '  <div class="field"><label>Import into account</label><select id="mapAccount">' + accOpts + '</select></div>'
+      + '  <div id="samplePreview" style="display:none; margin-top:4px; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface-2);">'
+      + '    <div style="font-size:11px; font-weight:700; color:var(--text-dim); margin-bottom:6px;">Preview (first 3 rows)</div>'
+      + '    <div id="sampleRows"></div>'
+      + '  </div>'
       + '  <p class="faint" style="font-size:11.5px; margin:0;">Rows where amount is 0 or unreadable are skipped. You can edit any entry afterward.</p>'
       + '</div>'
       + '<div class="modal-foot"><button class="btn" id="cancelBtn">Cancel</button><button class="btn btn-primary" id="doImportBtn">Import</button></div>';
@@ -166,8 +170,80 @@ window.Ledger.openCsvImportModal = function(file){
         var acc = window.Ledger.findAccount(acctSel.value);
         if(acc && acc.type === "credit_card"){
           invertCb.checked = true;
+          updateSamplePreview();
         }
       });
+
+      // Live sample preview: show 3 rows with proposed type
+      function updateSamplePreview(){
+        var previewEl = document.getElementById("samplePreview");
+        var rowsEl = document.getElementById("sampleRows");
+        if(!previewEl || !rowsEl) return;
+
+        var dateIdx = document.getElementById("mapDate").value;
+        var descIdx = document.getElementById("mapDesc").value;
+        var amtSel = document.getElementById("mapAmount");
+        var amtIdx = amtSel ? amtSel.value : "";
+        var invertChecked = invertCb && invertCb.checked;
+        var drSel = document.getElementById("mapDebit");
+        var crSel = document.getElementById("mapCredit");
+        var drIdx = drSel ? drSel.value : "";
+        var crIdx = crSel ? crSel.value : "";
+
+        if(isSplitMode ? (drIdx==="" && crIdx==="") : amtIdx===""){
+          previewEl.style.display = "none";
+          return;
+        }
+
+        var samples = allDataRows.slice(0, 3);
+        if(samples.length === 0){ previewEl.style.display = "none"; return; }
+
+        var html = samples.map(function(r){
+          var rawDate = (r[dateIdx]||"").trim();
+          var desc = descIdx !== "" ? (r[descIdx]||"").trim() : "";
+          var amt, type;
+
+          if(!isSplitMode){
+            var rawAmt = (r[amtIdx]||"").trim();
+            var isParenNeg = /^\(.*\)$/.test(rawAmt);
+            var cleaned = rawAmt.replace(/[^0-9.\-]/g,"");
+            amt = parseFloat(cleaned);
+            if(isNaN(amt) || amt === 0) return null;
+            if(isParenNeg) amt = -amt;
+            if(invertChecked) amt = -amt;
+            type = amt < 0 ? "expense" : "income";
+            amt = Math.abs(amt);
+          } else {
+            var rawDr = drIdx !== "" ? (r[drIdx]||"").replace(/[^0-9.]/g,"") : "";
+            var rawCr = crIdx !== "" ? (r[crIdx]||"").replace(/[^0-9.]/g,"") : "";
+            var drAmt = rawDr ? parseFloat(rawDr) : 0;
+            var crAmt = rawCr ? parseFloat(rawCr) : 0;
+            if(drAmt > 0 && crAmt === 0){ type = "expense"; amt = drAmt; }
+            else if(crAmt > 0 && drAmt === 0){ type = "income"; amt = crAmt; }
+            else return null;
+          }
+
+          var typeColor = type === "expense" ? "var(--clay)" : "var(--sage)";
+          return '<div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0; font-size:11.5px;">'
+            + '<span class="faint">' + window.Ledger.escapeHtml(desc || rawDate || "—") + '</span>'
+            + '<span style="color:' + typeColor + '; font-weight:600;">' + type + ' ' + window.Ledger.fmtMoney(amt) + '</span>'
+            + '</div>';
+        }).filter(Boolean).join("");
+
+        if(!html){ previewEl.style.display = "none"; return; }
+        rowsEl.innerHTML = html;
+        previewEl.style.display = "block";
+      }
+
+      // Wire preview to all mapping controls
+      ["mapDate","mapDesc","mapAmount","mapDebit","mapCredit","mapAccount"].forEach(function(id){
+        var el = document.getElementById(id);
+        if(el) el.addEventListener("change", updateSamplePreview);
+      });
+      if(invertCb) invertCb.addEventListener("change", updateSamplePreview);
+      document.getElementById("modeSignedBtn").addEventListener("click", function(){ setTimeout(updateSamplePreview, 0); });
+      document.getElementById("modeSplitBtn").addEventListener("click", function(){ setTimeout(updateSamplePreview, 0); });
+      updateSamplePreview();
 
       document.getElementById("doImportBtn").addEventListener("click", function(){
         var dateIdx = document.getElementById("mapDate").value;

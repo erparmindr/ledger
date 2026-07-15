@@ -183,6 +183,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     + '    <div style="display:flex; gap:8px;">'
     + '      <button class="btn btn-sm" id="selectAllBtn">Check all</button>'
     + '      <button class="btn btn-sm" id="deselectAllBtn">Uncheck all</button>'
+    + '      <button class="btn btn-sm" id="flipSignsBtn" style="color:var(--clay);">Flip Expense&harr;Income</button>'
     + '    </div>'
     + '  </div>'
     + '  <div style="overflow:auto; max-height:360px; border:1px solid var(--border); border-radius:var(--radius);">'
@@ -216,6 +217,13 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     });
     document.getElementById("deselectAllBtn").addEventListener("click", function(){
       Array.prototype.forEach.call(document.querySelectorAll(".prev-chk"), function(c){ c.checked = false; });
+    });
+    document.getElementById("flipSignsBtn").addEventListener("click", function(){
+      Array.prototype.forEach.call(document.querySelectorAll(".prev-type"), function(sel){
+        if(sel.value === "expense") sel.value = "income";
+        else if(sel.value === "income") sel.value = "expense";
+        sel.dispatchEvent(new Event("change"));
+      });
     });
 
     Array.prototype.forEach.call(document.querySelectorAll(".prev-type"), function(sel){
