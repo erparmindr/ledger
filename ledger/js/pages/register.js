@@ -180,7 +180,6 @@ window.Ledger.pages.renderRegisterPage = function(){
       + '<input type="date" id="fDateTo" value="' + f.dateTo + '">'
     ) : "")
     + clearBtnHtml
-    + '<span class="spacer"></span>'
     + '<button class="btn btn-sm" id="exportCsvBtn"' + (!hasAnyTx ? ' disabled title="Add transactions before exporting"' : '') + '>Export CSV</button>'
     + '</div>';
 
