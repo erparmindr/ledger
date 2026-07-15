@@ -69,8 +69,8 @@ window.Ledger.renderTxRow = function(t, opts){
         mainLabel = "Refund: " + window.Ledger.escapeHtml(origTx ? (origTx.desc || "transaction") : "original") + (origDate ? " (" + origDate + ")" : "");
         subLabel = accName + (catLabel ? " &middot; " + catLabel : "");
       } else {
-        mainLabel = t.desc || "Refund";
-        subLabel = accName + (catLabel ? " &middot; " + catLabel : "");
+        mainLabel = t.desc || "Refund (unlinked)";
+        subLabel = accName + (catLabel ? " &middot; " + catLabel : ' &middot; <span style="color:var(--clay);">no category</span>');
       }
       amtDisp = '<span class="pos">+' + window.Ledger.fmtMoney(t.amount, currency) + '</span>';
     } else {

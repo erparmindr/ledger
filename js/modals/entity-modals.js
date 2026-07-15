@@ -283,12 +283,30 @@ window.Ledger.openTxModal = function(existing){
       });
 
       allExpenses.sort(function(a, b){
-        if(amt){
-          var aMatch = Math.abs(a.amount - amt) < 0.005;
-          var bMatch = Math.abs(b.amount - amt) < 0.005;
-          if(aMatch && !bMatch) return -1;
-          if(!aMatch && bMatch) return 1;
+        // Score: amount match (100 pts) + description overlap (up to 50 pts) + recency (up to 10 pts)
+        function score(tx){
+          var s = 0;
+          if(amt && Math.abs(tx.amount - amt) < 0.005) s += 100;
+          // Description word overlap with refund description
+          var refundDesc = (desc || "").toLowerCase();
+          var txDesc = (tx.desc || "").toLowerCase();
+          if(refundDesc && txDesc){
+            var rWords = refundDesc.split(/\s+/).filter(function(w){ return w.length > 2; });
+            var tWords = txDesc.split(/\s+/).filter(function(w){ return w.length > 2; });
+            var overlap = 0;
+            rWords.forEach(function(w){ if(tWords.indexOf(w) !== -1) overlap++; });
+            if(rWords.length > 0) s += Math.round((overlap / rWords.length) * 50);
+          }
+          // Recency bonus (up to 10 pts for this month)
+          var d = new Date(tx.date);
+          var now = new Date();
+          var monthsAgo = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+          if(monthsAgo <= 1) s += 10; else if(monthsAgo <= 3) s += 5;
+          return s;
         }
+        var aScore = score(a);
+        var bScore = score(b);
+        if(bScore !== aScore) return bScore - aScore;
         return b.date.localeCompare(a.date);
       });
 
