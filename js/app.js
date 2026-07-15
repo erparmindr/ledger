@@ -159,6 +159,14 @@ window.Ledger.wirePageEvents = function(){
   }
 
   if(window.Ledger.currentPage === "categories"){
+    // Tab switching
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cat-tab]"), function(btn){
+      btn.addEventListener("click", function(){
+        window.Ledger._catTab = btn.getAttribute("data-cat-tab");
+        window.Ledger.renderPage();
+      });
+    });
+    // Add category
     ["addCatBtnExpense","addCatBtnIncome","addCatBtnTransfer"].forEach(function(btnId){
       var btn = document.getElementById(btnId);
       if(btn) btn.addEventListener("click", function(){
@@ -171,6 +179,19 @@ window.Ledger.wirePageEvents = function(){
         window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Category added");
       });
     });
+    // Enter key to add
+    ["newCatNameExpense","newCatNameIncome","newCatNameTransfer"].forEach(function(inputId){
+      var el = document.getElementById(inputId);
+      if(el) el.addEventListener("keydown", function(e){
+        if(e.key === "Enter"){
+          var type = inputId.replace("newCatName","");
+          var btnId = "addCatBtn" + type;
+          var btn = document.getElementById(btnId);
+          if(btn) btn.click();
+        }
+      });
+    });
+    // Add subcategory
     Array.prototype.forEach.call(document.querySelectorAll("[data-add-sub]"), function(b){
       b.addEventListener("click", function(){
         var catId = b.getAttribute("data-add-sub");
@@ -180,6 +201,7 @@ window.Ledger.wirePageEvents = function(){
         if(cat){ cat.subs.push({ id: window.Ledger.uid(), name: name }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Subcategory added"); }
       });
     });
+    // Rename category
     Array.prototype.forEach.call(document.querySelectorAll("[data-rename-cat]"), function(b){
       b.addEventListener("click", function(){
         var catId = b.getAttribute("data-rename-cat");
@@ -190,14 +212,27 @@ window.Ledger.wirePageEvents = function(){
         cat.name = name; window.Ledger.saveData(); window.Ledger.renderPage();
       });
     });
+    // Delete category (with usage warning)
     Array.prototype.forEach.call(document.querySelectorAll("[data-del-cat]"), function(b){
       b.addEventListener("click", function(){
         var catId = b.getAttribute("data-del-cat");
-        window.Ledger.openConfirmModal("Delete category?", "Transactions using this category will keep working but it won't appear in new-transaction suggestions.", function(){
+        var cat = window.Ledger.DB.categories.find(function(c){ return c.id===catId; });
+        // Count transactions using this category
+        var usage = 0;
+        window.Ledger.DB.transactions.forEach(function(t){
+          if(t.categorySplits && t.categorySplits.length){
+            if(t.categorySplits.some(function(s){ return s.categoryId === catId; })) usage++;
+          } else if(t.category === catId) usage++;
+        });
+        var msg = usage > 0
+          ? 'This category is used by ' + usage + ' transaction' + (usage !== 1 ? 's' : '') + '. Deleting it won\'t remove those transactions, but the category will show as missing in old entries. Continue?'
+          : 'Transactions using this category will keep working but it won\'t appear in new-transaction suggestions. Continue?';
+        window.Ledger.openConfirmModal("Delete " + (cat ? cat.name : "category") + "?", msg, function(){
           window.Ledger.DB.categories = window.Ledger.DB.categories.filter(function(c){ return c.id!==catId; }); window.Ledger.saveData(); window.Ledger.renderPage(); window.Ledger.showToast("Category deleted");
         });
       });
     });
+    // Rename subcategory
     Array.prototype.forEach.call(document.querySelectorAll("[data-rename-sub]"), function(b){
       b.addEventListener("click", function(){
         var parts = b.getAttribute("data-rename-sub").split("|");
