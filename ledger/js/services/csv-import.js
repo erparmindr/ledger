@@ -159,6 +159,16 @@ window.Ledger.openCsvImportModal = function(file){
         document.getElementById("splitRow").style.display = "flex";
       });
 
+      // Auto-check "Invert sign" when credit card account is selected
+      var acctSel = document.getElementById("mapAccount");
+      var invertCb = document.getElementById("invertSign");
+      acctSel.addEventListener("change", function(){
+        var acc = window.Ledger.findAccount(acctSel.value);
+        if(acc && acc.type === "credit_card"){
+          invertCb.checked = true;
+        }
+      });
+
       document.getElementById("doImportBtn").addEventListener("click", function(){
         var dateIdx = document.getElementById("mapDate").value;
         var descIdx = document.getElementById("mapDesc").value;
