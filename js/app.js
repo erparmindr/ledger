@@ -5,11 +5,10 @@ window.Ledger = window.Ledger || {};
    ============================================================ */
 window.Ledger.NAV_ITEMS = [
   {id:"overview", label:"Overview", ic:"layout-dashboard"},
-  {id:"register", label:"Register", ic:"list"},
+  {id:"transactions", label:"Transactions", ic:"list"},
   {id:"accounts", label:"Accounts", ic:"wallet"},
-  {id:"people", label:"People", ic:"users"},
+  {id:"creditcards", label:"Credit Cards", ic:"credit-card"},
   {id:"reports", label:"Reports", ic:"pie-chart"},
-  {id:"recurring", label:"Recurring", ic:"repeat"},
   {id:"settings", label:"Settings", ic:"settings"}
 ];
 
@@ -80,8 +79,9 @@ window.Ledger.navigateTo = function(page){
 window.Ledger.renderPage = function(){
   var c = document.getElementById("pageContent");
   if(window.Ledger.currentPage === "overview") c.innerHTML = window.Ledger.pages.renderOverviewPage();
-  else if(window.Ledger.currentPage === "register") c.innerHTML = window.Ledger.pages.renderRegisterPage();
+  else if(window.Ledger.currentPage === "transactions") c.innerHTML = window.Ledger.pages.renderRegisterPage();
   else if(window.Ledger.currentPage === "accounts") c.innerHTML = window.Ledger.pages.renderAccountsPage();
+  else if(window.Ledger.currentPage === "creditcards") c.innerHTML = window.Ledger.pages.renderCreditCardsPage();
   else if(window.Ledger.currentPage === "people") c.innerHTML = window.Ledger.pages.renderPeoplePage();
   else if(window.Ledger.currentPage === "reports") c.innerHTML = window.Ledger.pages.renderReportsPage();
   else if(window.Ledger.currentPage === "recurring") c.innerHTML = window.Ledger.pages.renderRecurringPage();
@@ -113,7 +113,7 @@ window.Ledger.wirePageEvents = function(){
     window.Ledger.wireTxRowActions();
   }
 
-  if(window.Ledger.currentPage === "register"){
+  if(window.Ledger.currentPage === "transactions"){
     window.Ledger.wireTxRowActions();
     ["fAccount","fCurrency","fCategory","fSubcategory","fType","fDatePreset"].forEach(function(id){
       var el = document.getElementById(id);
@@ -154,6 +154,23 @@ window.Ledger.wirePageEvents = function(){
         }
       });
     });
+  }
+
+  if(window.Ledger.currentPage === "creditcards"){
+    document.getElementById("addAcctBtn").addEventListener("click", function(){ window.Ledger.openAccountModal(null); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-nav-link]"), function(b){
+      b.addEventListener("click", function(){
+        window.Ledger.navigateTo(b.getAttribute("data-nav-link"));
+        var filterAcc = b.getAttribute("data-filter-account");
+        if(filterAcc){
+          setTimeout(function(){
+            var sel = document.getElementById("fAccount");
+            if(sel){ sel.value = filterAcc; sel.dispatchEvent(new Event("change")); }
+          }, 100);
+        }
+      });
+    });
+    window.Ledger.wireTxRowActions();
   }
 
   if(window.Ledger.currentPage === "people"){
