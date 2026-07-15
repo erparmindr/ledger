@@ -69,11 +69,11 @@ window.Ledger.periodLabel = function(id){
   return p ? p.label : id;
 };
 
-window.Ledger.periodSelectHtml = function(selectedId, dataAttr){
-  return '<select class="overview-period-select" data-period="'+dataAttr+'">'
+window.Ledger.periodPillHtml = function(selectedId, dataAttr){
+  return '<div class="overview-pills" data-pills="'+dataAttr+'">'
     + window.Ledger.OVERVIEW_PERIODS.map(function(p){
-      return '<option value="'+p.id+'" '+(selectedId===p.id?"selected":"")+'>'+p.label+'</option>';
-    }).join("") + '</select>';
+      return '<button class="overview-pill'+(selectedId===p.id?' active':'')+'" data-period-val="'+p.id+'">'+p.label+'</button>';
+    }).join("") + '</div>';
 };
 
 /* ============================================================
@@ -347,11 +347,11 @@ window.Ledger.pages.renderOverviewPage = function(){
     + '<div class="section-gap">' + cashFlowHtml + '</div>'
     + '<div class="section-gap" style="display:flex; gap:16px; flex-wrap:wrap;">'
     + '  <div class="card" style="flex:1; min-width:280px;">'
-    + '    <div class="card-header"><h2>Top spending</h2>' + window.Ledger.periodSelectHtml(spendPeriod, "spend") + '</div>'
+    + '    <div class="card-header"><h2>Top spending</h2>' + window.Ledger.periodPillHtml(spendPeriod, "spend") + '</div>'
     + '    <div class="card-pad">' + donutHtml + '</div>'
     + '  </div>'
     + '  <div class="card" style="flex:1; min-width:280px;">'
-    + '    <div class="card-header"><h2>Spending trend</h2>' + window.Ledger.periodSelectHtml(trendPeriod, "trend") + '</div>'
+    + '    <div class="card-header"><h2>Spending trend</h2>' + window.Ledger.periodPillHtml(trendPeriod, "trend") + '</div>'
     + '    <div class="card-pad">' + sparkHtml + '</div>'
     + '  </div>'
     + '</div>'

@@ -642,22 +642,19 @@ select:focus-visible{
   color:#241A02;
 }
 
-/* ---- Overview period dropdown ---- */
-.overview-period-select{
-  appearance:none; -webkit-appearance:none; -moz-appearance:none;
-  background-color:var(--surface-2);
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat; background-position:right 6px center; background-size:10px;
-  padding:4px 22px 4px 8px; border:1px solid var(--border); border-radius:var(--radius-sm);
-  font-size:10.5px; font-weight:600; color:var(--text-dim); cursor:pointer;
-  max-width:110px;
-  transition:all var(--transition-fast);
+/* ---- Overview pill selector ---- */
+.overview-pills{ display:flex; gap:2px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-pill); padding:2px; }
+.overview-pill{
+  padding:4px 10px; border-radius:var(--radius-pill); font-size:10px; font-weight:700;
+  color:var(--text-faint); background:none; border:none; cursor:pointer;
+  transition:all var(--transition-fast); white-space:nowrap;
 }
-[data-theme="dark"] .overview-period-select{
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%238D96A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+.overview-pill:hover{ color:var(--text); }
+.overview-pill.active{
+  background:linear-gradient(135deg, var(--brass-bright), var(--brass));
+  color:#241A02; box-shadow:0 1px 4px rgba(240,194,78,0.3);
 }
-.overview-period-select:hover{ border-color:var(--text-dim); }
-.overview-period-select:focus-visible{ outline:none; border-color:var(--brass); box-shadow:0 0 0 2px var(--brass-soft); }
+[data-theme="dark"] .overview-pill.active{ color:#1a1200; }
 
 /* ---- Report tab bar ---- */
 .report-tabs{ display:flex; gap:2px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:3px; margin-bottom:var(--sp-5); }
