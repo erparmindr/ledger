@@ -13,6 +13,7 @@ window.Ledger.initCustomDropdowns = function(){
 
     var wrap = document.createElement("div");
     wrap.className = "cd-wrap";
+    if(sel.classList.contains("is-filtered")) wrap.classList.add("is-filtered");
     wrap.setAttribute("tabindex", "0");
 
     var trigger = document.createElement("div");

@@ -169,6 +169,7 @@ window.Ledger.wirePageEvents = function(){
         cbDropdown.style.maxHeight=ddH+"px";
       }
       function cbOpen(){
+        document.querySelectorAll(".cd-wrap.open").forEach(function(w){ w.classList.remove("open"); });
         cbWrap.classList.add("open"); cbWrap.setAttribute("aria-expanded","true");
         cbDropdown.classList.add("is-portal");
         document.body.appendChild(cbDropdown);
