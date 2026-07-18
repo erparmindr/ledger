@@ -443,7 +443,7 @@ select:focus-visible{
 
 /* Filters bar dropdowns — same treatment */
 .filters-bar select{
-  background-color:var(--surface-hi);
+  background-color:#252525;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat:no-repeat;
   background-position:right 10px center;
@@ -559,7 +559,7 @@ select:focus-visible{
 .filters-bar select:focus-visible{ outline:none; border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
 .filters-bar select.is-filtered{ border-color:var(--brass); box-shadow:0 0 0 1px var(--brass-soft); }
 .filters-bar input[type="date"]{
-  height:34px; background:var(--surface-hi);
+  height:34px; background:#252525;
   border:1px solid var(--border); border-radius:var(--radius-md);
   padding:0 10px; font-size:12px; color:var(--text); font-weight:600;
   transition:all var(--transition-fast);
@@ -568,7 +568,7 @@ select:focus-visible{
 .filters-bar input[type="date"]:focus{ outline:none; border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
 .filters-bar .search-inline{
   display:flex; align-items:center; gap:6px;
-  background:var(--surface-hi); border:1px solid var(--border);
+  background:#252525; border:1px solid var(--border);
   border-radius:var(--radius-md); padding:0 10px; height:34px; min-width:160px;
   transition:border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
@@ -580,13 +580,13 @@ select:focus-visible{
 .filters-bar .search-inline input::placeholder{ color:var(--text-faint); }
 .filters-bar .search-inline .s-icon{ color:var(--text-faint); font-size:12px; flex-shrink:0; }
 .clear-filters{
-  background:var(--surface-hi); border:1px solid var(--border); border-radius:var(--radius-pill);
+  background:#252525; border:1px solid var(--border); border-radius:var(--radius-pill);
   padding:0 12px; height:34px; font-size:11px; font-weight:700; color:var(--text-faint);
   cursor:pointer; transition:all var(--transition-fast); white-space:nowrap;
   display:inline-flex; align-items:center;
 }
 .clear-filters:hover{ border-color:var(--clay); color:var(--clay); background:var(--clay-soft); }
-.filters-bar .btn{ height:34px; padding:0 14px; font-size:12px; }
+.filters-bar .btn{ height:34px; padding:0 14px; font-size:12px; background:#252525; }
 .filters-bar .btn:disabled{ opacity:.4; cursor:not-allowed; pointer-events:none; }
 
 /* ---- Register summary chips ---- */
@@ -1027,7 +1027,7 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
 /* ============================================================
    CATEGORY SEARCHABLE COMBOBOX (floating dropdown)
    ============================================================ */
-.filters-bar .cb-wrap{ flex:0 0 auto; background:var(--surface-hi); border:1px solid var(--border); border-radius:var(--radius-md); height:34px; display:flex; align-items:center; transition:border-color var(--transition-fast), box-shadow var(--transition-fast); }
+.filters-bar .cb-wrap{ flex:0 0 auto; background:#252525; border:1px solid var(--border); border-radius:var(--radius-md); height:34px; display:flex; align-items:center; transition:border-color var(--transition-fast), box-shadow var(--transition-fast); }
 .filters-bar .cb-wrap:hover{ border-color:var(--text-dim); }
 .filters-bar .cb-wrap.is-filtered{ border-color:var(--brass); box-shadow:0 0 0 1px var(--brass-soft); }
 .filters-bar .cb-wrap[aria-expanded="true"]{ border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
