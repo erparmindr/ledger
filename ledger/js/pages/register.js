@@ -147,8 +147,8 @@ window.Ledger.pages.renderRegisterPage = function(){
   if(selectedCatId !== "all"){ var sc=window.Ledger.findCategory(selectedCatId); if(sc) selectedCatName=sc.name; }
   var cbFiltered = selectedCatId !== "all" ? " is-filtered" : "";
   var cbDefault = selectedCatId === "all" ? " is-default" : "";
-  var catComboboxHtml = '<div class="cb-wrap" id="cbCategory">'
-    + '<button class="cb-trigger' + cbFiltered + '" type="button" tabindex="0">'
+  var catComboboxHtml = '<div class="cb-wrap' + cbFiltered + '" id="cbCategory">'
+    + '<button class="cb-trigger" type="button" tabindex="0">'
     + '<span class="cb-text' + cbDefault + '">' + window.Ledger.escapeHtml(selectedCatName) + '</span>'
     + '<svg class="cb-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>'
     + '</button>'
