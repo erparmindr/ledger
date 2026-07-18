@@ -109,12 +109,13 @@ window.Ledger.wirePageEvents = function(){
 
   if(window.Ledger.currentPage === "transactions"){
     window.Ledger.wireTxRowActions();
-    ["fAccount","fCurrency","fSubcategory","fType","fDatePreset"].forEach(function(id){
+    ["fAccount","fCurrency","fCategory","fSubcategory","fType","fDatePreset"].forEach(function(id){
       var el = document.getElementById(id);
       if(!el) return;
       el.addEventListener("change", function(){
         window.Ledger.registerFilters.account = document.getElementById("fAccount").value;
         window.Ledger.registerFilters.currency = document.getElementById("fCurrency").value;
+        window.Ledger.registerFilters.category = document.getElementById("fCategory").value;
         window.Ledger.registerFilters.subcategory = document.getElementById("fSubcategory").value;
         window.Ledger.registerFilters.type = document.getElementById("fType").value;
         window.Ledger.registerFilters.datePreset = document.getElementById("fDatePreset").value;
