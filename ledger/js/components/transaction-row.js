@@ -49,9 +49,9 @@ window.Ledger.renderTxRow = function(t, opts){
     var to = window.Ledger.entityRef(t.toType, t.toId);
     mainLabel = (t.desc && t.desc.trim()) ? t.desc : "Transfer";
     if(t.pending){
-      subLabel = (fr?fr.name:"?") + ' &rarr; <span class="faint">pending destination</span>';
+      subLabel = (fr?fr.name:"?") + ' &rarr; <span class="faint">pending destination</span>' + (catLabel ? ' &middot; ' + catLabel : '');
     } else {
-      subLabel = (fr?fr.name:"?") + " &rarr; " + (to?to.name:"?");
+      subLabel = (fr?fr.name:"?") + " &rarr; " + (to?to.name:"?") + (catLabel ? ' &middot; ' + catLabel : '');
     }
     amtDisp = '<span style="color:var(--brass);">' + window.Ledger.fmtMoney(t.amount, currency) + '</span>';
   } else if(isLinkedTransfer){

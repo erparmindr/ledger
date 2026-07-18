@@ -266,10 +266,17 @@ window.Ledger._reportIncomeTab = function(){
     var cur = window.Ledger.reportGetCur(t);
     if(!byCur[cur]) byCur[cur] = {total:0, byCat:{}};
     byCur[cur].total += t.amount;
-    var catId = t.category || "";
-    if(catId){
-      if(!byCur[cur].byCat[catId]) byCur[cur].byCat[catId] = 0;
-      byCur[cur].byCat[catId] += t.amount;
+    if(t.categorySplits && t.categorySplits.length){
+      t.categorySplits.forEach(function(s){
+        if(!byCur[cur].byCat[s.categoryId]) byCur[cur].byCat[s.categoryId] = 0;
+        byCur[cur].byCat[s.categoryId] += s.amount;
+      });
+    } else {
+      var catId = t.category || "";
+      if(catId){
+        if(!byCur[cur].byCat[catId]) byCur[cur].byCat[catId] = 0;
+        byCur[cur].byCat[catId] += t.amount;
+      }
     }
   });
 
@@ -346,19 +353,60 @@ window.Ledger._reportTransferTab = function(){
     return {label:flowMap[k].name, amt:flowMap[k].amt, cur:flowMap[k].cur};
   }).sort(function(a,b){ return a.amt - b.amt; });
 
-  var totalMoved = txList.reduce(function(s,t){ return s+t.amount; },0);
-  var pendingAmt = pending.reduce(function(s,t){ return s+t.amount; },0);
+  /* Category breakdown */
+  var byCat = {};
+  txList.forEach(function(t){
+    if(t.categorySplits && t.categorySplits.length){
+      t.categorySplits.forEach(function(s){
+        if(!byCat[s.categoryId]) byCat[s.categoryId] = 0;
+        byCat[s.categoryId] += s.amount;
+      });
+    } else if(t.category){
+      if(!byCat[t.category]) byCat[t.category] = 0;
+      byCat[t.category] += t.amount;
+    }
+  });
+
+  /* Aggregate totals per currency (from each account's currency) */
+  var byCur = {};
+  txList.forEach(function(t){
+    var fromRef = t.fromType==="account" ? window.Ledger.findAccount(t.fromId) : null;
+    var cur = fromRef ? fromRef.currency : "USD";
+    if(!byCur[cur]) byCur[cur] = {total:0, pendingTotal:0, count:0, pendingCount:0};
+    byCur[cur].total += t.amount;
+    byCur[cur].count++;
+    if(t.pending){ byCur[cur].pendingTotal += t.amount; byCur[cur].pendingCount++; }
+  });
 
   var html = '';
-  html += '<div class="grid-3" style="margin-bottom:var(--sp-5);">';
-  html += '<div class="metric"><div class="lbl">Total moved</div><div class="val">'+window.Ledger.fmtMoney(totalMoved, "USD")+'</div></div>';
-  html += '<div class="metric"><div class="lbl">Pending</div><div class="val">'+pending.length+'</div></div>';
-  html += '<div class="metric"><div class="lbl">Pending amount</div><div class="val">'+window.Ledger.fmtMoney(pendingAmt, "USD")+'</div></div>';
-  html += '</div>';
+  Object.keys(byCur).forEach(function(cur){
+    var d = byCur[cur];
+    html += '<div class="section-gap">';
+    html += '<div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin-bottom:12px;">'+window.Ledger.escapeHtml(cur)+'</div>';
+    html += '<div class="grid-3" style="margin-bottom:var(--sp-5);">';
+    html += '<div class="metric"><div class="lbl">Total moved</div><div class="val">'+window.Ledger.fmtMoney(d.total, cur)+'</div></div>';
+    html += '<div class="metric"><div class="lbl">Transactions</div><div class="val">'+d.count+'</div></div>';
+    html += '<div class="metric"><div class="lbl">Pending</div><div class="val">'+d.pendingCount+' ('+window.Ledger.fmtMoney(d.pendingTotal, cur)+')</div></div>';
+    html += '</div>';
+    html += '</div>';
+  });
 
-  html += '<div class="card"><div class="card-header"><h2>Net flow per account</h2><span class="hint">positive = money received</span></div><div class="card-pad">';
+  html += '<div class="card" style="margin-bottom:var(--sp-5);"><div class="card-header"><h2>Net flow per account</h2><span class="hint">positive = money received</span></div><div class="card-pad">';
   html += window.Ledger.htmlDivChart(flowRows);
   html += '</div></div>';
+
+  /* Category breakdown donut */
+  var catEntries = Object.keys(byCat).map(function(catId){
+    return {catId:catId, label:window.Ledger.categoryName(catId), amt:byCat[catId], color:window.Ledger.categoryColor(catId)};
+  }).sort(function(a,b){ return b.amt - a.amt; });
+
+  if(catEntries.length > 0){
+    var catTotal = catEntries.reduce(function(s,e){ return s+e.amt; }, 0);
+    html += '<div class="card section-gap"><div class="card-header"><h2>Transfers by category</h2></div><div class="card-pad"><div class="donut-wrap">';
+    html += window.Ledger.svgDonut(catEntries, 160, 24, "Total", window.Ledger.fmtMoneyShort(catTotal));
+    html += window.Ledger.donutLegend(catEntries, catTotal);
+    html += '</div></div></div>';
+  }
 
   /* Pending vs completed donut */
   if(txList.length > 0){

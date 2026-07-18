@@ -7,11 +7,16 @@ window.Ledger.pages.renderCategoriesPage = function(){
 
   // Count transactions per category
   var txCounts = {};
+  var subCounts = {};
   DB.transactions.forEach(function(t){
     if(t.categorySplits && t.categorySplits.length){
       t.categorySplits.forEach(function(s){ txCounts[s.categoryId] = (txCounts[s.categoryId]||0) + 1; });
     } else if(t.category){
       txCounts[t.category] = (txCounts[t.category]||0) + 1;
+      if(t.subcategory){
+        var subKey = t.category + "|" + t.subcategory;
+        subCounts[subKey] = (subCounts[subKey]||0) + 1;
+      }
     }
   });
 
@@ -24,7 +29,7 @@ window.Ledger.pages.renderCategoriesPage = function(){
     var count = txCounts[c.id] || 0;
     var subCount = c.subs ? c.subs.length : 0;
     var subsHtml = (c.subs || []).map(function(s){
-      var subCount = txCounts[s.id] || 0;
+      var subCount = subCounts[c.id + "|" + s.id] || 0;
       return '<div class="subcat-row">'
         + '<span>' + window.Ledger.escapeHtml(s.name) + (subCount > 0 ? ' <span class="faint" style="font-size:10px;">(' + subCount + ')</span>' : '') + '</span>'
         + '<span>'
