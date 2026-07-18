@@ -546,7 +546,7 @@ select:focus-visible{
 
 /* ---- Filters bar (toolbar) ---- */
 .filters-bar{
-  display:flex; gap:12px; flex-wrap:nowrap; align-items:center;
+  display:flex; gap:10px; flex-wrap:wrap; align-items:center;
   padding:14px 18px; border-bottom:1px solid var(--border-soft);
   background:color-mix(in srgb, var(--surface) 85%, var(--surface-2) 15%);
 }
