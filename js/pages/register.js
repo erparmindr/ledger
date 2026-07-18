@@ -162,7 +162,7 @@ window.Ledger.pages.renderRegisterPage = function(){
     + '</div>';
 
   /* ---- Column headers (always shown) ---- */
-  var colHdrCls = 'tx-col-header';
+  var colHdrCls = 'tx-col-header show-type';
   if(showRunning) colHdrCls += ' show-runbal';
   var colHeaders = '<div class="' + colHdrCls + '">'
     + '<span class="col-date">Date</span>'
