@@ -147,6 +147,11 @@ window.Ledger.wirePageEvents = function(){
       var focusedIdx = -1;
       var cbScrollHandler = null;
       var cbResizeHandler = null;
+
+      /* Remove previous global listeners to prevent leaks */
+      if(window.Ledger._cbDocClick){ document.removeEventListener("click", window.Ledger._cbDocClick); }
+      if(window.Ledger._cbDocKeydown){ document.removeEventListener("keydown", window.Ledger._cbDocKeydown); }
+
       function cbVisible(){ var v=[]; var all=cbScroll.querySelectorAll(".cb-item"); for(var i=0;i<all.length;i++){if(all[i].style.display!=="none")v.push(all[i]);}return v; }
       function cbFocus(){ var v=cbVisible(); for(var i=0;i<v.length;i++){v[i].classList.toggle("focused",i===focusedIdx);} }
       function cbFilter(q){ q=q.toLowerCase().trim(); var items=cbScroll.querySelectorAll(".cb-item"); for(var i=0;i<items.length;i++){var lbl=items[i].querySelector(".cb-item-label").textContent.toLowerCase();items[i].style.display=(!q||lbl.indexOf(q)!==-1)?"":"none";} var rs=cbScroll.querySelector(".cb-section-recent");var as=cbScroll.querySelector(".cb-section-all");if(rs){var ri=rs.querySelectorAll(".cb-item");var hv=false;for(var j=0;j<ri.length;j++){if(ri[j].style.display!=="none"){hv=true;break;}}rs.style.display=hv?"":"none";}if(as){var ai=as.querySelectorAll(".cb-item");var ha=false;for(var k=0;k<ai.length;k++){if(ai[k].style.display!=="none"){ha=true;break;}}as.style.display=ha?"":"none";} focusedIdx=-1;cbFocus(); }
@@ -163,7 +168,7 @@ window.Ledger.wirePageEvents = function(){
         cbDropdown.style.maxHeight=ddH+"px";
       }
       function cbOpen(){
-        cbWrap.classList.add("open"); cbTrigger.setAttribute("aria-expanded","true");
+        cbWrap.classList.add("open"); cbWrap.setAttribute("aria-expanded","true");
         cbDropdown.classList.add("is-portal");
         document.body.appendChild(cbDropdown);
         cbDropdown.style.display="block";
@@ -176,7 +181,7 @@ window.Ledger.wirePageEvents = function(){
         window.addEventListener("resize",cbResizeHandler);
       }
       function cbClose(){
-        cbWrap.classList.remove("open"); cbTrigger.setAttribute("aria-expanded","false");
+        cbWrap.classList.remove("open"); cbWrap.setAttribute("aria-expanded","false");
         cbDropdown.classList.remove("is-portal");
         cbDropdown.style.display=""; cbDropdown.style.left=""; cbDropdown.style.top="";
         cbDropdown.style.width=""; cbDropdown.style.maxHeight="";
@@ -190,8 +195,10 @@ window.Ledger.wirePageEvents = function(){
       cbSearch.addEventListener("input",function(){cbFilter(cbSearch.value);});
       cbSearch.addEventListener("keydown",function(e){var v=cbVisible();if(e.key==="ArrowDown"){e.preventDefault();focusedIdx=Math.min(focusedIdx+1,v.length-1);cbFocus();}else if(e.key==="ArrowUp"){e.preventDefault();focusedIdx=Math.max(focusedIdx-1,0);cbFocus();}else if(e.key==="Enter"){e.preventDefault();if(focusedIdx>=0&&v[focusedIdx])cbSelect(v[focusedIdx].getAttribute("data-val"));}else if(e.key==="Escape"){e.preventDefault();cbClose();cbTrigger.focus();}});
       cbScroll.addEventListener("click",function(e){var item=e.target.closest(".cb-item");if(item)cbSelect(item.getAttribute("data-val"));});
-      document.addEventListener("click",function(e){if(cbWrap.classList.contains("open")&&!cbWrap.contains(e.target)&&!cbDropdown.contains(e.target))cbClose();});
-      document.addEventListener("keydown",function(e){if(e.key==="Escape"&&cbWrap.classList.contains("open")){cbClose();cbTrigger.focus();}});
+      window.Ledger._cbDocClick = function(e){if(cbWrap.classList.contains("open")&&!cbWrap.contains(e.target)&&!cbDropdown.contains(e.target))cbClose();};
+      window.Ledger._cbDocKeydown = function(e){if(e.key==="Escape"&&cbWrap.classList.contains("open")){cbClose();cbTrigger.focus();}};
+      document.addEventListener("click", window.Ledger._cbDocClick);
+      document.addEventListener("keydown", window.Ledger._cbDocKeydown);
     }
 
     /* Hide FAB when register is empty (no transactions or no matches) */
