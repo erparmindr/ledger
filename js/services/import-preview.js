@@ -255,7 +255,6 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       var toAccs = document.querySelectorAll(".prev-toacc");
 
       /* category no longer required during import — rows without a category are saved empty */
-      }
 
       var imported = 0;
       var importedIds = [];
