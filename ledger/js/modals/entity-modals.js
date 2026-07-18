@@ -21,6 +21,8 @@ window.Ledger.openTxModal = function(existing){
         notes: outRow.notes || "",
         fromType: "account", fromId: outRow.account,
         toType: "account", toId: inRow.account,
+        category: outRow.category || "",
+        subcategory: outRow.subcategory || "",
         created: outRow.created
       };
       linkedToAmount = inRow.amount;
@@ -83,6 +85,10 @@ window.Ledger.openTxModal = function(existing){
     + '      <div class="field"><label>To</label><select id="txToType"><option value="account">Account</option><option value="person">Person</option></select></div>'
     + '      <div class="field"><label>&nbsp;</label><select id="txToId">' + accOptsAll + '</select></div>'
     + '    </div>'
+    + '    <div class="form-row">'
+    + '      <div class="field"><label>Category</label><select id="txTransferCategory" data-no-cd>' + catOptions("transfer") + '</select></div>'
+    + '    </div>'
+    + '    <div class="field" id="transferSubcatField" style="display:none;"><label>Subcategory <span class="faint">(required)</span></label><select id="txTransferSubcategory" data-no-cd></select></div>'
     + '    <div id="conversionField" class="field" style="display:none;">'
     + '      <label>Amount received <span class="faint" id="conversionCurLabel"></span></label>'
     + '      <input type="number" id="txConvertedAmount" step="0.01" min="0.01" placeholder="0.00">'
@@ -122,6 +128,24 @@ window.Ledger.openTxModal = function(existing){
     document.getElementById("txCategory").addEventListener("change", refreshSubcatOptions);
     refreshSubcatOptions();
 
+    function refreshTransferSubcatOptions(){
+      var catId = document.getElementById("txTransferCategory").value;
+      var subField = document.getElementById("transferSubcatField");
+      var subSel = document.getElementById("txTransferSubcategory");
+      if(catId && window.Ledger.categoryHasSubs(catId)){
+        var cat = window.Ledger.findCategory(catId);
+        subSel.innerHTML = cat.subs.map(function(s){
+          return '<option value="'+s.id+'" '+(t.subcategory===s.id?'selected':'')+'>'+window.Ledger.escapeHtml(s.name)+'</option>';
+        }).join("");
+        subField.style.display = "flex";
+      } else {
+        subField.style.display = "none";
+        subSel.innerHTML = "";
+      }
+    }
+    document.getElementById("txTransferCategory").addEventListener("change", refreshTransferSubcatOptions);
+    refreshTransferSubcatOptions();
+
     Array.prototype.forEach.call(document.querySelectorAll("#typePills .type-pill"), function(btn){
       btn.addEventListener("click", function(){
         currentType = btn.getAttribute("data-t");
@@ -132,6 +156,10 @@ window.Ledger.openTxModal = function(existing){
           var catSel = document.getElementById("txCategory");
           catSel.innerHTML = catOptions(currentType === "refund" ? "expense" : currentType);
           refreshSubcatOptions();
+        }
+        if(currentType === "transfer"){
+          var transferCatSel = document.getElementById("txTransferCategory");
+          if(transferCatSel){ transferCatSel.innerHTML = catOptions("transfer"); refreshTransferSubcatOptions(); }
         }
         // Hide split buttons for refund (not applicable)
         var splitBtns = document.getElementById("openCategorySplitBtn");
@@ -442,20 +470,31 @@ window.Ledger.openTxModal = function(existing){
             window.Ledger.showToast("Enter the amount received in " + toCur.currency);
             return;
           }
+          var txCat = document.getElementById("txTransferCategory").value || "";
+          var txSub = "";
+          if(txCat && window.Ledger.categoryHasSubs(txCat)){
+            txSub = document.getElementById("txTransferSubcategory").value || "";
+          }
           if(isEdit && t.linkId){
-            window.Ledger.commitLinkedTransferPair(t.linkId, date, amount, convertedAmount, desc, notes, fromType, fromId, toType, toId, t.created);
+            window.Ledger.commitLinkedTransferPair(t.linkId, date, amount, convertedAmount, desc, notes, fromType, fromId, toType, toId, t.created, txCat, txSub);
           } else {
-            window.Ledger.commitLinkedTransferPair(window.Ledger.uid(), date, amount, convertedAmount, desc, notes, fromType, fromId, toType, toId, Date.now());
+            window.Ledger.commitLinkedTransferPair(window.Ledger.uid(), date, amount, convertedAmount, desc, notes, fromType, fromId, toType, toId, Date.now(), txCat, txSub);
           }
           window.Ledger.closeModal();
           window.Ledger.showToast("Cross-currency transfer saved");
           return;
         }
 
+        var txCat = document.getElementById("txTransferCategory").value || "";
+        var txSub = "";
+        if(txCat && window.Ledger.categoryHasSubs(txCat)){
+          txSub = document.getElementById("txTransferSubcategory").value || "";
+        }
         var rec = {
           id: isEdit ? t.id : window.Ledger.uid(), type:"transfer", date:date, amount:amount,
           desc: desc || "Transfer", notes:notes,
           fromType:fromType, fromId:fromId, toType:toType, toId:toId,
+          category: txCat, subcategory: txSub,
           created: isEdit ? t.created : Date.now()
         };
         if(isEdit && t.linkId){ window.Ledger.deleteTransactionsByLink(t.linkId); }
@@ -553,10 +592,12 @@ window.Ledger.commitTransaction = function(rec, isEdit){
 /* Cross-currency transfer between own accounts/people: creates two linked rows
    (an expense on the From side, an income on the To side) sharing a linkId,
    so filters/register/currency totals all work correctly per-account. */
-window.Ledger.commitLinkedTransferPair = function(linkId, date, fromAmount, toAmount, desc, notes, fromType, fromId, toType, toId, createdTs){
+window.Ledger.commitLinkedTransferPair = function(linkId, date, fromAmount, toAmount, desc, notes, fromType, fromId, toType, toId, createdTs, category, subcategory){
   var fromRef = window.Ledger.entityRef(fromType, fromId);
   var toRef = window.Ledger.entityRef(toType, toId);
   var baseDesc = desc || "Transfer";
+  category = category || "";
+  subcategory = subcategory || "";
 
   var rows = [];
   if(fromType === "account"){
@@ -565,7 +606,7 @@ window.Ledger.commitLinkedTransferPair = function(linkId, date, fromAmount, toAm
       desc: baseDesc + " \u2192 " + (toRef ? toRef.name : "?"),
       notes: notes, account: (fromType==="account" ? fromId : null),
       person: (fromType==="person" ? fromId : null),
-      category: "", subcategory: "",
+      category: category, subcategory: subcategory,
       linkId: linkId, linkRole: "out", linkCurrency: toRef ? toRef.currency : "",
       created: createdTs
     });
@@ -576,7 +617,7 @@ window.Ledger.commitLinkedTransferPair = function(linkId, date, fromAmount, toAm
       desc: baseDesc + " \u2190 " + (fromRef ? fromRef.name : "?"),
       notes: notes, account: (toType==="account" ? toId : null),
       person: (toType==="person" ? toId : null),
-      category: "", subcategory: "",
+      category: category, subcategory: subcategory,
       linkId: linkId, linkRole: "in", linkCurrency: fromRef ? fromRef.currency : "",
       created: createdTs
     });
