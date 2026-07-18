@@ -179,7 +179,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     + '</div>'
     + '<div class="modal-body">'
     + '  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">'
-    + '    <p class="faint" style="font-size:11.5px; margin:0;">Edit descriptions, flip types, uncheck rows to skip. Categories are auto-suggested &mdash; a category is required for every checked row.</p>'
+    + '    <p class="faint" style="font-size:11.5px; margin:0;">Edit descriptions, flip types, uncheck rows to skip. Categories are auto-suggested but optional &mdash; you can assign them later.</p>'
     + '    <div style="display:flex; gap:8px;">'
     + '      <button class="btn btn-sm" id="selectAllBtn">Check all</button>'
     + '      <button class="btn btn-sm" id="deselectAllBtn">Uncheck all</button>'
@@ -254,14 +254,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       var cats   = document.querySelectorAll(".prev-category");
       var toAccs = document.querySelectorAll(".prev-toacc");
 
-      var missing = [];
-      Array.prototype.forEach.call(checks, function(chk, i){
-        if(chk.checked && types[i].value !== "transfer" && !cats[i].value) missing.push(i+1);
-        if(chk.checked && types[i].value === "transfer" && !cats[i].value) missing.push(i+1);
-      });
-      if(missing.length){
-        window.Ledger.showToast("Pick a category for row" + (missing.length===1?"":"s") + " " + missing.join(", ") + " (or uncheck to skip)");
-        return;
+      /* category no longer required during import — rows without a category are saved empty */
       }
 
       var imported = 0;

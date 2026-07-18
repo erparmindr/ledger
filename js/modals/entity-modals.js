@@ -61,7 +61,7 @@ window.Ledger.openTxModal = function(existing){
     + '      <div class="field"><label id="txAccountLabel">' + (t.type==='refund'?'Refund to account':'Account') + '</label><select id="txAccount">' + accOptsAll + '</select></div>'
     + '      <div class="field"><label>Category</label><select id="txCategory" data-no-cd>' + catOptions(t.type==='income'?'income':'expense') + '</select></div>'
     + '    </div>'
-    + '    <div class="field" id="subcatField" style="display:none;"><label>Subcategory <span class="faint">(required)</span></label><select id="txSubcategory" data-no-cd></select></div>'
+    + '    <div class="field" id="subcatField" style="display:none;"><label>Subcategory <span class="faint">(optional)</span></label><select id="txSubcategory" data-no-cd></select></div>'
     + '    <div id="refundPickerField" style="display:' + (t.type==='refund'?'flex':'none') + '; flex-direction:column; gap:8px;">'
     + '      <label>Select original transaction <span class="faint">(optional &mdash; or pick a category below)</span></label>'
     + '      <input type="text" id="refundSearch" placeholder="Search by description, date, amount, or account..." style="font-size:13px; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text);">'
@@ -88,7 +88,7 @@ window.Ledger.openTxModal = function(existing){
     + '    <div class="form-row">'
     + '      <div class="field"><label>Category</label><select id="txTransferCategory" data-no-cd>' + catOptions("transfer") + '</select></div>'
     + '    </div>'
-    + '    <div class="field" id="transferSubcatField" style="display:none;"><label>Subcategory <span class="faint">(required)</span></label><select id="txTransferSubcategory" data-no-cd></select></div>'
+    + '    <div class="field" id="transferSubcatField" style="display:none;"><label>Subcategory <span class="faint">(optional)</span></label><select id="txTransferSubcategory" data-no-cd></select></div>'
     + '    <div id="conversionField" class="field" style="display:none;">'
     + '      <label>Amount received <span class="faint" id="conversionCurLabel"></span></label>'
     + '      <input type="number" id="txConvertedAmount" step="0.01" min="0.01" placeholder="0.00">'
@@ -548,11 +548,9 @@ window.Ledger.openTxModal = function(existing){
         }
 
         var category = document.getElementById("txCategory").value;
-        if(!category && !(categorySplits && categorySplits.length)){ window.Ledger.showToast("Select a category"); return; }
         var subcategory = "";
         if(category && window.Ledger.categoryHasSubs(category)){
           subcategory = document.getElementById("txSubcategory").value;
-          if(!subcategory){ window.Ledger.showToast("This category requires a subcategory"); return; }
         }
 
         // ---- Category split: one transaction, multiple category allocations ----
