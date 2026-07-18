@@ -162,7 +162,7 @@ window.Ledger.pages.renderRegisterPage = function(){
     + '</div>';
 
   /* ---- Column headers (always shown) ---- */
-  var colHdrCls = 'tx-col-header show-type';
+  var colHdrCls = 'tx-col-header show-type show-cat show-acct';
   if(showRunning) colHdrCls += ' show-runbal';
   var colHeaders = '<div class="' + colHdrCls + '">'
     + '<span class="col-date">Date</span>'
@@ -204,7 +204,7 @@ window.Ledger.pages.renderRegisterPage = function(){
         + '</div></div></div>';
     }
   } else {
-    listHtml = list.map(function(t){ return window.Ledger.renderTxRow(t, {showRunningBalance:showRunning, runningBalance:runBalMap[t.id]}); }).join("");
+    listHtml = list.map(function(t){ return window.Ledger.renderTxRow(t, {tableLayout:true, showRunningBalance:showRunning, runningBalance:runBalMap[t.id]}); }).join("");
   }
 
   /* ---- Register header ---- */

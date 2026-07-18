@@ -3,7 +3,7 @@
    ============================================================ */
 window.Ledger = window.Ledger || {};
 
-window.Ledger.renderTxRow = function(t, opts){
+window.Ledger.renderTxRow = function(t, opts){ /* v=4 */
   opts = opts || {};
   var bubbleBg, bubbleColor, symbol, currency;
   var isLinkedTransfer = !!t.linkId;
@@ -85,19 +85,48 @@ window.Ledger.renderTxRow = function(t, opts){
 
   var runBalHtml = "";
   if(opts.showRunningBalance && opts.runningBalance != null){
-    runBalHtml = '<div class="runbal">' + window.Ledger.fmtMoney(opts.runningBalance, currency) + '</div>';
+    runBalHtml = '<span class="col-runbal">' + window.Ledger.fmtMoney(opts.runningBalance, currency) + '</span>';
   } else if(opts.showRunningBalance){
-    runBalHtml = '<div class="runbal">&mdash;</div>';
+    runBalHtml = '<span class="col-runbal">&mdash;</span>';
+  }
+
+  var notesHtml = t.notes ? '<span class="notes-ic" title="' + window.Ledger.escapeHtml(t.notes) + '"><i data-lucide="sticky-note" style="width:11px;height:11px;vertical-align:-1px;"></i></span>' : '';
+
+  if(opts.tableLayout){
+    var typeLabel = t.type.charAt(0).toUpperCase() + t.type.slice(1);
+    var acctLabel = "";
+    if(t.type === "transfer"){
+      var frEnt = window.Ledger.entityRef(t.fromType, t.fromId);
+      var toEnt = window.Ledger.entityRef(t.toType, t.toId);
+      acctLabel = (frEnt?frEnt.name:"?") + " → " + (toEnt?toEnt.name:"?");
+    } else {
+      var acctObj = window.Ledger.findAccount(t.account);
+      acctLabel = acctObj ? acctObj.name : "?";
+    }
+    var typeColor = t.type==="expense"?"var(--clay)":t.type==="income"?"var(--sage)":t.type==="refund"?"var(--sage)":"var(--brass)";
+    return '<div class="tx-row show-type show-cat show-acct' + (opts.showRunningBalance?' show-runbal':'') + '">'
+      + '<span class="col-date">' + dateDisp + '</span>'
+      + '<span class="col-desc">' + window.Ledger.escapeHtml(mainLabel) + notesHtml + '</span>'
+      + '<span class="col-type"><span class="type-pill" style="color:' + typeColor + ';">' + typeLabel + '</span></span>'
+      + '<span class="col-cat">' + catLabel + '</span>'
+      + '<span class="col-acct">' + window.Ledger.escapeHtml(acctLabel) + '</span>'
+      + '<span class="col-amt num">' + amtDisp + '</span>'
+      + runBalHtml
+      + '<div class="rowactions">'
+      + '  <button class="icon-btn" data-edit-tx="' + t.id + '" title="Edit" aria-label="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
+      + '  <button class="icon-btn danger" data-del-tx="' + t.id + '" title="Delete" aria-label="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
+      + '</div>'
+      + '</div>';
   }
 
   return '<div class="tx-row">'
     + '<div class="tx-tab" style="background:' + bubbleBg + '; color:' + bubbleColor + ';">' + symbol + '</div>'
     + '<div class="main">'
-    + '  <div class="desc">' + window.Ledger.escapeHtml(mainLabel) + (t.notes ? '<span class="notes-ic" title="' + window.Ledger.escapeHtml(t.notes) + '"><i data-lucide="sticky-note" style="width:11px;height:11px;vertical-align:-1px;"></i></span>' : '') + '</div>'
+    + '  <div class="desc">' + window.Ledger.escapeHtml(mainLabel) + notesHtml + '</div>'
     + '  <div class="meta">' + dateDisp + ' &middot; ' + subLabel + '</div>'
     + '</div>'
     + '<div class="amt num">' + amtDisp + '</div>'
-    + runBalHtml
+    + runBalHtml.replace('col-runbal','runbal')
     + '<div class="rowactions">'
     + '  <button class="icon-btn" data-edit-tx="' + t.id + '" title="Edit" aria-label="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
     + '  <button class="icon-btn danger" data-del-tx="' + t.id + '" title="Delete" aria-label="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
