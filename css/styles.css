@@ -591,9 +591,10 @@ select:focus-visible{
 .clear-filters:hover{ border-color:var(--clay); color:var(--clay); background:var(--clay-soft); }
 .filters-bar .btn{ height:34px; padding:0 14px; font-size:12px; background:var(--fb-bg); }
 .filters-bar .btn:disabled{ opacity:.4; cursor:not-allowed; pointer-events:none; }
-.filters-bar .cd-wrap{ width:auto; flex:0 0 auto; height:34px; outline:none; }
+.filters-bar .cd-wrap{ width:auto; flex:0 0 auto; min-width:100px; height:34px; outline:none; }
 .filters-bar .cd-wrap.is-filtered{ border-color:var(--brass); box-shadow:0 0 0 1px var(--brass-soft); }
-.filters-bar .cd-trigger{ display:flex; align-items:center; height:34px; padding:0 30px 0 10px; font-size:12px; font-weight:600; line-height:normal; background-color:var(--fb-bg); background-size:12px; background-position:right 10px center; }
+.filters-bar .cd-trigger{ display:flex; align-items:center; height:34px; padding:0 30px 0 10px; font-size:12px; font-weight:600; line-height:normal; background-color:var(--fb-bg); background-size:12px; background-position:right 10px center; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.filters-bar .cd-list{ min-width:200px; }
 
 /* ---- Register summary chips ---- */
 .reg-summary{ display:flex; gap:8px; flex-wrap:wrap; padding:14px 18px; border-bottom:1px solid var(--border-soft); }
