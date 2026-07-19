@@ -73,7 +73,7 @@ window.Ledger.openTxModal = function(existing){
         + '      <button type="button" id="openCategorySplitBtn" class="icon-btn" style="font-size:11.5px; font-weight:700; color:var(--brass); padding:2px 0;">&#8862; Split across categories</button>'
         + '      <button type="button" id="openFriendSplitBtn" class="icon-btn" style="font-size:11.5px; font-weight:700; color:var(--brass); padding:2px 0;">&#128101; Split with friends</button>'
         + '    </div>'
-        + '    <div id="splitSummaryBanner" style="display:none; background:var(--brass-soft); border:1px solid rgba(240,194,78,0.3); border-radius:var(--radius); padding:10px 14px; font-size:12px;"></div>'
+        + '    <div id="splitSummaryBanner" style="display:none; background:var(--brass-soft); border:1px solid var(--brass-glow-color); border-radius:var(--radius); padding:10px 14px; font-size:12px;"></div>'
       ) : '')
     + '  </div>'
     + '  <div id="transferFields" class="tx-section' + (t.type==='transfer'?'':' tx-hidden') + '">'
