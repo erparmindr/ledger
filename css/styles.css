@@ -650,7 +650,8 @@ select:focus-visible{
 
 /* ---- Table-layout tx-row columns (register) ---- */
 .tx-row.show-type{ gap:12px; }
-.tx-col-header .rowactions{ width:92px; flex-shrink:0; }
+.tx-row.show-type .rowactions{ width:92px; flex-shrink:0; }
+.tx-col-header .rowactions{ width:92px; flex-shrink:0; display:flex; }
 .tx-row.show-type .col-date{ width:120px; flex-shrink:0; font-size:12.5px; color:var(--text-dim); font-weight:500; }
 .tx-row.show-type .col-desc{ flex:1; min-width:0; font-weight:700; font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .tx-row.show-type .col-type{ width:140px; flex-shrink:0; font-size:12.5px; }
