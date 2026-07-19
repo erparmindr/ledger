@@ -1044,35 +1044,27 @@ window.Ledger.openDuplicatesModal = function(){
   var totalDupes = 0;
   groups.forEach(function(g){ totalDupes += g.length; });
 
-  window.Ledger._dupeGroups = groups;
-
   var groupsHtml = groups.map(function(g, gi){
     var rows = g.map(function(t){
       var acct = window.Ledger.findAccount(t.account);
-      var acctName = acct ? acct.name : "Unknown";
       var cat = window.Ledger.findCategory(t.category);
-      var catName = cat ? cat.name : "";
       var desc = window.Ledger.escapeHtml(t.description || "Untitled");
-      var sorted = g.slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
-      var keepId = sorted[0].id;
-      var isKeep = t.id === keepId;
-      return '<div class="dupe-row' + (isKeep ? ' dupe-keep' : '') + '" data-dupe-tx="' + t.id + '">'
-        + '<span class="dupe-row-badge">' + (isKeep ? 'KEEP' : '') + '</span>'
+      return '<div class="dupe-row" data-dupe-tx="' + t.id + '">'
+        + '<label class="dupe-check"><input type="checkbox" class="dupe-cb" data-dupe-cb="' + t.id + '" data-group="' + gi + '"><span class="dupe-check-mark"></span></label>'
         + '<span class="dupe-row-date">' + t.date + '</span>'
         + '<span class="dupe-row-desc">' + desc + '</span>'
-        + '<span class="dupe-row-cat">' + catName + '</span>'
-        + '<span class="dupe-row-acct">' + acctName + '</span>'
+        + '<span class="dupe-row-cat">' + (cat ? cat.name : '') + '</span>'
+        + '<span class="dupe-row-acct">' + (acct ? acct.name : '') + '</span>'
         + '<span class="dupe-row-amt num">' + window.Ledger.fmtMoney(t.amount, acct ? acct.currency : null) + '</span>'
         + '<span class="dupe-row-actions">'
         + '  <button class="icon-btn sm" data-dupe-view="' + t.id + '" title="View"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>'
-        + (!isKeep ? '  <button class="icon-btn sm danger" data-dupe-del="' + t.id + '" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' : '')
         + '</span>'
         + '</div>';
     }).join("");
-    var delCount = g.length - 1;
     return '<div class="dupe-group">'
-      + '<div class="dupe-group-header"><span>Group ' + (gi+1) + ' \u2014 ' + g.length + ' transactions</span>'
-      + (delCount > 0 ? '<button class="btn btn-sm btn-danger" data-dupe-group-del="' + gi + '">Delete ' + delCount + ' duplicate' + (delCount !== 1 ? 's' : '') + '</button>' : '')
+      + '<div class="dupe-group-header">'
+      + '  <label class="dupe-check"><input type="checkbox" class="dupe-group-cb" data-group="' + gi + '"><span class="dupe-check-mark"></span> Group ' + (gi+1) + '</label>'
+      + '  <span class="dupe-group-count">' + g.length + ' transaction' + (g.length !== 1 ? 's' : '') + '</span>'
       + '</div>'
       + rows
       + '</div>';
@@ -1085,12 +1077,46 @@ window.Ledger.openDuplicatesModal = function(){
     + '  <div class="dupe-groups">' + groupsHtml + '</div>'
     + '</div>'
     + '<div class="modal-foot">'
+    + '  <span class="dupe-sel-count" id="dupeSelCount">0 selected</span>'
     + '  <button class="btn" id="doneBtn">Done</button>'
+    + '  <button class="btn btn-danger" id="dupeDelSelectedBtn" disabled>Delete selected</button>'
     + '</div>';
 
   window.Ledger.openModal(html, function(){
     document.getElementById("closeModalBtn").addEventListener("click", window.Ledger.closeModal);
     document.getElementById("doneBtn").addEventListener("click", window.Ledger.closeModal);
+
+    function updateCount(){
+      var checked = document.querySelectorAll(".dupe-cb:checked").length;
+      var countEl = document.getElementById("dupeSelCount");
+      var delBtn = document.getElementById("dupeDelSelectedBtn");
+      if(countEl) countEl.textContent = checked + " selected";
+      if(delBtn) delBtn.disabled = checked === 0;
+    }
+
+    function syncGroupCb(groupIdx){
+      var all = document.querySelectorAll('.dupe-cb[data-group="' + groupIdx + '"]');
+      var groupCb = document.querySelector('.dupe-group-cb[data-group="' + groupIdx + '"]');
+      var checkedCount = 0;
+      Array.prototype.forEach.call(all, function(cb){ if(cb.checked) checkedCount++; });
+      if(groupCb) groupCb.checked = all.length > 0 && checkedCount === all.length;
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll(".dupe-cb"), function(cb){
+      cb.addEventListener("change", function(){
+        updateCount();
+        syncGroupCb(cb.getAttribute("data-group"));
+      });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll(".dupe-group-cb"), function(gcb){
+      gcb.addEventListener("change", function(){
+        var gi = gcb.getAttribute("data-group");
+        var rows = document.querySelectorAll('.dupe-cb[data-group="' + gi + '"]');
+        Array.prototype.forEach.call(rows, function(cb){ cb.checked = gcb.checked; });
+        updateCount();
+      });
+    });
 
     Array.prototype.forEach.call(document.querySelectorAll("[data-dupe-view]"), function(btn){
       btn.addEventListener("click", function(){
@@ -1103,62 +1129,22 @@ window.Ledger.openDuplicatesModal = function(){
       });
     });
 
-    Array.prototype.forEach.call(document.querySelectorAll("[data-dupe-del]"), function(btn){
-      btn.addEventListener("click", function(){
-        var txId = btn.getAttribute("data-dupe-del");
-        var tx = window.Ledger.DB.transactions.find(function(t){ return t.id === txId; });
-        if(!tx) return;
-        window.Ledger.openConfirmModal("Delete transaction?", "This will permanently remove this transaction.", function(){
-          window.Ledger.deleteTransaction(txId);
+    document.getElementById("dupeDelSelectedBtn").addEventListener("click", function(){
+      var checked = document.querySelectorAll(".dupe-cb:checked");
+      if(checked.length === 0) return;
+      var ids = [];
+      Array.prototype.forEach.call(checked, function(cb){ ids.push(cb.getAttribute("data-dupe-cb")); });
+
+      window.Ledger.openConfirmModal(
+        "Delete " + ids.length + " transaction" + (ids.length !== 1 ? "s" : "") + "?",
+        "This will permanently remove the selected transactions. This cannot be undone.",
+        function(){
+          ids.forEach(function(id){ window.Ledger.deleteTransaction(id); });
           window.Ledger.closeModal();
+          window.Ledger.showToast(ids.length + " transaction" + (ids.length !== 1 ? "s" : "") + " deleted");
           window.Ledger.openDuplicatesModal();
-        });
-      });
-    });
-
-    Array.prototype.forEach.call(document.querySelectorAll("[data-dupe-group-del]"), function(btn){
-      btn.addEventListener("click", function(){
-        var gi = parseInt(btn.getAttribute("data-dupe-group-del"), 10);
-        var groups = window.Ledger._dupeGroups;
-        if(!groups || !groups[gi]) return;
-        var g = groups[gi];
-        var sorted = g.slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
-        var keep = sorted[0];
-        var toDelete = sorted.slice(1);
-
-        var previewRows = toDelete.map(function(t){
-          var acct = window.Ledger.findAccount(t.account);
-          var desc = window.Ledger.escapeHtml(t.description || "Untitled");
-          return '<div class="dupe-preview-row">'
-            + '<span class="dupe-preview-date">' + t.date + '</span>'
-            + '<span class="dupe-preview-desc">' + desc + '</span>'
-            + '<span class="dupe-preview-amt num">' + window.Ledger.fmtMoney(t.amount, acct ? acct.currency : null) + '</span>'
-            + '</div>';
-        }).join("");
-
-        var previewHtml = ''
-          + '<div class="modal-head"><h3>Review deletion</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
-          + '<div class="modal-body">'
-          + '<div class="dupe-preview-keep">Keeping: <strong>' + window.Ledger.escapeHtml(keep.description || "Untitled") + '</strong> \u2014 ' + keep.date + ' \u2014 ' + window.Ledger.fmtMoney(keep.amount, window.Ledger.findAccount(keep.account) ? window.Ledger.findAccount(keep.account).currency : null) + '</div>'
-          + '<div class="dupe-preview-label">Will delete ' + toDelete.length + ' transaction' + (toDelete.length !== 1 ? 's' : '') + ':</div>'
-          + '<div class="dupe-preview-list">' + previewRows + '</div>'
-          + '</div>'
-          + '<div class="modal-foot">'
-          + '  <button class="btn" id="cancelBtn">Cancel</button>'
-          + '  <button class="btn btn-danger" id="confirmDelBtn">Delete ' + toDelete.length + ' transaction' + (toDelete.length !== 1 ? 's' : '') + '</button>'
-          + '</div>';
-
-        window.Ledger.openSubModal(previewHtml, function(){
-          document.getElementById("closeModalBtn").addEventListener("click", function(){ window.Ledger.closeSubModal(); });
-          document.getElementById("cancelBtn").addEventListener("click", function(){ window.Ledger.closeSubModal(); });
-          document.getElementById("confirmDelBtn").addEventListener("click", function(){
-            toDelete.forEach(function(t){ window.Ledger.deleteTransaction(t.id); });
-            window.Ledger.closeSubModal();
-            window.Ledger.showToast(toDelete.length + " duplicate" + (toDelete.length !== 1 ? "s" : "") + " deleted");
-            window.Ledger.openDuplicatesModal();
-          });
-        });
-      });
+        }
+      );
     });
   });
 };
