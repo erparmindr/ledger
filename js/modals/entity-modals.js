@@ -1064,7 +1064,7 @@ window.Ledger.openDuplicatesModal = function(){
         + '<span class="dupe-row-acct">' + acctName + '</span>'
         + '<span class="dupe-row-amt num">' + window.Ledger.fmtMoney(t.amount, acct ? acct.currency : null) + '</span>'
         + '<span class="dupe-row-actions">'
-        + '  <button class="icon-btn sm" data-dupe-view="' + t.id + '" title="View"><i data-lucide="eye"></i></button>'
+        + '  <button class="icon-btn sm" data-dupe-view="' + t.id + '" title="View"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>'
         + (!isKeep ? '  <button class="icon-btn sm danger" data-dupe-del="' + t.id + '" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' : '')
         + '</span>'
         + '</div>';
