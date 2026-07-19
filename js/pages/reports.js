@@ -12,6 +12,8 @@ window.Ledger.reportState = {
   account: "all",
   currency: "all",
   category: "all",
+  subcategory: "all",
+  type: "all",
   search: ""
 };
 
@@ -69,6 +71,7 @@ window.Ledger.reportFilterTx = function(types){
         if(!t.categorySplits.some(function(s){ return s.categoryId === f.category; })) return false;
       } else if(t.category !== f.category) return false;
     }
+    if(f.subcategory !== "all" && t.subcategory !== f.subcategory) return false;
     if(f.search && f.search.trim()){
       var q = f.search.trim().toLowerCase();
       var hay = ((t.desc||"") + " " + (t.notes||"")).toLowerCase();
@@ -518,6 +521,13 @@ window.Ledger.pages.renderReportsPage = function(){
     return '<option value="'+p.id+'" '+(f.datePreset===p.id?"selected":"")+'>'+p.label+'</option>';
   }).join("");
 
+  /* Type filter */
+  var typeOpts = '<option value="all" '+(f.type==="all"?"selected":"")+'>All types</option>'
+    + '<option value="expense" '+(f.type==="expense"?"selected":"")+'>Expense</option>'
+    + '<option value="income" '+(f.type==="income"?"selected":"")+'>Income</option>'
+    + '<option value="transfer" '+(f.type==="transfer"?"selected":"")+'>Transfer</option>'
+    + '<option value="refund" '+(f.type==="refund"?"selected":"")+'>Refund</option>';
+
   /* Account filter */
   var accOpts = '<option value="all">All accounts</option>' + window.Ledger.DB.accounts.filter(function(a){ return !a.archived; }).map(function(a){
     return '<option value="'+a.id+'" '+(f.account===a.id?"selected":"")+'>'+window.Ledger.escapeHtml(a.name)+' ('+a.currency+')</option>';
@@ -529,10 +539,24 @@ window.Ledger.pages.renderReportsPage = function(){
     return '<option value="'+c+'" '+(f.currency===c?"selected":"")+'>'+c+'</option>';
   }).join("");
 
-  /* Category filter */
-  var catOpts = '<option value="all">All categories</option>' + window.Ledger.DB.categories.map(function(c){
+  /* Category filter — type-aware */
+  var filteredCats = window.Ledger.getCategoriesForType(f.type);
+  var catOpts = '<option value="all">All categories</option>' + filteredCats.map(function(c){
     return '<option value="'+c.id+'" '+(f.category===c.id?"selected":"")+'>'+window.Ledger.escapeHtml(c.name)+'</option>';
   }).join("");
+
+  /* Subcategory filter — type + category aware */
+  var filteredSubs = window.Ledger.getSubsForFilter(f.type, f.category);
+  var subOpts = '<option value="all">All subcategories</option>' + filteredSubs.map(function(s){
+    return '<option value="'+s.id+'" '+(f.subcategory===s.id?"selected":"")+'>'+window.Ledger.escapeHtml(s.name)+'</option>';
+  }).join("");
+
+  /* Active filter detection */
+  var hasActiveFilters = (f.account!=="all" || f.currency!=="all" || f.category!=="all" || f.subcategory!=="all" || f.type!=="all" || f.datePreset!=="month" || f.search.trim()!=="");
+  var clearBtnHtml = hasActiveFilters
+    ? '<button class="clear-filters" id="rClearFiltersBtn">Clear filters</button>'
+    : '';
+  function filteredCls(val){ return val !== "all" ? ' is-filtered' : ''; }
 
   /* Tab content */
   var tabContent = "";
@@ -544,11 +568,14 @@ window.Ledger.pages.renderReportsPage = function(){
   return ''
     + '<div class="card">'
     + '  <div class="filters-bar">'
-    + '    <select id="rDatePreset">'+dateOpts+'</select>'
-    + '    <select id="rAccount">'+accOpts+'</select>'
-    + '    <select id="rCurrency">'+curOpts+'</select>'
-    + '    <select id="rCategory">'+catOpts+'</select>'
+    + '    <select id="rDatePreset" class="'+filteredCls(f.datePreset)+'">'+dateOpts+'</select>'
+    + '    <select id="rType" class="'+filteredCls(f.type)+'">'+typeOpts+'</select>'
+    + '    <select id="rAccount" class="'+filteredCls(f.account)+'">'+accOpts+'</select>'
+    + '    <select id="rCurrency" class="'+filteredCls(f.currency)+'">'+curOpts+'</select>'
+    + '    <select id="rCategory" class="'+filteredCls(f.category)+'">'+catOpts+'</select>'
+    + '    <select id="rSubcategory" class="'+filteredCls(f.subcategory)+'">'+subOpts+'</select>'
     + '    <input type="text" id="rSearch" placeholder="Search descriptions..." value="'+window.Ledger.escapeHtml(f.search)+'" style="background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:8px 12px; font-size:12px; font-weight:500; color:var(--text); min-width:140px;">'
+    + clearBtnHtml
     + '    <button class="btn btn-sm" id="exportReportCsv" style="margin-left:auto;">Export CSV</button>'
     + '  </div>'
     + '</div>'

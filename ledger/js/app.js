@@ -192,20 +192,44 @@ window.Ledger.wirePageEvents = function(){
 
   if(window.Ledger.currentPage === "transactions"){
     window.Ledger.wireTxRowActions();
-    ["fAccount","fCurrency","fCategory","fSubcategory","fType","fDatePreset"].forEach(function(id){
+    ["fAccount","fCurrency","fType"].forEach(function(id){
       var el = document.getElementById(id);
       if(!el) return;
       el.addEventListener("change", function(){
         window.Ledger.registerFilters.account = document.getElementById("fAccount").value;
         window.Ledger.registerFilters.currency = document.getElementById("fCurrency").value;
-        window.Ledger.registerFilters.category = document.getElementById("fCategory").value;
-        window.Ledger.registerFilters.subcategory = document.getElementById("fSubcategory").value;
+        var prevType = window.Ledger.registerFilters.type;
         window.Ledger.registerFilters.type = document.getElementById("fType").value;
-        window.Ledger.registerFilters.datePreset = document.getElementById("fDatePreset").value;
+        if(prevType !== window.Ledger.registerFilters.type){
+          window.Ledger.registerFilters.category = "all";
+          window.Ledger.registerFilters.subcategory = "all";
+        }
         if(window.Ledger.registerFilters.datePreset !== "custom"){
           window.Ledger.renderPage();
         }
       });
+    });
+    ["fCategory","fSubcategory"].forEach(function(id){
+      var el = document.getElementById(id);
+      if(!el) return;
+      el.addEventListener("change", function(){
+        if(id === "fCategory"){
+          window.Ledger.registerFilters.category = document.getElementById("fCategory").value;
+          window.Ledger.registerFilters.subcategory = "all";
+        } else {
+          window.Ledger.registerFilters.subcategory = document.getElementById("fSubcategory").value;
+        }
+        if(window.Ledger.registerFilters.datePreset !== "custom"){
+          window.Ledger.renderPage();
+        }
+      });
+    });
+    var fDatePresetEl = document.getElementById("fDatePreset");
+    if(fDatePresetEl) fDatePresetEl.addEventListener("change", function(){
+      window.Ledger.registerFilters.datePreset = document.getElementById("fDatePreset").value;
+      if(window.Ledger.registerFilters.datePreset !== "custom"){
+        window.Ledger.renderPage();
+      }
     });
     var exportBtn = document.getElementById("exportCsvBtn");
     if(exportBtn) exportBtn.addEventListener("click", window.Ledger.exportCsv);
@@ -461,18 +485,41 @@ window.Ledger.wirePageEvents = function(){
   }
 
   if(window.Ledger.currentPage === "reports"){
-    ["rDatePreset","rAccount","rCurrency","rCategory"].forEach(function(id){
+    ["rDatePreset","rAccount","rCurrency","rType"].forEach(function(id){
       var el = document.getElementById(id);
       if(el) el.addEventListener("change", function(){
         window.Ledger.reportState.datePreset = document.getElementById("rDatePreset").value;
         window.Ledger.reportState.account = document.getElementById("rAccount").value;
         window.Ledger.reportState.currency = document.getElementById("rCurrency").value;
-        window.Ledger.reportState.category = document.getElementById("rCategory").value;
-        if(id === "rCategory") window.Ledger.reportState.category = el.value;
+        var prevType = window.Ledger.reportState.type;
+        window.Ledger.reportState.type = document.getElementById("rType").value;
+        if(prevType !== window.Ledger.reportState.type){
+          window.Ledger.reportState.category = "all";
+          window.Ledger.reportState.subcategory = "all";
+        }
         if(window.Ledger.reportState.datePreset !== "custom"){
           window.Ledger.renderPage();
         }
       });
+    });
+    ["rCategory","rSubcategory"].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.addEventListener("change", function(){
+        if(id === "rCategory"){
+          window.Ledger.reportState.category = document.getElementById("rCategory").value;
+          window.Ledger.reportState.subcategory = "all";
+        } else {
+          window.Ledger.reportState.subcategory = document.getElementById("rSubcategory").value;
+        }
+        if(window.Ledger.reportState.datePreset !== "custom"){
+          window.Ledger.renderPage();
+        }
+      });
+    });
+    var rClearBtn = document.getElementById("rClearFiltersBtn");
+    if(rClearBtn) rClearBtn.addEventListener("click", function(){
+      window.Ledger.reportState = { tab:window.Ledger.reportState.tab, datePreset:"month", dateFrom:"", dateTo:"", account:"all", currency:"all", category:"all", subcategory:"all", type:"all", search:"" };
+      window.Ledger.renderPage();
     });
     var rSearch = document.getElementById("rSearch");
     if(rSearch) rSearch.addEventListener("input", function(){ window.Ledger.reportState.search = rSearch.value; });

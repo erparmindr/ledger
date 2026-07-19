@@ -58,6 +58,23 @@ window.Ledger.filteredTransactions = function(){
   });
 };
 
+/* Helper: get categories filtered by type */
+window.Ledger.getCategoriesForType = function(type){
+  var cats = window.Ledger.DB.categories;
+  if(type && type !== "all"){
+    cats = cats.filter(function(c){ return c.type === type; });
+  }
+  return cats;
+};
+
+/* Helper: get subcategories filtered by type + category */
+window.Ledger.getSubsForFilter = function(type, categoryId){
+  if(!categoryId || categoryId === "all") return [];
+  var cat = window.Ledger.findCategory(categoryId);
+  if(!cat || !cat.subs || !cat.subs.length) return [];
+  return cat.subs;
+};
+
 window.Ledger.pages.renderRegisterPage = function(){
   var list = window.Ledger.filteredTransactions().sort(function(a,b){ return (b.date+b.id).localeCompare(a.date+a.id); });
   var showRunning = window.Ledger.registerFilters.account !== "all";
@@ -105,24 +122,6 @@ window.Ledger.pages.renderRegisterPage = function(){
     + '<div class="reg-chip dot-dim"><span class="chip-dot"></span>' + list.length + ' transaction' + (list.length !== 1 ? 's' : '') + '</div>'
     + '</div>';
 
-  /* ---- Filter options ---- */
-  var accOpts = '<option value="all">All accounts</option>' + window.Ledger.DB.accounts.map(function(a){
-    return '<option value="' + a.id + '" ' + (window.Ledger.registerFilters.account===a.id?'selected':'') + '>' + window.Ledger.escapeHtml(a.name) + '</option>';
-  }).join("");
-  var curSet = {}; window.Ledger.DB.accounts.forEach(function(a){ curSet[a.currency]=1; });
-  var curOpts = '<option value="all">All currencies</option>' + Object.keys(curSet).map(function(c){
-    return '<option value="' + c + '" ' + (window.Ledger.registerFilters.currency===c?'selected':'') + '>' + c + '</option>';
-  }).join("");
-  var subOpts = '<option value="all">All subcategories</option>';
-  if(window.Ledger.registerFilters.category !== "all"){
-    var cat = window.Ledger.findCategory(window.Ledger.registerFilters.category);
-    if(cat && cat.subs.length){
-      subOpts += cat.subs.map(function(s){
-        return '<option value="' + s.id + '" ' + (window.Ledger.registerFilters.subcategory===s.id?'selected':'') + '>' + window.Ledger.escapeHtml(s.name) + '</option>';
-      }).join("");
-    }
-  }
-
   /* ---- Active filter detection ---- */
   var f = window.Ledger.registerFilters;
   var hasActiveFilters = (f.account!=="all" || f.currency!=="all" || f.category!=="all" || f.subcategory!=="all" || f.type!=="all" || f.datePreset!=="all" || f.search.trim()!=="");
@@ -131,25 +130,46 @@ window.Ledger.pages.renderRegisterPage = function(){
     : '';
   function filteredCls(val){ return val !== "all" ? ' is-filtered' : ''; }
 
-  /* ---- Category select ---- */
-  var catOpts = '<option value="all"' + (f.category==="all"?" selected":"") + '>All categories</option>'
-    + window.Ledger.DB.categories.map(function(c){
-      return '<option value="'+c.id+'" '+(f.category===c.id?"selected":"")+'>'+window.Ledger.escapeHtml(c.name)+'</option>';
-    }).join("");
+  /* ---- Type-aware options ---- */
+  var typeVal = f.type;
 
-  /* ---- Toolbar: filters + export ---- */
+  /* Type filter */
+  var typeOpts = '<option value="all" ' + (typeVal==="all"?"selected":"") + '>All types</option>'
+    + '<option value="expense" ' + (typeVal==="expense"?"selected":"") + '>Expense</option>'
+    + '<option value="income" ' + (typeVal==="income"?"selected":"") + '>Income</option>'
+    + '<option value="transfer" ' + (typeVal==="transfer"?"selected":"") + '>Transfer</option>'
+    + '<option value="refund" ' + (typeVal==="refund"?"selected":"") + '>Refund</option>';
+
+  /* Category filter — filtered by selected type */
+  var filteredCats = window.Ledger.getCategoriesForType(typeVal);
+  var catOpts = '<option value="all">All categories</option>' + filteredCats.map(function(c){
+    return '<option value="'+c.id+'" '+(f.category===c.id?"selected":"")+'>'+window.Ledger.escapeHtml(c.name)+'</option>';
+  }).join("");
+
+  /* Subcategory filter — filtered by type + category */
+  var filteredSubs = window.Ledger.getSubsForFilter(typeVal, f.category);
+  var subOpts = '<option value="all">All subcategories</option>' + filteredSubs.map(function(s){
+    return '<option value="'+s.id+'" '+(f.subcategory===s.id?"selected":"")+'>'+window.Ledger.escapeHtml(s.name)+'</option>';
+  }).join("");
+
+  /* Account filter */
+  var accOpts = '<option value="all">All accounts</option>' + window.Ledger.DB.accounts.map(function(a){
+    return '<option value="' + a.id + '" ' + (f.account===a.id?'selected':'') + '>' + window.Ledger.escapeHtml(a.name) + '</option>';
+  }).join("");
+
+  /* Currency filter */
+  var curSet = {}; window.Ledger.DB.accounts.forEach(function(a){ curSet[a.currency]=1; });
+  var curOpts = '<option value="all">All currencies</option>' + Object.keys(curSet).map(function(c){
+    return '<option value="' + c + '" ' + (f.currency===c?'selected':'') + '>' + c + '</option>';
+  }).join("");
+
+  /* ---- Toolbar: Type → Account → Currency → Category → Subcategory → Date → Clear → Export ---- */
   var toolbarHtml = '<div class="filters-bar">'
+    + '<select id="fType" class="' + filteredCls(f.type) + '">' + typeOpts + '</select>'
     + '<select id="fAccount" class="' + filteredCls(f.account) + '">' + accOpts + '</select>'
     + '<select id="fCurrency" class="' + filteredCls(f.currency) + '">' + curOpts + '</select>'
     + '<select id="fCategory" class="' + filteredCls(f.category) + '">' + catOpts + '</select>'
     + '<select id="fSubcategory" class="' + filteredCls(f.subcategory) + '">' + subOpts + '</select>'
-    + '<select id="fType" class="' + filteredCls(f.type) + '">'
-    + '  <option value="all" ' + (f.type==="all"?"selected":"") + '>All types</option>'
-    + '  <option value="expense" ' + (f.type==="expense"?"selected":"") + '>Expense</option>'
-    + '  <option value="income" ' + (f.type==="income"?"selected":"") + '>Income</option>'
-    + '  <option value="transfer" ' + (f.type==="transfer"?"selected":"") + '>Transfer</option>'
-    + '  <option value="refund" ' + (f.type==="refund"?"selected":"") + '>Refund</option>'
-    + '</select>'
     + '<select id="fDatePreset" class="' + filteredCls(f.datePreset) + '">' + window.Ledger.DATE_PRESETS.map(function(p){
       return '<option value="'+p.id+'" '+(f.datePreset===p.id?"selected":"")+'>'+p.label+'</option>';
     }).join("") + '</select>'
