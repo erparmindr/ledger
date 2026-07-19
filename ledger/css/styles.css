@@ -641,6 +641,29 @@ select:focus-visible{
   max-height:0; opacity:0; pointer-events:none; overflow:hidden;
   margin:0 !important; padding:0 !important;
 }
+/* Category suggestion pills */
+.cat-suggestions{
+  display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+  margin-top:6px; min-height:0;
+}
+.cat-sug-label{
+  font-size:11px; font-weight:600; color:var(--text-faint);
+  letter-spacing:0.02em;
+}
+.cat-sug-pill{
+  display:inline-flex; align-items:center;
+  padding:3px 10px; border-radius:var(--radius-pill);
+  background:var(--sage-soft); border:1px solid transparent;
+  color:var(--sage); font-size:11px; font-weight:600;
+  cursor:pointer; transition:all var(--transition-fast);
+  font-family:inherit;
+}
+.cat-sug-pill:hover{
+  background:var(--sage); color:#fff; border-color:var(--sage);
+}
+.cat-sug-pill.active{
+  background:var(--sage); color:#fff; border-color:var(--sage);
+}
 
 /* ---- Tables / register ---- */
 .tx-row{

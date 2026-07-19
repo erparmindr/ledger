@@ -51,7 +51,7 @@ window.Ledger.openTxModal = function(existing){
     + '    <button type="button" class="type-pill ' + (t.type==='transfer'?'active':'') + '" data-t="transfer">\u21c4 Transfer</button>'
     + '    <button type="button" class="type-pill ' + (t.type==='refund'?'active':'') + '" data-t="refund">\u21bb Refund</button>'
     + '  </div>'
-    + '  <div class="field"><label>Description <span class="faint">(optional)</span></label><input type="text" id="txDesc" value="' + window.Ledger.escapeHtml(t.desc||"") + '" placeholder="e.g. Groceries at Metro"></div>'
+    + '  <div class="field"><label>Description <span class="faint">(optional)</span></label><input type="text" id="txDesc" value="' + window.Ledger.escapeHtml(t.desc||"") + '" placeholder="e.g. Groceries at Metro"><div id="catSuggestions" class="cat-suggestions"></div></div>'
     + '  <div class="form-row">'
     + '    <div class="field"><label>Amount</label><input type="number" id="txAmount" step="0.01" min="0.01" value="' + (t.amount||"") + '"></div>'
     + '    <div class="field"><label>Date</label><input type="date" id="txDate" value="' + t.date + '"></div>'
@@ -109,6 +109,32 @@ window.Ledger.openTxModal = function(existing){
     document.getElementById("cancelTxBtn").addEventListener("click", window.Ledger.closeModal);
 
     if(t.account) document.getElementById("txAccount").value = t.account;
+
+    function renderCatSuggestions(){
+      var desc = document.getElementById("txDesc").value.trim();
+      var sugBox = document.getElementById("catSuggestions");
+      if(!sugBox) return;
+      if(currentType === "transfer" || !desc || desc.length < 2){ sugBox.innerHTML = ""; return; }
+      var catType = currentType === "refund" ? "expense" : currentType;
+      var suggestions = window.Ledger.rankCategorySuggestions(desc, catType, window.Ledger.DB, window.Ledger.findCategory);
+      if(suggestions.length === 0){ sugBox.innerHTML = ""; return; }
+      var currentCatId = document.getElementById("txCategory").value;
+      sugBox.innerHTML = '<span class="cat-sug-label">Suggested:</span>' + suggestions.map(function(s){
+        return '<button type="button" class="cat-sug-pill' + (s.id === currentCatId ? ' active' : '') + '" data-catid="' + s.id + '">' + window.Ledger.escapeHtml(s.name) + '</button>';
+      }).join("");
+      Array.prototype.forEach.call(sugBox.querySelectorAll(".cat-sug-pill"), function(pill){
+        pill.addEventListener("click", function(){
+          var catId = pill.getAttribute("data-catid");
+          var catSel = document.getElementById("txCategory");
+          catSel.value = catId;
+          window.Ledger.refreshCustomDropdown(catSel);
+          refreshSubcatOptions();
+          renderCatSuggestions();
+        });
+      });
+    }
+    var txDescEl = document.getElementById("txDesc");
+    if(txDescEl) txDescEl.addEventListener("input", renderCatSuggestions);
 
     function refreshSubcatOptions(){
       var catId = document.getElementById("txCategory").value;
@@ -176,6 +202,7 @@ window.Ledger.openTxModal = function(existing){
         if(accLabel) accLabel.textContent = currentType === "refund" ? "Refund to account" : "Account";
         if(currentType === "refund"){ refundOf = null; renderRefundResults(); }
         else { refundOf = null; }
+        renderCatSuggestions();
       });
     });
 

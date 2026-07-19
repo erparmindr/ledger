@@ -70,3 +70,53 @@ window.Ledger.suggestCategoryForDescription = function suggestCategoryForDescrip
 window.Ledger.learnCategoryMapping = function learnCategoryMapping(desc, categoryId) {
   window.Ledger.learnCategory(desc, categoryId);
 };
+
+window.Ledger.rankCategorySuggestions = function(desc, forType, DB, findCategory) {
+  if(!desc || desc.length < 2) return [];
+  var descLower = desc.toLowerCase();
+  var scores = {};
+
+  if(DB.categoryLearning){
+    var lKeys = Object.keys(DB.categoryLearning);
+    for(var i=0;i<lKeys.length;i++){
+      if(descLower.indexOf(lKeys[i]) !== -1){
+        var cat = findCategory(DB.categoryLearning[lKeys[i]]);
+        if(cat && cat.type === forType){
+          scores[cat.id] = (scores[cat.id]||0) + 10;
+        }
+      }
+    }
+  }
+
+  var AUTO = window.Ledger.AUTO_CATEGORY_KEYWORDS;
+  for(var j=0;j<AUTO.length;j++){
+    var entry = AUTO[j];
+    for(var k=0;k<entry.words.length;k++){
+      if(descLower.indexOf(entry.words[k]) !== -1){
+        var match = DB.categories.find(function(c){ return c.name === entry.cat && c.type === forType; });
+        if(match) scores[match.id] = (scores[match.id]||0) + 5;
+      }
+    }
+  }
+
+  var words = descLower.replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(function(w){ return w.length >= 3; });
+  var txns = DB.transactions || [];
+  for(var t=0;t<txns.length;t++){
+    var tx = txns[t];
+    if(!tx.desc || tx.type !== forType || !tx.category) continue;
+    var txDescLower = tx.desc.toLowerCase();
+    var matched = false;
+    for(var w=0;w<words.length;w++){
+      if(txDescLower.indexOf(words[w]) !== -1){ matched = true; break; }
+    }
+    if(matched) scores[tx.category] = (scores[tx.category]||0) + 1;
+  }
+
+  var results = Object.keys(scores).map(function(catId){
+    var cat = findCategory(catId);
+    return cat ? { id:catId, name:cat.name, score:scores[catId] } : null;
+  }).filter(Boolean);
+
+  results.sort(function(a,b){ return b.score - a.score; });
+  return results.slice(0, 3);
+};
