@@ -12,13 +12,14 @@ A private, offline-first personal finance ledger. No accounts, no cloud, no trac
 - **Transaction tracking** — Log expenses, income, transfers, and refunds with dates, categories, notes, and amounts
 - **Multi-account** — Checking, savings, cash, and credit card accounts with per-account balances
 - **Multi-currency** — Supports USD, CAD, EUR, GBP, INR, AUD, JPY with per-account currency selection
-- **Running balance** — See your balance update in real-time on the register
+- **Running balance** — See your balance update in real-time on the register with tabular numerals
 - **Transfer system** — 5 default transfer categories, add/rename/delete in Categories page
 - **Pending transfers** — Link transfers to destination later, track unmatched transfers from imports
 - **Cross-currency transfers** — Handles linked rows across different currencies automatically
 - **Refund tracking** — 4th transaction type with smart matching to original expenses
 - **Refund picker** — Automatic suggestions based on amount, description, and recency (6-month lookback)
 - **Cross-account refunds** — Refund to a different account with "Refund to account" label
+- **Category suggestions** — Learns from your history and suggests categories based on description keywords + past mappings
 
 ### Import & Export
 - **CSV import** — Upload bank CSV exports with column mapping
@@ -33,14 +34,22 @@ A private, offline-first personal finance ledger. No accounts, no cloud, no trac
 - **CSV export** — Export filtered transactions as CSV
 
 ### Pages
-- **Overview** — Dashboard with balance summary, pending transfers, and unlinked refunds cards
-- **Transactions** — Full register with type filters (Expense/Income/Transfer/Refund), search, and date range
-- **Accounts** — Account cards with balances and credit card view
-- **Reports** — Spending breakdown by category (nets refunds), monthly/yearly views
-- **Categories** — Tabbed view (Expense/Income/Transfer) with usage stats and delete protection
+- **Overview** — Dashboard with balance summary, mini-cards per account (with reconciliation drift indicators), pending transfers, unlinked refunds, and monthly reconciliation banner
+- **Transactions** — Full register with type-aware cascading filters (Type → Account → Currency → Category → Subcategory → Date), export, and search
+- **Accounts** — Account cards with balances, credit card view, and "Needs verification" badges for monthly reconciliation
+- **Reports** — Spending breakdown by category (nets refunds), monthly/yearly views, 4 chart tabs (Bar, Line, Donut, Table), type/account/currency/category/subcategory/search filters
+- **Categories** — Tabbed view (Expense/Income/Transfer) with usage stats, collapsible subcategory sections, and delete protection
 - **Payees** — Track debts owed to/from friends and contacts
 - **Scheduled** — Recurring bills and subscriptions with daily/weekly/monthly/yearly frequency
 - **Settings** — Backup, import, reset, and preferences
+
+### Reconciliation
+- **Monthly reconciliation banner** — Appears on overview page on the 1st of each month for accounts needing verification
+- **Per-account verify** — Click "Verify" on any account to open the reconciliation modal
+- **Balance breakdown** — See exactly how the balance was computed (opening + income - expenses + refunds ± transfers)
+- **Orphan transfer detection** — Flags transfers with no matching pair on the other end
+- **Duplicate detection** — Flags possible duplicate entries (same amount + date + description)
+- **Set balance** — Correct your balance in one click — system recalculates opening balance behind the scenes
 
 ### Storage
 - **IndexedDB primary** — Persistent storage with auto-migration from localStorage
@@ -48,15 +57,17 @@ A private, offline-first personal finance ledger. No accounts, no cloud, no trac
 - **Adapter pattern** — Storage layer designed for future Google Drive sync
 
 ### UX
-- **Dark/Light theme** — Pitch black dark theme, persisted across sessions
+- **Dark/Light theme** — Pitch black dark theme, persisted across sessions, 30+ CSS custom properties for consistent theming
 - **Fully offline** — Works without internet after first load (PWA)
 - **Installable** — Add to home screen on mobile or desktop
-- **Responsive** — Works on mobile with collapsible sidebar, stacked layouts on small screens
+- **Responsive** — Three breakpoints (880px, 760px, 480px) with collapsible sidebar, stacked layouts, and full-width dropdowns on small screens
 - **Search** — Global search across all transactions
-- **Date filters** — Today, this week, this month, this year, or custom range
-- **Custom dropdowns** — Themed dropdown components replacing native selects
+- **Date filters** — Today, this week, this month, this year, this quarter, or custom range picker
+- **Custom date picker** — Themed date input component with range presets
+- **Custom dropdowns** — Themed dropdown components replacing native selects across all 39+ select elements
 - **FAB button** — Floating "New transaction" button for quick access
 - **Sticky sidebar** — Sidebar stays visible while scrolling on desktop
+- **Transaction modal** — 560px wide with smooth type-switch transitions between Expense/Income/Transfer/Refund
 - **WCAG accessible** — 44px touch targets, focus-visible states, proper contrast ratios
 
 ---
@@ -77,7 +88,7 @@ A private, offline-first personal finance ledger. No accounts, no cloud, no trac
 - **HTML/CSS/JS** — Vanilla, no frameworks, no build step
 - **PWA** — Service worker for offline caching, web manifest for installability
 - **IndexedDB** — Primary storage with localStorage fallback
-- **Custom components** — Themed dropdowns, modal system, floating action button
+- **Custom components** — Themed dropdowns, date picker, modal system, floating action button
 - **Lucide Icons** — Loaded via CDN
 - **Manrope** — Google Fonts
 
@@ -94,22 +105,23 @@ ledger/
 │   └── styles.css                      # All styles (theme tokens, components, layout)
 ├── js/
 │   ├── constants.js                    # Config, currencies, auto-categorization keywords
-│   ├── utils.js                        # Helpers, lookups, balance computation
-│   ├── store.js                        # Data model, transfer categories
+│   ├── utils.js                        # Helpers, lookups, balance computation, reconciliation helpers
+│   ├── store.js                        # Data model, transfer categories, 21 centralized mutations
 │   ├── modals.js                       # Modal stack system + utility modals
 │   ├── modals/
-│   │   └── entity-modals.js            # Transaction/Account/Refund/Link modals
+│   │   └── entity-modals.js            # Transaction/Account/Refund/Link/Reconciliation modals
 │   ├── components/
 │   │   ├── transaction-row.js          # Shared transaction row renderer
-│   │   └── custom-dropdown.js          # Themed dropdown component
+│   │   ├── custom-dropdown.js          # Themed dropdown component
+│   │   └── date-picker.js              # Custom date picker with range presets
 │   ├── pages/
-│   │   ├── overview.js                 # Dashboard with balance + pending + refunds cards
-│   │   ├── register.js                 # Transaction log with filters
-│   │   ├── accounts.js                 # Account cards with balances
+│   │   ├── overview.js                 # Dashboard with balance + reconciliation banner
+│   │   ├── register.js                 # Transaction log with cascading filters
+│   │   ├── accounts.js                 # Account cards with reconciliation badges
 │   │   ├── people.js                   # Payees with debt tracking
-│   │   ├── reports.js                  # Spending breakdown charts
+│   │   ├── reports.js                  # Spending breakdown charts (4 tabs)
 │   │   ├── recurring.js                # Scheduled transactions
-│   │   ├── categories.js               # Tabbed categories with usage stats
+│   │   ├── categories.js               # Tabbed categories with collapsible subcategories
 │   │   └── settings.js                 # Backup, import, reset
 │   ├── services/
 │   │   ├── storage.js                  # IndexedDB adapter with localStorage migration
@@ -159,6 +171,8 @@ All modules communicate via the `window.Ledger` namespace. Pages call functions 
 The service worker uses a **network-first** strategy for HTML/CSS/JS to ensure updates are always fetched fresh, and a **cache-first** strategy for static assets (icons, fonts).
 
 Storage is handled by an adapter pattern (`js/services/storage.js`) that wraps IndexedDB with automatic migration from localStorage. This design allows future swapping in of cloud storage backends (e.g., Google Drive) without changing any business logic.
+
+The data layer uses a centralized store pattern (`js/store.js`) with 21 mutation functions that handle all writes to the database. Every mutation dual-writes to both IndexedDB and localStorage.
 
 ---
 
