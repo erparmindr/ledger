@@ -282,13 +282,15 @@ window.Ledger.deletePerson = function(id) {
 
 // ---- Debt Items ----
 
-window.Ledger.replaceDebtItemsForTransaction = function(mainId, debtItems) {
+window.Ledger.replaceDebtItemsForTransaction = function(mainId, debtItems, skipSave) {
   window.Ledger.DB.debtItems = window.Ledger.DB.debtItems.filter(function(d){ return d.sourceTransactionId !== mainId; });
   for(var i = 0; i < debtItems.length; i++){
     window.Ledger.DB.debtItems.push(debtItems[i]);
   }
-  window.Ledger.saveData();
-  window.Ledger.renderPage();
+  if(!skipSave){
+    window.Ledger.saveData();
+    window.Ledger.renderPage();
+  }
 };
 
 window.Ledger.updateDebtItem = function(id, changes, skipSave) {

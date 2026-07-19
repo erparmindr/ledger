@@ -558,7 +558,7 @@ window.Ledger.openTxModal = function(existing){
           };
           if(isEdit){
             window.Ledger.upsertTransaction(mainRec);
-            window.Ledger.replaceDebtItemsForTransaction(mainId, []);
+            window.Ledger.replaceDebtItemsForTransaction(mainId, [], true);
           } else {
             window.Ledger.addTransaction(mainRec);
           }

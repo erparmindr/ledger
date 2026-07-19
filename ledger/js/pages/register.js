@@ -104,7 +104,7 @@ window.Ledger.pages.renderRegisterPage = function(){
             if(t.toType==="account" && t.toId===acc.id) running += amt;
           }
         }
-        runBalMap[t.id] = running;
+        runBalMap[t.id] = Math.round(running * 100) / 100;
       });
     }
   }
