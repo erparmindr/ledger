@@ -106,15 +106,15 @@ function getVisibleMonthKeys(sorted){
 /* ---- toggle functions (called from onclick) ---- */
 window.Ledger.toggleRegYear = function(yk){
   window.Ledger.registerCollapsedYears[yk] = !window.Ledger.registerCollapsedYears[yk];
-  window.Ledger.navigateTo("register");
+  window.Ledger.navigateTo("transactions");
 };
 window.Ledger.toggleRegMonth = function(mk){
   window.Ledger.registerCollapsedMonths[mk] = !window.Ledger.registerCollapsedMonths[mk];
-  window.Ledger.navigateTo("register");
+  window.Ledger.navigateTo("transactions");
 };
 window.Ledger.loadRegEarlierMonths = function(){
   window.Ledger.registerMonthsVisible += LOAD_MORE_MONTHS;
-  window.Ledger.navigateTo("register");
+  window.Ledger.navigateTo("transactions");
 };
 
 /* ============================================================
