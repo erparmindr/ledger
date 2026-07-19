@@ -14,6 +14,7 @@ window.Ledger.openModal = function (html, onMount) {
   });
   if (onMount) onMount();
   if(window.Ledger.initCustomDropdowns) window.Ledger.initCustomDropdowns();
+  if(window.Ledger.initDatePickers) window.Ledger.initDatePickers();
   if(window.Ledger.refreshIcons) window.Ledger.refreshIcons();
 };
 

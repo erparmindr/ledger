@@ -74,6 +74,7 @@ window.Ledger.renderPage = function(){
   window.Ledger.wirePageEvents();
   window.Ledger.refreshIcons();
   window.Ledger.initCustomDropdowns();
+  if(window.Ledger.initDatePickers) window.Ledger.initDatePickers();
 
   /* ---- Date range picker inside fDatePreset dropdown ---- */
   if(window.Ledger.currentPage === "transactions"){
@@ -82,13 +83,23 @@ window.Ledger.renderPage = function(){
       var cdWrap = fDatePresetSel.previousElementSibling;
       if(cdWrap && cdWrap.classList.contains("cd-wrap")){
         var cdList = cdWrap.querySelector(".cd-list");
+        var fValFrom = window.Ledger.registerFilters.dateFrom || "";
+        var fValTo = window.Ledger.registerFilters.dateTo || "";
         var dateRangeDiv = document.createElement("div");
         dateRangeDiv.className = "cd-date-range";
         dateRangeDiv.innerHTML =
-          '<div class="cdr-inputs">'
-          + '<input type="date" id="fDateFrom" value="' + (window.Ledger.registerFilters.dateFrom || "") + '">'
+          '<div style="display:flex;gap:8px;align-items:center;">'
+          + '<div class="dp-wrap dp-compact">'
+          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (fValFrom ? '' : ' placeholder') + '">' + (fValFrom ? window.Ledger.dpFormatDate(fValFrom) : 'From') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
+          + '<input type="hidden" class="dp-hidden" id="fDateFrom" value="' + fValFrom + '">'
+          + '<div class="dp-panel"></div>'
+          + '</div>'
           + '<span class="cdr-sep">&ndash;</span>'
-          + '<input type="date" id="fDateTo" value="' + (window.Ledger.registerFilters.dateTo || "") + '">'
+          + '<div class="dp-wrap dp-compact">'
+          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (fValTo ? '' : ' placeholder') + '">' + (fValTo ? window.Ledger.dpFormatDate(fValTo) : 'To') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
+          + '<input type="hidden" class="dp-hidden" id="fDateTo" value="' + fValTo + '">'
+          + '<div class="dp-panel"></div>'
+          + '</div>'
           + '</div>';
         var isCustom = fDatePresetSel.value === "custom";
         dateRangeDiv.style.display = isCustom ? "" : "none";
@@ -100,10 +111,8 @@ window.Ledger.renderPage = function(){
             dateRangeDiv.style.display = "";
           });
         }
-        var fDateFrom = dateRangeDiv.querySelector("#fDateFrom");
-        var fDateTo = dateRangeDiv.querySelector("#fDateTo");
-        if(fDateFrom) fDateFrom.addEventListener("change", function(e){ e.stopPropagation(); window.Ledger.registerFilters.dateFrom = fDateFrom.value; window.Ledger.renderPage(); });
-        if(fDateTo) fDateTo.addEventListener("change", function(e){ e.stopPropagation(); window.Ledger.registerFilters.dateTo = fDateTo.value; window.Ledger.renderPage(); });
+        window.Ledger._wireDatePickerPanel(dateRangeDiv.querySelector("#fDateFrom"), "registerFilters", "dateFrom", "renderPage");
+        window.Ledger._wireDatePickerPanel(dateRangeDiv.querySelector("#fDateTo"), "registerFilters", "dateTo", "renderPage");
       }
     }
   }
@@ -115,13 +124,23 @@ window.Ledger.renderPage = function(){
       var rCdWrap = rDatePresetSel.previousElementSibling;
       if(rCdWrap && rCdWrap.classList.contains("cd-wrap")){
         var rCdList = rCdWrap.querySelector(".cd-list");
+        var rValFrom = window.Ledger.reportState.dateFrom || "";
+        var rValTo = window.Ledger.reportState.dateTo || "";
         var rDateRangeDiv = document.createElement("div");
         rDateRangeDiv.className = "cd-date-range";
         rDateRangeDiv.innerHTML =
-          '<div class="cdr-inputs">'
-          + '<input type="date" id="rDateFrom" value="' + (window.Ledger.reportState.dateFrom || "") + '">'
+          '<div style="display:flex;gap:8px;align-items:center;">'
+          + '<div class="dp-wrap dp-compact">'
+          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (rValFrom ? '' : ' placeholder') + '">' + (rValFrom ? window.Ledger.dpFormatDate(rValFrom) : 'From') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
+          + '<input type="hidden" class="dp-hidden" id="rDateFrom" value="' + rValFrom + '">'
+          + '<div class="dp-panel"></div>'
+          + '</div>'
           + '<span class="cdr-sep">&ndash;</span>'
-          + '<input type="date" id="rDateTo" value="' + (window.Ledger.reportState.dateTo || "") + '">'
+          + '<div class="dp-wrap dp-compact">'
+          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (rValTo ? '' : ' placeholder') + '">' + (rValTo ? window.Ledger.dpFormatDate(rValTo) : 'To') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
+          + '<input type="hidden" class="dp-hidden" id="rDateTo" value="' + rValTo + '">'
+          + '<div class="dp-panel"></div>'
+          + '</div>'
           + '</div>';
         var rIsCustom = rDatePresetSel.value === "custom";
         rDateRangeDiv.style.display = rIsCustom ? "" : "none";
@@ -133,10 +152,8 @@ window.Ledger.renderPage = function(){
             rDateRangeDiv.style.display = "";
           });
         }
-        var rDateFrom = rDateRangeDiv.querySelector("#rDateFrom");
-        var rDateTo = rDateRangeDiv.querySelector("#rDateTo");
-        if(rDateFrom) rDateFrom.addEventListener("change", function(e){ e.stopPropagation(); window.Ledger.reportState.dateFrom = rDateFrom.value; window.Ledger.renderPage(); });
-        if(rDateTo) rDateTo.addEventListener("change", function(e){ e.stopPropagation(); window.Ledger.reportState.dateTo = rDateTo.value; window.Ledger.renderPage(); });
+        window.Ledger._wireDatePickerPanel(rDateRangeDiv.querySelector("#rDateFrom"), "reportState", "dateFrom", "renderPage");
+        window.Ledger._wireDatePickerPanel(rDateRangeDiv.querySelector("#rDateTo"), "reportState", "dateTo", "renderPage");
       }
     }
   }
