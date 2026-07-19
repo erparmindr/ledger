@@ -172,6 +172,7 @@ window.Ledger.pages.renderRegisterPage = function(){
     + '<span class="col-acct">Account</span>'
     + '<span class="col-amt">Amount</span>'
     + (showRunning ? '<span class="col-runbal">Balance</span>' : '')
+    + '<span class="rowactions"></span>'
     + '</div>';
 
   /* ---- Transaction list or empty state ---- */

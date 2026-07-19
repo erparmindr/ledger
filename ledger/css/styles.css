@@ -515,7 +515,7 @@ select:focus-visible{
 }
 .tx-row .amt{ font-family:var(--font-num); font-variant-numeric:tabular-nums; font-weight:800; font-size:14.5px; text-align:right; white-space:nowrap; }
 .tx-row .runbal{ font-family:var(--font-num); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-faint); text-align:right; white-space:nowrap; font-weight:600; }
-.tx-row .rowactions{ display:flex; gap:4px; position:absolute; right:18px; top:50%; transform:translateY(-50%); }
+.tx-row .rowactions{ display:flex; gap:4px; flex-shrink:0; }
 .icon-btn{
   background:none; border:none; color:var(--text-faint); padding:6px 8px; border-radius:8px; font-size:13px;
   cursor:pointer; transition:all var(--transition-fast);
@@ -649,7 +649,8 @@ select:focus-visible{
 .tx-col-header.show-runbal .col-runbal{ display:block; }
 
 /* ---- Table-layout tx-row columns (register) ---- */
-.tx-row.show-type{ gap:12px; padding-right:80px; }
+.tx-row.show-type{ gap:12px; }
+.tx-col-header .rowactions{ width:92px; flex-shrink:0; }
 .tx-row.show-type .col-date{ width:120px; flex-shrink:0; font-size:12.5px; color:var(--text-dim); font-weight:500; }
 .tx-row.show-type .col-desc{ flex:1; min-width:0; font-weight:700; font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .tx-row.show-type .col-type{ width:140px; flex-shrink:0; font-size:12.5px; }
