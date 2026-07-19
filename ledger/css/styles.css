@@ -1196,15 +1196,16 @@ select[data-no-cd]:focus-visible{
 .cat-add-input:focus{ outline:none; border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
 .cat-add-input::placeholder{ color:var(--text-faint); }
 .cat-card-grid{
-  display:grid; grid-template-columns:repeat(2, 1fr); gap:16px;
+  display:grid; grid-template-columns:repeat(2, 1fr); gap:16px 20px;
   align-items:start;
 }
 .cat-card{
-  background:var(--surface-2); border:1px solid var(--border-soft);
+  background:var(--surface-2); border:1px solid var(--border);
   border-radius:var(--radius); padding:14px 16px;
   transition:all var(--transition-fast);
 }
-.cat-card:hover{ border-color:var(--border); box-shadow:var(--shadow-card); }
+.cat-card:hover{ box-shadow:var(--shadow-card); }
+.cat-card:not(.collapsed){ box-shadow:0 2px 12px -2px rgba(0,0,0,0.12); }
 .cat-card-head{ display:flex; justify-content:space-between; align-items:flex-start; }
 .cat-card-info{ flex:1; min-width:0; }
 .cat-card-name{
@@ -1216,9 +1217,8 @@ select[data-no-cd]:focus-visible{
 .icon-btn.sm{ padding:5px; }
 .icon-btn.sm i, .icon-btn.sm svg{ width:13px; height:13px; }
 .cat-card-subs{
-  margin-top:10px; padding:10px 12px;
-  border:1px solid var(--border); border-radius:var(--radius-sm);
-  background:var(--surface); position:relative;
+  margin-top:10px; padding-top:10px;
+  border-top:1px solid var(--border);
 }
 .cat-card-sub-head{
   display:flex; align-items:center; justify-content:space-between;
@@ -1247,12 +1247,12 @@ select[data-no-cd]:focus-visible{
 .cat-card-sub{
   display:flex; align-items:center; justify-content:space-between;
   font-size:12.5px; color:var(--text-dim); font-weight:500;
-  padding:5px 0; border-bottom:1px solid var(--border-soft);
+  padding:3px 0 3px 10px;
+  border-left:2px solid var(--border); margin-left:2px;
 }
 .cat-card-sub:last-child{ border-bottom:none; }
 .cat-card-sub-name{
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;
-  padding-left:8px;
 }
 .cat-card-sub-actions{ display:flex; gap:1px; margin-left:6px; flex-shrink:0; }
 .cat-empty{ text-align:center; padding:40px 0; }
