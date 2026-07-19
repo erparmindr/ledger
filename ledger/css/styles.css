@@ -1196,7 +1196,7 @@ select[data-no-cd]:focus-visible{
 .cat-add-input:focus{ outline:none; border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
 .cat-add-input::placeholder{ color:var(--text-faint); }
 .cat-card-grid{
-  display:grid; grid-template-columns:repeat(2, 1fr); gap:12px;
+  display:grid; grid-template-columns:repeat(2, 1fr); gap:14px;
   align-items:start;
 }
 .cat-card{
@@ -1218,9 +1218,8 @@ select[data-no-cd]:focus-visible{
 .cat-card-subs{
   margin-top:10px; padding:10px 12px;
   border-top:1px solid var(--border-soft);
-  background:var(--surface); border-radius:var(--radius-sm);
-  margin-left:-16px; margin-right:-16px; margin-bottom:-14px;
-  padding-left:16px; padding-right:16px; padding-bottom:12px;
+  background:var(--surface-hi); border-radius:var(--radius-sm);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,0.06);
 }
 .cat-card-sub-head{
   display:flex; align-items:center; justify-content:space-between;
