@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test — Yearly > Monthly Grouped Transactions</title>
+<style>
+*{ margin:0; padding:0; box-sizing:border-box; }
+body{ font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:#0e0e0e; color:#e8e8e8; padding:24px; }
+h1{ font-size:18px; font-weight:800; margin-bottom:6px; }
+.subtitle{ font-size:12px; color:#888; margin-bottom:20px; }
+.controls{ display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+.controls input, .controls select{ background:#1a1a1a; border:1px solid #333; border-radius:8px; padding:8px 12px; color:#e8e8e8; font-size:13px; }
+.controls input:focus, .controls select:focus{ outline:none; border-color:#c4943a; }
+.controls button{ background:#c4943a; color:#0e0e0e; border:none; border-radius:8px; padding:8px 16px; font-size:13px; font-weight:700; cursor:pointer; }
+.controls button:hover{ background:#dbb04e; }
+
+.year-section{ margin-bottom:20px; border:1px solid #222; border-radius:12px; overflow:hidden; }
+.year-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 18px; background:#161616; cursor:pointer; user-select:none;
+  border-bottom:1px solid #222; transition:background 0.15s;
+}
+.year-header:hover{ background:#1e1e1e; }
+.year-title{ font-size:16px; font-weight:800; display:flex; align-items:center; gap:8px; }
+.year-chevron{ transition:transform 0.2s; color:#555; font-size:11px; }
+.year-section.collapsed > .year-header .year-chevron{ transform:rotate(-90deg); }
+.year-summary{ display:flex; gap:16px; font-size:12px; }
+.year-summary .pos{ color:#4caf7d; }
+.year-summary .neg{ color:#e2503f; }
+.year-body{ overflow:hidden; transition:max-height 0.3s ease, opacity 0.2s ease; }
+.year-section.collapsed > .year-body{ max-height:0!important; opacity:0; pointer-events:none; }
+
+.month-section{ border-bottom:1px solid #1a1a1a; }
+.month-section:last-child{ border-bottom:none; }
+.month-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 18px; background:#111; cursor:pointer; user-select:none;
+  transition:background 0.15s;
+}
+.month-header:hover{ background:#1a1a1a; }
+.month-title{ font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.month-chevron{ transition:transform 0.2s; color:#555; font-size:10px; }
+.month-section.collapsed .month-chevron{ transform:rotate(-90deg); }
+.month-summary{ display:flex; gap:12px; font-size:11px; }
+.month-summary .pos{ color:#4caf7d; }
+.month-summary .neg{ color:#e2503f; }
+.month-body{ overflow:hidden; transition:max-height 0.3s ease, opacity 0.2s ease; }
+.month-section.collapsed .month-body{ max-height:0!important; opacity:0; pointer-events:none; }
+
+.tx-row{
+  display:grid; grid-template-columns:90px 1fr 90px 100px 90px 80px;
+  align-items:center; padding:9px 18px; gap:10px;
+  border-bottom:1px solid #161616; font-size:13px; transition:background 0.1s;
+}
+.tx-row:hover{ background:#1a1a1a; }
+.tx-row:last-child{ border-bottom:none; }
+.tx-date{ color:#888; font-size:12px; }
+.tx-desc{ font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tx-cat{ font-size:11.5px; color:#666; }
+.tx-acct{ font-size:11.5px; color:#666; }
+.tx-amt{ font-weight:700; text-align:right; font-variant-numeric:tabular-nums; }
+.tx-amt.pos{ color:#4caf7d; }
+.tx-amt.neg{ color:#e2503f; }
+.tx-runbal{ font-size:12px; color:#888; text-align:right; font-variant-numeric:tabular-nums; }
+
+.load-earlier{
+  display:block; width:100%; padding:14px; text-align:center;
+  background:#161616; border:1px solid #222; border-radius:12px;
+  color:#c4943a; font-size:13px; font-weight:700; cursor:pointer;
+  margin-top:20px; transition:background 0.15s;
+}
+.load-earlier:hover{ background:#1e1e1e; }
+.load-earlier span{ color:#555; font-weight:400; font-size:11px; }
+
+.empty{ text-align:center; padding:40px; color:#555; font-size:13px; }
+.col-header{
+  display:grid; grid-template-columns:90px 1fr 90px 100px 90px 80px;
+  padding:6px 18px; gap:10px; font-size:11px; font-weight:700;
+  color:#555; text-transform:uppercase; letter-spacing:0.04em;
+  border-bottom:1px solid #222; background:#141414;
+}
+</style>
+</head>
+<body>
+
+<h1>Yearly > Monthly Grouped Transactions — Test</h1>
+<p class="subtitle">Starts with current + last month. "Load earlier months" adds 2 more at a time. Data resets on reload.</p>
+
+<div class="controls">
+  <input type="date" id="addDate" value="">
+  <input type="text" id="addDesc" placeholder="Description" style="width:160px">
+  <select id="addType">
+    <option value="expense">Expense</option>
+    <option value="income">Income</option>
+  </select>
+  <input type="number" id="addAmt" placeholder="Amount" step="0.01" style="width:100px">
+  <button id="addBtn">Add Transaction</button>
+  <button id="clearBtn" style="background:#333;color:#aaa;">Clear All</button>
+</div>
+
+<div class="col-header">
+  <span>Date</span><span>Description</span><span>Category</span><span>Account</span><span>Amount</span><span>Balance</span>
+</div>
+<div id="txList"></div>
+
+<script>
+var txData = [
+  {date:"2026-07-18",desc:"Grocery run",type:"expense",amt:67.42,cat:"Groceries",acct:"Checking"},
+  {date:"2026-07-17",desc:"Gas station",type:"expense",amt:45.00,cat:"Car",acct:"Checking"},
+  {date:"2026-07-15",desc:"Monthly salary",type:"income",amt:3200.00,cat:"Salary",acct:"Checking"},
+  {date:"2026-07-14",desc:"Electric bill",type:"expense",amt:112.50,cat:"Utilities",acct:"Checking"},
+  {date:"2026-07-12",desc:"Dinner out",type:"expense",amt:38.90,cat:"Food",acct:"Credit Card"},
+  {date:"2026-07-10",desc:"Amazon order",type:"expense",amt:29.99,cat:"Shopping",acct:"Credit Card"},
+  {date:"2026-07-08",desc:"Coffee shop",type:"expense",amt:5.75,cat:"Food",acct:"Checking"},
+  {date:"2026-07-05",desc:"Gym membership",type:"expense",amt:49.99,cat:"Health",acct:"Checking"},
+  {date:"2026-07-03",desc:"Internet bill",type:"expense",amt:65.00,cat:"Utilities",acct:"Checking"},
+  {date:"2026-07-01",desc:"Freelance payment",type:"income",amt:850.00,cat:"Other Income",acct:"Checking"},
+  {date:"2026-07-01",desc:"Rent",type:"expense",amt:1400.00,cat:"Housing",acct:"Checking"},
+  {date:"2026-06-30",desc:"Grocery run",type:"expense",amt:82.15,cat:"Groceries",acct:"Checking"},
+  {date:"2026-06-28",desc:"Car insurance",type:"expense",amt:135.00,cat:"Car",acct:"Checking"},
+  {date:"2026-06-25",desc:"Monthly salary",type:"income",amt:3200.00,cat:"Salary",acct:"Checking"},
+  {date:"2026-06-22",desc:"Movie tickets",type:"expense",amt:32.00,cat:"Entertainment",acct:"Credit Card"},
+  {date:"2026-06-20",desc:"Phone bill",type:"expense",amt:55.00,cat:"Utilities",acct:"Checking"},
+  {date:"2026-06-18",desc:"Restaurant",type:"expense",amt:64.30,cat:"Food",acct:"Credit Card"},
+  {date:"2026-06-15",desc:"Grocery run",type:"expense",amt:91.20,cat:"Groceries",acct:"Checking"},
+  {date:"2026-06-12",desc:"Gas station",type:"expense",amt:42.50,cat:"Car",acct:"Checking"},
+  {date:"2026-06-10",desc:"Book purchase",type:"expense",amt:18.99,cat:"Shopping",acct:"Credit Card"},
+  {date:"2026-06-08",desc:"Freelance payment",type:"income",amt:600.00,cat:"Other Income",acct:"Checking"},
+  {date:"2026-06-05",desc:"Gym membership",type:"expense",amt:49.99,cat:"Health",acct:"Checking"},
+  {date:"2026-06-03",desc:"Internet bill",type:"expense",amt:65.00,cat:"Utilities",acct:"Checking"},
+  {date:"2026-06-01",desc:"Rent",type:"expense",amt:1400.00,cat:"Housing",acct:"Checking"},
+  {date:"2026-05-30",desc:"Grocery run",type:"expense",amt:74.80,cat:"Groceries",acct:"Checking"},
+  {date:"2026-05-28",desc:"Car repair",type:"expense",amt:320.00,cat:"Car",acct:"Checking"},
+  {date:"2026-05-25",desc:"Monthly salary",type:"income",amt:3200.00,cat:"Salary",acct:"Checking"},
+  {date:"2026-05-22",desc:"Concert tickets",type:"expense",amt:85.00,cat:"Entertainment",acct:"Credit Card"},
+  {date:"2026-05-20",desc:"Phone bill",type:"expense",amt:55.00,cat:"Utilities",acct:"Checking"},
+  {date:"2026-05-18",desc:"Grocery run",type:"expense",amt:68.40,cat:"Groceries",acct:"Checking"},
+  {date:"2026-05-15",desc:"Dentist",type:"expense",amt:150.00,cat:"Health",acct:"Checking"},
+  {date:"2026-05-12",desc:"Gas station",type:"expense",amt:38.75,cat:"Car",acct:"Checking"},
+  {date:"2026-05-10",desc:"Clothes shopping",type:"expense",amt:124.00,cat:"Shopping",acct:"Credit Card"},
+  {date:"2026-05-08",desc:"Freelance payment",type:"income",amt:450.00,cat:"Other Income",acct:"Checking"},
+  {date:"2026-05-05",desc:"Gym membership",type:"expense",amt:49.99,cat:"Health",acct:"Checking"},
+  {date:"2026-05-03",desc:"Internet bill",type:"expense",amt:65.00,cat:"Utilities",acct:"Checking"},
+  {date:"2026-05-01",desc:"Rent",type:"expense",amt:1400.00,cat:"Housing",acct:"Checking"},
+  {date:"2026-04-28",desc:"Grocery run",type:"expense",amt:55.60,cat:"Groceries",acct:"Checking"},
+  {date:"2026-04-25",desc:"Monthly salary",type:"income",amt:3200.00,cat:"Salary",acct:"Checking"},
+  {date:"2026-04-20",desc:"Spring vacation",type:"expense",amt:480.00,cat:"Travel",acct:"Credit Card"},
+  {date:"2026-04-15",desc:"Grocery run",type:"expense",amt:72.30,cat:"Groceries",acct:"Checking"},
+  {date:"2026-04-10",desc:"Gas station",type:"expense",amt:40.25,cat:"Car",acct:"Checking"},
+  {date:"2026-04-05",desc:"Gym membership",type:"expense",amt:49.99,cat:"Health",acct:"Checking"},
+  {date:"2026-04-01",desc:"Rent",type:"expense",amt:1400.00,cat:"Housing",acct:"Checking"},
+  {date:"2025-12-28",desc:"Holiday gifts",type:"expense",amt:250.00,cat:"Shopping",acct:"Credit Card"},
+  {date:"2025-12-25",desc:"Christmas dinner",type:"expense",amt:89.00,cat:"Food",acct:"Credit Card"},
+  {date:"2025-12-20",desc:"Grocery run",type:"expense",amt:95.40,cat:"Groceries",acct:"Checking"},
+  {date:"2025-12-15",desc:"Monthly salary",type:"income",amt:3200.00,cat:"Salary",acct:"Checking"},
+  {date:"2025-12-10",desc:"Heating bill",type:"expense",amt:145.00,cat:"Utilities",acct:"Checking"},
+  {date:"2025-12-05",desc:"Gym membership",type:"expense",amt:49.99,cat:"Health",acct:"Checking"},
+  {date:"2025-12-01",desc:"Rent",type:"expense",amt:1400.00,cat:"Housing",acct:"Checking"},
+  {date:"2025-11-25",desc:"Monthly salary",type:"income",amt:3200.00,cat:"Salary",acct:"Checking"},
+  {date:"2025-11-22",desc:"Grocery run",type:"expense",amt:78.30,cat:"Groceries",acct:"Checking"},
+  {date:"2025-11-18",desc:"Gas station",type:"expense",amt:43.50,cat:"Car",acct:"Checking"},
+  {date:"2025-11-15",desc:"Phone bill",type:"expense",amt:55.00,cat:"Utilities",acct:"Checking"},
+  {date:"2025-11-10",desc:"Grocery run",type:"expense",amt:62.10,cat:"Groceries",acct:"Checking"},
+  {date:"2025-11-05",desc:"Gym membership",type:"expense",amt:49.99,cat:"Health",acct:"Checking"},
+  {date:"2025-11-01",desc:"Rent",type:"expense",amt:1400.00,cat:"Housing",acct:"Checking"},
+  {date:"2025-10-28",desc:"Grocery run",type:"expense",amt:71.50,cat:"Groceries",acct:"Checking"},
+  {date:"2025-10-25",desc:"Monthly salary",type:"income",amt:3200.00,cat:"Salary",acct:"Checking"},
+  {date:"2025-10-20",desc:"Car registration",type:"expense",amt:180.00,cat:"Car",acct:"Checking"},
+  {date:"2025-10-15",desc:"Grocery run",type:"expense",amt:58.90,cat:"Groceries",acct:"Checking"},
+  {date:"2025-10-10",desc:"Gas station",type:"expense",amt:41.25,cat:"Car",acct:"Checking"},
+  {date:"2025-10-05",desc:"Gym membership",type:"expense",amt:49.99,cat:"Health",acct:"Checking"},
+  {date:"2025-10-01",desc:"Rent",type:"expense",amt:1400.00,cat:"Housing",acct:"Checking"},
+];
+
+var INITIAL_MONTHS = 2;
+var LOAD_MORE_MONTHS = 2;
+var collapsedYears = {};
+var collapsedMonths = {};
+var monthsVisible = INITIAL_MONTHS;
+
+function monthKey(d){ return d.substring(0,7); }
+function yearKey(d){ return d.substring(0,4); }
+function monthLabel(key){
+  var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var parts = key.split("-");
+  return months[parseInt(parts[1])-1];
+}
+function fmtMoney(n){ return "$" + Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+
+function getAllMonthKeys(sorted){
+  var seen = {};
+  var keys = [];
+  sorted.forEach(function(t){
+    var mk = monthKey(t.date);
+    if(!seen[mk]){ seen[mk] = true; keys.push(mk); }
+  });
+  return keys;
+}
+
+function render(){
+  var sorted = txData.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+
+  var allMonthKeys = getAllMonthKeys(sorted);
+  var visibleMonths = allMonthKeys.slice(0, monthsVisible);
+
+  var yearGroups = {};
+  sorted.forEach(function(t){
+    var yk = yearKey(t.date);
+    var mk = monthKey(t.date);
+    if(!visibleMonths.includes(mk)) return;
+    if(!yearGroups[yk]) yearGroups[yk] = {};
+    if(!yearGroups[yk][mk]) yearGroups[yk][mk] = [];
+    yearGroups[yk][mk].push(t);
+  });
+
+  var yearKeys = Object.keys(yearGroups).sort().reverse();
+  if(yearKeys.length === 0){
+    document.getElementById("txList").innerHTML = '<div class="empty">No transactions yet. Add one above.</div>';
+    return;
+  }
+
+  var allSorted = sorted.slice().reverse();
+  var runMap = {};
+  var running = 0;
+  allSorted.forEach(function(t){
+    if(t.type === "income") running += t.amt;
+    else running -= t.amt;
+    runMap[t.date + t.desc] = Math.round(running * 100) / 100;
+  });
+
+  var html = "";
+  yearKeys.forEach(function(yk){
+    var months = yearGroups[yk];
+    var monthKeys = Object.keys(months).sort().reverse();
+
+    var yearInc = 0, yearExp = 0, yearCount = 0;
+    monthKeys.forEach(function(mk){
+      months[mk].forEach(function(t){
+        yearCount++;
+        if(t.type === "income") yearInc += t.amt;
+        else yearExp += t.amt;
+      });
+    });
+
+    var isYearCollapsed = collapsedYears[yk];
+    html += '<div class="year-section' + (isYearCollapsed ? ' collapsed' : '') + '" data-year="' + yk + '">';
+    html += '<div class="year-header" onclick="toggleYear(\'' + yk + '\')">';
+    html += '<div class="year-title"><span class="year-chevron">\u25BC</span> ' + yk + ' <span style="font-weight:400;font-size:13px;color:#666;">(' + yearCount + ' txns)</span></div>';
+    html += '<div class="year-summary">';
+    html += '<span class="pos">+' + fmtMoney(yearInc) + '</span>';
+    html += '<span class="neg">\u2212' + fmtMoney(yearExp) + '</span>';
+    html += '</div></div>';
+    html += '<div class="year-body">';
+
+    monthKeys.forEach(function(mk){
+      var txs = months[mk];
+
+      var inc = 0, exp = 0;
+      txs.forEach(function(t){
+        if(t.type === "income") inc += t.amt;
+        else exp += t.amt;
+      });
+
+      var isMonthCollapsed = collapsedMonths[mk];
+      html += '<div class="month-section' + (isMonthCollapsed ? ' collapsed' : '') + '" data-month="' + mk + '">';
+      html += '<div class="month-header" onclick="toggleMonth(\'' + mk + '\')">';
+      html += '<div class="month-title"><span class="month-chevron">\u25BC</span> ' + monthLabel(mk) + ' <span style="font-weight:400;font-size:11px;color:#555;">(' + txs.length + ')</span></div>';
+      html += '<div class="month-summary">';
+      html += '<span class="pos">+' + fmtMoney(inc) + '</span>';
+      html += '<span class="neg">\u2212' + fmtMoney(exp) + '</span>';
+      html += '</div></div>';
+      html += '<div class="month-body" style="max-height:' + (isMonthCollapsed ? '0' : (txs.length * 40)) + 'px">';
+
+      txs.forEach(function(t){
+        var bal = runMap[t.date + t.desc] || 0;
+        var cls = t.type === "income" ? "pos" : "neg";
+        var sign = t.type === "income" ? "+" : "\u2212";
+        html += '<div class="tx-row">';
+        html += '<span class="tx-date">' + t.date + '</span>';
+        html += '<span class="tx-desc">' + t.desc + '</span>';
+        html += '<span class="tx-cat">' + t.cat + '</span>';
+        html += '<span class="tx-acct">' + t.acct + '</span>';
+        html += '<span class="tx-amt ' + cls + '">' + sign + fmtMoney(t.amt) + '</span>';
+        html += '<span class="tx-runbal">' + fmtMoney(bal) + '</span>';
+        html += '</div>';
+      });
+
+      html += '</div></div>';
+    });
+
+    html += '</div></div>';
+  });
+
+  if(monthsVisible < allMonthKeys.length){
+    var nextBatch = Math.min(LOAD_MORE_MONTHS, allMonthKeys.length - monthsVisible);
+    var nextLabel = allMonthKeys[monthsVisible];
+    var remainingMonths = allMonthKeys.length - monthsVisible;
+    html += '<button class="load-earlier" onclick="loadEarlierMonths()">';
+    html += '\u2191 Load earlier months';
+    html += '<br><span>' + remainingMonths + ' month' + (remainingMonths > 1 ? 's' : '') + ' remaining (' + monthLabel(nextLabel) + ' \u2190)</span>';
+    html += '</button>';
+  }
+
+  document.getElementById("txList").innerHTML = html;
+}
+
+function toggleYear(yk){
+  collapsedYears[yk] = !collapsedYears[yk];
+  render();
+}
+function toggleMonth(mk){
+  collapsedMonths[mk] = !collapsedMonths[mk];
+  render();
+}
+function loadEarlierMonths(){
+  monthsVisible += LOAD_MORE_MONTHS;
+  render();
+}
+
+document.getElementById("addBtn").addEventListener("click", function(){
+  var date = document.getElementById("addDate").value;
+  var desc = document.getElementById("addDesc").value.trim();
+  var type = document.getElementById("addType").value;
+  var amt = parseFloat(document.getElementById("addAmt").value);
+  if(!date || !desc || isNaN(amt) || amt <= 0){ alert("Fill in all fields"); return; }
+  txData.push({date:date, desc:desc, type:type, amt:amt, cat:"Other", acct:"Checking"});
+  document.getElementById("addDesc").value = "";
+  document.getElementById("addAmt").value = "";
+  render();
+});
+
+document.getElementById("clearBtn").addEventListener("click", function(){
+  txData = [];
+  collapsedYears = {};
+  collapsedMonths = {};
+  monthsVisible = INITIAL_MONTHS;
+  render();
+});
+
+document.getElementById("addDate").value = new Date().toISOString().split("T")[0];
+render();
+</script>
+</body>
+</html>

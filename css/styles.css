@@ -898,6 +898,54 @@ select[data-no-cd]:focus-visible{
 /* ---- Register empty state (enhanced) ---- */
 .register-empty{ padding:32px 18px 40px; text-align:center; display:flex; align-items:center; justify-content:center; min-height:460px; }
 
+/* ---- Year > Month grouped register layout ---- */
+.yr-section{ border-bottom:1px solid var(--border-soft); }
+.yr-section:last-child{ border-bottom:none; }
+.yr-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 18px; background:var(--surface-2); cursor:pointer; user-select:none;
+  border-bottom:1px solid var(--border-soft); transition:background var(--transition-fast);
+}
+.yr-header:hover{ background:var(--surface-hi); }
+.yr-title{ font-size:14px; font-weight:800; display:flex; align-items:center; gap:8px; }
+.yr-chevron{ transition:transform 0.2s; color:var(--text-faint); font-size:10px; }
+.yr-section.collapsed > .yr-header .yr-chevron{ transform:rotate(-90deg); }
+.yr-count{ font-weight:400; font-size:12px; color:var(--text-faint); }
+.yr-summary{ display:flex; gap:14px; font-size:11.5px; font-weight:600; }
+.yr-summary .pos{ color:var(--sage); }
+.yr-summary .neg{ color:var(--clay); }
+.yr-body{ overflow:hidden; transition:max-height 0.3s ease, opacity 0.2s ease; }
+.yr-section.collapsed > .yr-body{ max-height:0!important; opacity:0; pointer-events:none; }
+
+.mo-section{ border-bottom:1px solid var(--border-soft); }
+.mo-section:last-child{ border-bottom:none; }
+.mo-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:9px 18px; cursor:pointer; user-select:none;
+  transition:background var(--transition-fast);
+}
+.mo-header:hover{ background:var(--surface-2); }
+.mo-title{ font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:7px; }
+.mo-chevron{ transition:transform 0.2s; color:var(--text-faint); font-size:9px; }
+.mo-chevron.open{ transform:rotate(0); }
+.mo-count{ font-weight:400; font-size:11px; color:var(--text-faint); }
+.mo-summary{ display:flex; gap:10px; font-size:10.5px; font-weight:600; }
+.mo-summary .pos{ color:var(--sage); }
+.mo-summary .neg{ color:var(--clay); }
+.mo-body{ overflow:hidden; transition:max-height 0.3s ease, opacity 0.2s ease; }
+.mo-body[style*="max-height:0"]{ opacity:0; pointer-events:none; }
+
+/* ---- Load earlier months button ---- */
+.load-earlier{
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  width:100%; padding:16px; border:none;
+  background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md);
+  color:var(--brass); font-size:13px; font-weight:700; cursor:pointer;
+  margin-top:16px; transition:background var(--transition-fast);
+}
+.load-earlier:hover{ background:var(--surface-hi); }
+.load-earlier-sub{ color:var(--text-faint); font-weight:400; font-size:11px; }
+
 /* ---- Account / People cards ---- */
 .acct-card{
   background:var(--surface);
