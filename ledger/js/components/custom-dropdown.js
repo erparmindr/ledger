@@ -2,7 +2,7 @@ window.Ledger = window.Ledger || {};
 
 /* ============================================================
    CUSTOM DROPDOWN — replaces native <select> with themed dropdowns
-   Skips selects marked with data-no-cd (e.g. Transactions toolbar).
+   Skips selects marked with data-no-cd (e.g. table-embedded or constrained selects).
    ============================================================ */
 window.Ledger._cdGlobalListener = false;
 window.Ledger.initCustomDropdowns = function(){
