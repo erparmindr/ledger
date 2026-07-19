@@ -176,7 +176,7 @@ window.Ledger.dpFormatDate = function(iso){
 
 /* Wire a dp-wrap panel inside a custom dropdown cd-date-range.
    hiddenInput: the .dp-hidden element
-   stateObj: window.Ledger key name (e.g. "registerFilters")
+    stateObj: window.Ledger key name (e.g. "txFilters")
    stateKey: property name (e.g. "dateFrom")
    renderFn: function name to call after update (e.g. "renderPage")
 */

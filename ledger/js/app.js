@@ -65,7 +65,7 @@ window.Ledger.navigateTo = function(page){
 window.Ledger.renderPage = function(){
   var c = document.getElementById("pageContent");
   if(window.Ledger.currentPage === "overview") c.innerHTML = window.Ledger.pages.renderOverviewPage();
-  else if(window.Ledger.currentPage === "transactions") c.innerHTML = window.Ledger.pages.renderRegisterPage();
+  else if(window.Ledger.currentPage === "transactions") c.innerHTML = window.Ledger.pages.renderTransactionsPage();
   else if(window.Ledger.currentPage === "accounts") c.innerHTML = window.Ledger.pages.renderAccountsPage();
   else if(window.Ledger.currentPage === "reports") c.innerHTML = window.Ledger.pages.renderReportsPage();
   else if(window.Ledger.currentPage === "categories") c.innerHTML = window.Ledger.pages.renderCategoriesPage();
@@ -332,11 +332,11 @@ window.Ledger.wirePageEvents = function(){
       document.addEventListener("keydown", window.Ledger._cbDocKeydown);
     }
 
-    /* Hide FAB when register is empty (no transactions or no matches) */
+    /* Hide FAB when transactions is empty (no transactions or no matches) */
     var fab = document.getElementById("newTxBtn");
-    var regCard = document.getElementById("registerCard");
+    var regCard = document.getElementById("txCard");
     if(fab && regCard){
-      var emptyEl = regCard.querySelector(".register-empty");
+      var emptyEl = regCard.querySelector(".tx-empty");
       if(emptyEl){ fab.classList.add("fab-hidden"); } else { fab.classList.remove("fab-hidden"); }
     }
   }

@@ -1,5 +1,5 @@
 /* ============================================================
-   REGISTER PAGE  v2 — year > month grouped layout
+   TRANSACTIONS PAGE  v3 — year > month grouped layout
    ============================================================ */
 window.Ledger = window.Ledger || {};
 window.Ledger.pages = window.Ledger.pages || {};
@@ -120,7 +120,7 @@ window.Ledger.loadRegEarlierMonths = function(){
 /* ============================================================
    RENDER
    ============================================================ */
-window.Ledger.pages.renderRegisterPage = function(){
+window.Ledger.pages.renderTransactionsPage = function(){
   var sorted = window.Ledger.filteredTransactions().sort(function(a,b){ return (b.date+b.id).localeCompare(a.date+a.id); });
 
   var allMonthKeys = getVisibleMonthKeys(sorted);
@@ -226,7 +226,7 @@ window.Ledger.pages.renderRegisterPage = function(){
   var listHtml;
   if(isEmpty){
     if(hasAnyTx){
-      listHtml = '<div class="register-empty">'
+      listHtml = '<div class="tx-empty">'
         + '<div class="empty-state">'
         + '<div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'
         + '<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/>'
@@ -238,14 +238,14 @@ window.Ledger.pages.renderRegisterPage = function(){
         + '<button class="btn btn-sm btn-primary" onclick="window.Ledger.openTxModal(null)">+ New transaction</button>'
         + '</div></div></div>';
     } else {
-      listHtml = '<div class="register-empty">'
+      listHtml = '<div class="tx-empty">'
         + '<div class="empty-state">'
         + '<div class="empty-icon empty-icon--line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">'
         + '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/>'
         + '</svg></div>'
         + '<div class="big">No transactions yet</div>'
         + '<div class="empty-desc">Start tracking your finances by adding your first transaction or importing a bank statement.</div>'
-        + '<div class="empty-tip">Tip: Import a CSV or PDF bank statement to quickly populate your register.</div>'
+        + '<div class="empty-tip">Tip: Import a CSV or PDF bank statement to quickly populate your transactions.</div>'
         + '<div class="empty-cta" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">'
         + '<button class="btn btn-sm btn-primary" onclick="window.Ledger.openTxModal(null)">+ New transaction</button>'
         + '<button class="btn btn-sm" onclick="window.Ledger.navigateTo(\'settings\')">Import statement</button>'
@@ -255,9 +255,9 @@ window.Ledger.pages.renderRegisterPage = function(){
     listHtml = renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunning, runBalMap);
   }
 
-  /* ---- Register header ---- */
+  /* ---- Transactions header ---- */
   return ''
-    + '<div id="registerCard">'
+    + '<div id="txCard">'
     + '<div class="reg-section">' + toolbarHtml + '</div>'
     + '<div class="reg-section">' + colHeaders + '</div>'
     + '<div class="reg-section">' + listHtml + '</div>'

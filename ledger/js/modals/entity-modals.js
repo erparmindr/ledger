@@ -624,7 +624,7 @@ window.Ledger.commitTransaction = function(rec, isEdit){
 
 /* Cross-currency transfer between own accounts/people: creates two linked rows
    (an expense on the From side, an income on the To side) sharing a linkId,
-   so filters/register/currency totals all work correctly per-account. */
+    so filters/transactions/currency totals all work correctly per-account. */
 window.Ledger.commitLinkedTransferPair = function(linkId, date, fromAmount, toAmount, desc, notes, fromType, fromId, toType, toId, createdTs, category, subcategory){
   var fromRef = window.Ledger.entityRef(fromType, fromId);
   var toRef = window.Ledger.entityRef(toType, toId);

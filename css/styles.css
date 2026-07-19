@@ -685,7 +685,7 @@ select:focus-visible{
   background:var(--sage); color:var(--text-on-dark); border-color:var(--sage);
 }
 
-/* ---- Tables / register ---- */
+/* ---- Tables / transactions ---- */
 .tx-row{
   display:flex;
   align-items:center;
@@ -825,7 +825,7 @@ select[data-no-cd]:focus-visible{
 .filters-bar .cd-trigger{ display:flex; align-items:center; height:34px; padding:0 30px 0 10px; font-size:12px; font-weight:600; line-height:normal; background-color:var(--fb-bg); background-size:12px; background-position:right 10px center; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .filters-bar .cd-list{ min-width:200px; }
 
-/* ---- Register summary chips ---- */
+/* ---- Transactions summary chips ---- */
 .reg-summary{ display:flex; gap:8px; flex-wrap:wrap; padding:14px 18px; border-bottom:1px solid var(--border-soft); }
 .reg-chip{
   display:inline-flex; align-items:center; gap:6px;
@@ -846,8 +846,8 @@ select[data-no-cd]:focus-visible{
 .reg-header-left{ display:flex; align-items:baseline; gap:10px; }
 .reg-count{ font-size:12px; font-weight:600; color:var(--text-faint); }
 
-/* ---- Register card (explicit block layout) ---- */
-#registerCard{
+/* ---- Transactions card (explicit block layout) ---- */
+#txCard{
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:var(--radius-lg);
@@ -856,7 +856,7 @@ select[data-no-cd]:focus-visible{
   display:block;
   overflow:hidden;
 }
-#registerCard:hover{ border-color:color-mix(in srgb, var(--border) 55%, var(--text-dim) 45%); box-shadow:var(--shadow-lift); }
+#txCard:hover{ border-color:color-mix(in srgb, var(--border) 55%, var(--text-dim) 45%); box-shadow:var(--shadow-lift); }
 .reg-section{ display:block; width:100%; }
 
 /* ---- Transaction column headers ---- */
@@ -879,7 +879,7 @@ select[data-no-cd]:focus-visible{
 .tx-col-header.show-acct .col-acct{ display:block; }
 .tx-col-header.show-runbal .col-runbal{ display:block; }
 
-/* ---- Table-layout tx-row columns (register) ---- */
+/* ---- Table-layout tx-row columns (transactions) ---- */
 .tx-row.show-type{ gap:12px; }
 .tx-row.show-type .rowactions{ width:92px; flex-shrink:0; }
 .tx-col-header .rowactions{ width:92px; flex-shrink:0; display:flex; }
@@ -895,10 +895,10 @@ select[data-no-cd]:focus-visible{
 .tx-row.show-type.show-acct .col-acct{ display:block; }
 .tx-row.show-type.show-runbal .col-runbal{ display:block; }
 
-/* ---- Register empty state (enhanced) ---- */
-.register-empty{ padding:32px 18px 40px; text-align:center; display:flex; align-items:center; justify-content:center; min-height:460px; }
+/* ---- Transactions empty state (enhanced) ---- */
+.tx-empty{ padding:32px 18px 40px; text-align:center; display:flex; align-items:center; justify-content:center; min-height:460px; }
 
-/* ---- Year > Month grouped register layout ---- */
+/* ---- Year > Month grouped transactions layout ---- */
 .yr-section{ border-bottom:1px solid var(--border-soft); }
 .yr-section:last-child{ border-bottom:none; }
 .yr-header{
@@ -1536,7 +1536,7 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   .tx-col-header .col-cat{ display:none!important; }
   .tx-col-header .col-acct{ display:none!important; }
   .tx-col-header .col-runbal{ display:none!important; }
-  .register-empty{ min-height:300px; padding:24px 16px 32px; margin-top:16px; }
+  .tx-empty{ min-height:300px; padding:24px 16px 32px; margin-top:16px; }
   .search-box{ width:100%; min-width:0; }
   .cat-add-row{ flex-direction:column; }
   .cat-add-row .btn{ width:100%; justify-content:center; }

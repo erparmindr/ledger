@@ -1,5 +1,5 @@
 /* ============================================================
-   TRANSACTION ROW RENDERING (shared by overview + register)
+   TRANSACTION ROW RENDERING (shared by overview + transactions)
    ============================================================ */
 window.Ledger = window.Ledger || {};
 
