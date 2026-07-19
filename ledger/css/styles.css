@@ -403,12 +403,28 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   font-size:13px;
   transition:all var(--transition-fast);
 }
-.field input::-webkit-calendar-picker-indicator{
+.field input[type="date"]{
+  color-scheme:light;
+  min-width:140px;
+}
+[data-theme="dark"] .field input[type="date"]{ color-scheme:dark; }
+.field input[type="date"]::-webkit-calendar-picker-indicator{
+  filter:var(--icon-filter);
   opacity:0.5;
   cursor:pointer;
-  filter:var(--icon-filter);
 }
-.field input:hover::-webkit-calendar-picker-indicator{ opacity:0.8; }
+.field input[type="date"]:hover::-webkit-calendar-picker-indicator{ opacity:0.8; }
+.field input[type="date"]::-webkit-datetime-edit{
+  color:var(--text);
+  font-weight:500;
+}
+.field input[type="date"]::-webkit-datetime-edit-fields-wrapper{
+  color:var(--text);
+}
+.field input[type="date"]::-webkit-datetime-edit-text{
+  color:var(--text-dim);
+  padding:0 2px;
+}
 
 .field input:hover,
 .field textarea:hover{
@@ -1052,6 +1068,7 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   height:32px;
   appearance:none;
   -webkit-appearance:none;
+  color-scheme:light;
   background:var(--surface-2);
   border:1px solid var(--border);
   border-radius:var(--radius-sm);
@@ -1063,12 +1080,24 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   min-width:0;
   transition:all var(--transition-fast);
 }
+[data-theme="dark"] .cdr-inputs input[type="date"]{ color-scheme:dark; }
 .cdr-inputs input[type="date"]::-webkit-calendar-picker-indicator{
+  filter:var(--icon-filter);
   opacity:0.5;
   cursor:pointer;
-  filter:var(--icon-filter);
 }
 .cdr-inputs input[type="date"]:hover::-webkit-calendar-picker-indicator{ opacity:0.8; }
+.cdr-inputs input[type="date"]::-webkit-datetime-edit{
+  color:var(--text);
+  font-weight:500;
+}
+.cdr-inputs input[type="date"]::-webkit-datetime-edit-fields-wrapper{
+  color:var(--text);
+}
+.cdr-inputs input[type="date"]::-webkit-datetime-edit-text{
+  color:var(--text-dim);
+  padding:0 1px;
+}
 .cdr-inputs input[type="date"]:hover{ border-color:var(--text-dim); }
 .cdr-inputs input[type="date"]:focus{ outline:none; border-color:var(--brass); box-shadow:0 0 0 2px var(--brass-soft); }
 .cdr-sep{ color:var(--text-faint); font-size:12px; flex-shrink:0; }
