@@ -759,12 +759,12 @@ select:focus-visible{
 
 /* ---- Filters bar (toolbar) ---- */
 .filters-bar{
-  display:flex; flex-wrap:wrap; align-items:center;
+  display:flex; flex-wrap:nowrap; align-items:center;
   padding:14px 18px; border-bottom:1px solid var(--border-soft);
-  background:var(--bg);
+  background:var(--bg); gap:10px;
 }
 .filters-bar > *{ margin:0; flex-shrink:0; }
-.filters-bar > * + *{ margin-left:12px; }
+.filters-bar select{ flex:1 1 0; min-width:0; }
 
 /* Native selects with data-no-cd — match custom dropdown trigger look */
 select[data-no-cd]{
@@ -815,10 +815,10 @@ select[data-no-cd]:focus-visible{
   background:var(--fb-bg); border:1px solid var(--border); border-radius:var(--radius-pill);
   padding:0 12px; height:34px; font-size:11px; font-weight:700; color:var(--text);
   cursor:pointer; transition:all var(--transition-fast); white-space:nowrap;
-  display:inline-flex; align-items:center;
+  display:inline-flex; align-items:center; flex-shrink:0;
 }
 .clear-filters:hover{ border-color:var(--clay); color:var(--clay); background:var(--clay-soft); }
-.filters-bar .btn{ height:34px; padding:0 14px; font-size:12px; background:var(--fb-bg); }
+.filters-bar .btn{ height:34px; padding:0 14px; font-size:12px; background:var(--fb-bg); flex-shrink:0; }
 .filters-bar .btn:disabled{ opacity:.4; cursor:not-allowed; pointer-events:none; }
 .filters-bar .cd-wrap{ width:auto; flex:0 0 auto; min-width:100px; height:34px; outline:none; }
 .filters-bar .cd-wrap.is-filtered{ border-color:var(--brass); box-shadow:0 0 0 1px var(--brass-soft); }
@@ -1471,7 +1471,6 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   .tx-col-header .col-acct{ display:none!important; }
   .tx-col-header .col-runbal{ display:none!important; }
   .register-empty{ min-height:300px; padding:24px 16px 32px; margin-top:16px; }
-  .filters-bar .clear-filters{ margin-top:4px; }
   .search-box{ width:100%; min-width:0; }
   .cat-add-row{ flex-direction:column; }
   .cat-add-row .btn{ width:100%; justify-content:center; }
