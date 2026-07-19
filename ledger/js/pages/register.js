@@ -256,8 +256,9 @@ window.Ledger.pages.renderTransactionsPage = function(){
   }
 
   /* ---- Transactions header ---- */
+  var cardCls = showRunning ? ' id="txCard" class="tx-card-with-runbal"' : ' id="txCard"';
   return ''
-    + '<div id="txCard">'
+    + '<div' + cardCls + '>'
     + '<div class="reg-section">' + toolbarHtml + '</div>'
     + '<div class="reg-section">' + colHeaders + '</div>'
     + '<div class="reg-section">' + listHtml + '</div>'
@@ -329,7 +330,7 @@ function renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunn
       html += '<div class="mo-body" style="max-height:' + bodyMaxH + 'px;">';
 
       txs.forEach(function(t){
-        html += window.Ledger.renderTxRow(t, {tableLayout:true, showRunningBalance:showRunning, runningBalance:runBalMap[t.id]});
+        html += renderGroupedTxRow(t, showRunning, runBalMap);
       });
 
       html += '</div></div>';
@@ -350,4 +351,71 @@ function renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunn
   }
 
   return html;
+}
+
+/* ============================================================
+   SIMPLIFIED TX ROW for grouped layout (matches test-groups.html)
+   ============================================================ */
+function renderGroupedTxRow(t, showRunning, runBalMap){
+  var isLinkedTransfer = !!t.linkId;
+  var dateDisp = new Date(t.date + "T00:00:00").toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"});
+
+  var catLabel = "";
+  if(t.categorySplits && t.categorySplits.length){
+    catLabel = "split: " + t.categorySplits.map(function(s){ return window.Ledger.categoryName(s.categoryId); }).join(", ");
+  } else if(t.category){
+    catLabel = window.Ledger.categoryName(t.category);
+    if(t.subcategory) catLabel += " › " + window.Ledger.subcatName(t.category, t.subcategory);
+  }
+
+  var acctLabel = "";
+  if(t.type === "transfer"){
+    var fr = window.Ledger.entityRef(t.fromType, t.fromId);
+    var to = window.Ledger.entityRef(t.toType, t.toId);
+    acctLabel = (fr?fr.name:"?") + " → " + (to?to.name:"?");
+  } else {
+    var accObj = window.Ledger.findAccount(t.account);
+    acctLabel = accObj ? accObj.name : "?";
+  }
+
+  var descLabel = t.desc || "";
+  if(t.type === "transfer" && !descLabel) descLabel = "Transfer";
+  if(t.type === "refund" && t.refundOf){
+    var origTx = window.Ledger.DB.transactions.find(function(x){ return x.id === t.refundOf; });
+    descLabel = "Refund: " + window.Ledger.escapeHtml(origTx ? (origTx.desc || "transaction") : "original");
+  }
+
+  var typeColor = t.type==="expense"?"var(--clay)":t.type==="income"?"var(--sage)":t.type==="refund"?"var(--sage)":"var(--brass)";
+  var typeLabel = t.type.charAt(0).toUpperCase() + t.type.slice(1);
+  var sign = t.type==="income" ? "+" : (t.type==="refund" ? "+" : "\u2212");
+  var amtCls = (t.type==="income"||t.type==="refund") ? "pos" : "neg";
+  if(t.type === "transfer"){ sign = ""; amtCls = ""; }
+
+  var currency = "USD";
+  if(t.account){ var a=window.Ledger.findAccount(t.account); if(a)currency=a.currency; }
+  else if(t.fromType==="account"){ var a2=window.Ledger.findAccount(t.fromId); if(a2)currency=a2.currency; }
+
+  var runBalHtml = "";
+  if(showRunning && runBalMap[t.id] != null){
+    runBalHtml = '<span class="grp-runbal">' + window.Ledger.fmtMoney(runBalMap[t.id], currency) + '</span>';
+  } else if(showRunning){
+    runBalHtml = '<span class="grp-runbal">—</span>';
+  }
+
+  var notesIcon = t.notes ? '<span class="grp-notes" title="' + window.Ledger.escapeHtml(t.notes) + '">📝</span>' : '';
+  var runbalCls = showRunning ? ' show-runbal' : '';
+
+  return '<div class="grp-row' + runbalCls + '" data-tx="' + t.id + '">'
+    + '<span class="grp-date">' + dateDisp + '</span>'
+    + '<span class="grp-desc">' + window.Ledger.escapeHtml(descLabel) + notesIcon + '</span>'
+    + '<span class="grp-type"><span class="grp-type-dot" style="background:' + typeColor + ';"></span>' + typeLabel + '</span>'
+    + '<span class="grp-cat">' + catLabel + '</span>'
+    + '<span class="grp-acct">' + window.Ledger.escapeHtml(acctLabel) + '</span>'
+    + '<span class="grp-amt ' + amtCls + '">' + sign + window.Ledger.fmtMoney(t.amount, currency) + '</span>'
+    + runBalHtml
+    + '<div class="grp-actions">'
+    + '  <button class="icon-btn" data-edit-tx="' + t.id + '" title="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
+    + '  <button class="icon-btn danger" data-del-tx="' + t.id + '" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
+    + '</div>'
+    + '</div>';
 }
