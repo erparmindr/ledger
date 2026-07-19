@@ -158,22 +158,6 @@ window.Ledger.pages.renderRegisterPage = function(){
     }
   }
 
-  /* ---- Summary stats ---- */
-  var totalIncome = 0, totalExpense = 0, totalTransfer = 0;
-  sorted.forEach(function(t){
-    if(t.type === "income") totalIncome += t.amount;
-    else if(t.type === "expense") totalExpense += t.amount;
-    else if(t.type === "transfer") totalTransfer++;
-    else if(t.type === "refund") totalExpense -= t.amount;
-  });
-
-  var chipsHtml = '<div class="reg-summary">'
-    + '<div class="reg-chip dot-sage"><span class="chip-dot"></span>Income <span class="chip-val pos">+' + window.Ledger.fmtMoneyShort(totalIncome) + '</span></div>'
-    + '<div class="reg-chip dot-clay"><span class="chip-dot"></span>Expenses <span class="chip-val neg">' + window.Ledger.fmtMoneyShort(-totalExpense) + '</span></div>'
-    + '<div class="reg-chip dot-brass"><span class="chip-dot"></span>Transfers <span class="chip-val">' + totalTransfer + '</span></div>'
-    + '<div class="reg-chip dot-dim"><span class="chip-dot"></span>' + sorted.length + ' transaction' + (sorted.length !== 1 ? 's' : '') + '</div>'
-    + '</div>';
-
   /* ---- Active filter detection ---- */
   var f = window.Ledger.registerFilters;
   var hasActiveFilters = (f.account!=="all" || f.currency!=="all" || f.category!=="all" || f.subcategory!=="all" || f.type!=="all" || f.datePreset!=="all" || f.search.trim()!=="");
@@ -275,7 +259,6 @@ window.Ledger.pages.renderRegisterPage = function(){
   return ''
     + '<div id="registerCard">'
     + '<div class="reg-section">' + toolbarHtml + '</div>'
-    + (hasAnyTx ? '<div class="reg-section">' + chipsHtml + '</div>' : '')
     + '<div class="reg-section">'
     + '  <div class="card-header">'
     + '    <div class="reg-header-left"><h2>Register</h2><span class="reg-count">' + sorted.length + ' transaction' + (sorted.length !== 1 ? 's' : '') + '</span></div>'
