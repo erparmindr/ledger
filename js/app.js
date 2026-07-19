@@ -251,6 +251,8 @@ window.Ledger.wirePageEvents = function(){
     });
     var exportBtn = document.getElementById("exportCsvBtn");
     if(exportBtn) exportBtn.addEventListener("click", window.Ledger.exportCsv);
+    var dupesBtn = document.getElementById("checkDupesBtn");
+    if(dupesBtn) dupesBtn.addEventListener("click", function(){ window.Ledger.openDuplicatesModal(); });
     function wireClearFilters(btnId){
       var btn = document.getElementById(btnId);
       if(btn) btn.addEventListener("click", function(){

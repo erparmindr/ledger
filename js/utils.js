@@ -211,6 +211,34 @@ window.Ledger.findDuplicates = function findDuplicates(accountId){
   return dupes;
 };
 
+window.Ledger.findAllDuplicates = function findAllDuplicates(){
+  var txs = window.Ledger.DB.transactions;
+  var groups = [];
+  var used = {};
+  for(var i = 0; i < txs.length; i++){
+    if(used[txs[i].id]) continue;
+    var group = [txs[i]];
+    for(var j = i+1; j < txs.length; j++){
+      if(used[txs[j].id]) continue;
+      var a = txs[i], b = txs[j];
+      var sameAmount = a.amount === b.amount;
+      var sameDate = a.date === b.date;
+      var sameDesc = (a.description||"").toLowerCase() === (b.description||"").toLowerCase();
+      var sameType = a.type === b.type;
+      var sameAccount = a.account === b.account;
+      if(sameAmount && sameDate && sameDesc && sameType && sameAccount){
+        group.push(txs[j]);
+        used[txs[j].id] = true;
+      }
+    }
+    if(group.length > 1){
+      used[txs[i].id] = true;
+      groups.push(group);
+    }
+  }
+  return groups;
+};
+
 window.Ledger.findOrphanTransfers = function findOrphanTransfers(accountId){
   var orphans = [];
   window.Ledger.DB.transactions.forEach(function(t){

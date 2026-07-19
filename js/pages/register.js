@@ -180,6 +180,7 @@ window.Ledger.pages.renderRegisterPage = function(){
       return '<option value="'+p.id+'" '+(f.datePreset===p.id?"selected":"")+'>'+p.label+'</option>';
     }).join("") + '</select>'
     + clearBtnHtml
+    + '<button class="btn btn-sm" id="checkDupesBtn"' + (!hasAnyTx ? ' disabled' : '') + '>Check duplicates</button>'
     + '<button class="btn btn-sm" id="exportCsvBtn"' + (!hasAnyTx ? ' disabled title="Add transactions before exporting"' : '') + '>Export CSV</button>'
     + '</div>';
 

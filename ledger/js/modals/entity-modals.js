@@ -1024,3 +1024,87 @@ window.Ledger.openReconModal = function(account){
     });
   });
 };
+
+/* ---------- Duplicate transactions modal ---------- */
+window.Ledger.openDuplicatesModal = function(){
+  var groups = window.Ledger.findAllDuplicates();
+  if(groups.length === 0){
+    window.Ledger.openModal(
+      '<div class="modal-head"><h3>Duplicate check</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+      + '<div class="modal-body"><div class="dupe-empty"><div class="dupe-empty-icon">\u2713</div><div class="dupe-empty-msg">No duplicate transactions found</div><div class="dupe-empty-hint">All transactions look unique based on amount, date, description, type, and account.</div></div></div>'
+      + '<div class="modal-foot"><button class="btn btn-primary" id="doneBtn">Done</button></div>',
+      function(){
+        document.getElementById("closeModalBtn").addEventListener("click", window.Ledger.closeModal);
+        document.getElementById("doneBtn").addEventListener("click", window.Ledger.closeModal);
+      }
+    );
+    return;
+  }
+
+  var totalDupes = 0;
+  groups.forEach(function(g){ totalDupes += g.length; });
+
+  var groupsHtml = groups.map(function(g, gi){
+    var rows = g.map(function(t){
+      var acct = window.Ledger.findAccount(t.account);
+      var acctName = acct ? acct.name : "Unknown";
+      var cat = window.Ledger.findCategory(t.category);
+      var catName = cat ? cat.name : "";
+      var desc = window.Ledger.escapeHtml(t.description || "Untitled");
+      return '<div class="dupe-row" data-dupe-tx="' + t.id + '">'
+        + '<span class="dupe-row-date">' + t.date + '</span>'
+        + '<span class="dupe-row-desc">' + desc + '</span>'
+        + '<span class="dupe-row-cat">' + catName + '</span>'
+        + '<span class="dupe-row-acct">' + acctName + '</span>'
+        + '<span class="dupe-row-amt num">' + window.Ledger.fmtMoney(t.amount, acct ? acct.currency : null) + '</span>'
+        + '<span class="dupe-row-actions">'
+        + '  <button class="icon-btn sm" data-dupe-view="' + t.id + '" title="View"><i data-lucide="eye"></i></button>'
+        + '  <button class="icon-btn sm danger" data-dupe-del="' + t.id + '" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+        + '</span>'
+        + '</div>';
+    }).join("");
+    return '<div class="dupe-group">'
+      + '<div class="dupe-group-header">Group ' + (gi+1) + ' \u2014 ' + g.length + ' transactions</div>'
+      + rows
+      + '</div>';
+  }).join("");
+
+  var html = ''
+    + '<div class="modal-head"><h3>Duplicates found</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div class="modal-body">'
+    + '  <div class="dupe-summary">' + groups.length + ' group' + (groups.length!==1?'s':'') + ' \u2014 ' + totalDupes + ' transaction' + (totalDupes!==1?'s':'') + ' total</div>'
+    + '  <div class="dupe-groups">' + groupsHtml + '</div>'
+    + '</div>'
+    + '<div class="modal-foot">'
+    + '  <button class="btn" id="doneBtn">Done</button>'
+    + '</div>';
+
+  window.Ledger.openModal(html, function(){
+    document.getElementById("closeModalBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("doneBtn").addEventListener("click", window.Ledger.closeModal);
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-dupe-view]"), function(btn){
+      btn.addEventListener("click", function(){
+        var txId = btn.getAttribute("data-dupe-view");
+        var tx = window.Ledger.DB.transactions.find(function(t){ return t.id === txId; });
+        if(tx){
+          window.Ledger.closeModal();
+          window.Ledger.openTxModal(tx);
+        }
+      });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-dupe-del]"), function(btn){
+      btn.addEventListener("click", function(){
+        var txId = btn.getAttribute("data-dupe-del");
+        var tx = window.Ledger.DB.transactions.find(function(t){ return t.id === txId; });
+        if(!tx) return;
+        window.Ledger.openConfirmModal("Delete transaction?", "This will permanently remove this transaction.", function(){
+          window.Ledger.deleteTransaction(txId);
+          window.Ledger.closeModal();
+          window.Ledger.openDuplicatesModal();
+        });
+      });
+    });
+  });
+};
