@@ -56,7 +56,7 @@ window.Ledger.openTxModal = function(existing){
     + '    <div class="field"><label>Amount</label><input type="number" id="txAmount" step="0.01" min="0.01" value="' + (t.amount||"") + '"></div>'
     + '    <div class="field"><label>Date</label><input type="date" id="txDate" value="' + t.date + '"></div>'
     + '  </div>'
-    + '  <div id="exIncFields" style="display:' + (t.type==='transfer'?'none':'flex') + '; flex-direction:column; gap:14px;">'
+    + '  <div id="exIncFields" class="tx-section' + (t.type==='transfer'?' tx-hidden':'') + '">'
     + '    <div class="form-row">'
     + '      <div class="field"><label id="txAccountLabel">' + (t.type==='refund'?'Refund to account':'Account') + '</label><select id="txAccount">' + accOptsAll + '</select></div>'
     + '      <div class="field"><label>Category</label><select id="txCategory">' + catOptions(t.type==='income'?'income':'expense') + '</select></div>'
@@ -76,7 +76,7 @@ window.Ledger.openTxModal = function(existing){
         + '    <div id="splitSummaryBanner" style="display:none; background:var(--brass-soft); border:1px solid rgba(240,194,78,0.3); border-radius:var(--radius); padding:10px 14px; font-size:12px;"></div>'
       ) : '')
     + '  </div>'
-    + '  <div id="transferFields" style="display:' + (t.type==='transfer'?'flex':'none') + '; flex-direction:column; gap:14px;">'
+    + '  <div id="transferFields" class="tx-section' + (t.type==='transfer'?'':' tx-hidden') + '">'
     + '    <div class="form-row">'
     + '      <div class="field"><label>From</label><select id="txFromType"><option value="account">Account</option><option value="person">Person</option></select></div>'
     + '      <div class="field"><label>&nbsp;</label><select id="txFromId">' + accOptsAll + '</select></div>'
@@ -152,8 +152,8 @@ window.Ledger.openTxModal = function(existing){
       btn.addEventListener("click", function(){
         currentType = btn.getAttribute("data-t");
         Array.prototype.forEach.call(document.querySelectorAll("#typePills .type-pill"), function(b){ b.classList.toggle("active", b===btn); });
-        document.getElementById("exIncFields").style.display = currentType === "transfer" ? "none" : "flex";
-        document.getElementById("transferFields").style.display = currentType === "transfer" ? "flex" : "none";
+        document.getElementById("exIncFields").classList.toggle("tx-hidden", currentType === "transfer");
+        document.getElementById("transferFields").classList.toggle("tx-hidden", currentType !== "transfer");
         if(currentType === "expense" || currentType === "income" || currentType === "refund"){
           var catSel = document.getElementById("txCategory");
           catSel.innerHTML = catOptions(currentType === "refund" ? "expense" : currentType);
