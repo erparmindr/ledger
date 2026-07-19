@@ -11,42 +11,41 @@ window.Ledger.pages.renderCategoriesPage = function(){
 
   var tabIcons = { expense:"\u2212", income:"+", transfer:"\u21c4" };
 
-  function renderCatCard(c){
+  function renderCatRow(c){
     var subCount = c.subs ? c.subs.length : 0;
     var hasSubs = subCount > 0;
 
-    var subsHtml = "";
-    if(hasSubs){
-      subsHtml = '<div class="cat-card-subs">'
-        + '<div class="cat-card-sub-head">'
-        + '<span class="cat-card-sub-title">Subcategories</span>'
-        + '<span class="cat-card-chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>'
-        + '</div>'
-        + '<div class="cat-card-sub-list">'
-        + c.subs.map(function(s){
-          return '<div class="cat-card-sub">'
-            + '<span class="cat-card-sub-name">' + window.Ledger.escapeHtml(s.name) + '</span>'
-            + '<span class="cat-card-sub-actions">'
-            + '<button class="icon-btn sm" data-rename-sub="' + c.id + '|' + s.id + '" title="Rename" aria-label="Rename"><i data-lucide="pencil"></i></button>'
-            + '<button class="icon-btn sm danger" data-del-sub="' + c.id + '|' + s.id + '" title="Delete" aria-label="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
-            + '</span></div>';
-        }).join("")
-        + '</div>';
-    }
-
-    return '<div class="cat-card">'
-      + '<div class="cat-card-head">'
-      + '  <div class="cat-card-info">'
-      + '    <span class="cat-card-name">' + window.Ledger.escapeHtml(c.name) + '</span>'
-      + '  </div>'
-      + '  <div class="cat-card-actions">'
+    var rows = '';
+    rows += '<div class="cat-row cat-row-parent" data-cat-id="' + c.id + '">'
+      + '<div class="cat-row-main">'
+      + '  <span class="cat-row-chevron">' + (hasSubs ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>' : '<span class="cat-row-spacer"></span>') + '</span>'
+      + '  <span class="cat-row-name">' + window.Ledger.escapeHtml(c.name) + '</span>'
+      + '  <span class="cat-row-count">' + (subCount > 0 ? subCount + ' sub' + (subCount !== 1 ? 's' : '') : '') + '</span>'
+      + '  <span class="cat-row-actions">'
       + '    <button class="icon-btn sm" data-add-sub="' + c.id + '" title="Add subcategory" aria-label="Add subcategory"><i data-lucide="plus"></i></button>'
       + '    <button class="icon-btn sm" data-rename-cat="' + c.id + '" title="Rename" aria-label="Rename"><i data-lucide="pencil"></i></button>'
       + '    <button class="icon-btn sm danger" data-del-cat="' + c.id + '" title="Delete" aria-label="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
-      + '  </div>'
+      + '  </span>'
       + '</div>'
-      + subsHtml
       + '</div>';
+
+    if(hasSubs){
+      c.subs.forEach(function(s){
+        rows += '<div class="cat-row cat-row-sub" data-sub-id="' + s.id + '" data-parent-id="' + c.id + '">'
+          + '<div class="cat-row-main">'
+          + '  <span class="cat-row-indent"></span>'
+          + '  <span class="cat-row-sub-dot"></span>'
+          + '  <span class="cat-row-name">' + window.Ledger.escapeHtml(s.name) + '</span>'
+          + '  <span class="cat-row-actions">'
+          + '    <button class="icon-btn sm" data-rename-sub="' + c.id + '|' + s.id + '" title="Rename" aria-label="Rename"><i data-lucide="pencil"></i></button>'
+          + '    <button class="icon-btn sm danger" data-del-sub="' + c.id + '|' + s.id + '" title="Delete" aria-label="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+          + '  </span>'
+          + '</div>'
+          + '</div>';
+      });
+    }
+
+    return rows;
   }
 
   function renderTabContent(type){
@@ -68,7 +67,7 @@ window.Ledger.pages.renderCategoriesPage = function(){
         + '</div>';
     }
 
-    return addHtml + '<div class="cat-card-grid">' + cats.map(renderCatCard).join("") + '</div>';
+    return addHtml + '<div class="cat-list">' + cats.map(renderCatRow).join("") + '</div>';
   }
 
   function tabBtn(id, label, count, isActive){

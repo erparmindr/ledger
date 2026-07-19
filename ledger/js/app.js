@@ -373,9 +373,17 @@ window.Ledger.wirePageEvents = function(){
       });
     });
     // Collapse/expand subcategories
-    Array.prototype.forEach.call(document.querySelectorAll(".cat-card-sub-head"), function(head){
-      head.addEventListener("click", function(){
-        head.closest(".cat-card").classList.toggle("collapsed");
+    Array.prototype.forEach.call(document.querySelectorAll(".cat-row-parent"), function(row){
+      var chevron = row.querySelector(".cat-row-chevron");
+      if(!chevron) return;
+      chevron.addEventListener("click", function(e){
+        e.stopPropagation();
+        var catId = row.getAttribute("data-cat-id");
+        row.classList.toggle("collapsed");
+        var subs = document.querySelectorAll('.cat-row-sub[data-parent-id="' + catId + '"]');
+        Array.prototype.forEach.call(subs, function(s){
+          s.style.display = row.classList.contains("collapsed") ? "none" : "";
+        });
       });
     });
     // Add category
