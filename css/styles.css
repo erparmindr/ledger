@@ -315,7 +315,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .btn-sm{ padding:6px 12px; font-size:12px; }
 .btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
 
-.content{ flex:1; padding:4px 30px 60px; max-width:1180px; width:100%; margin:0 auto; }
+.content{ flex:1; padding:4px 30px 60px; width:100%; margin:0 auto; }
 
 /* ---- Cards / panels ---- */
 .card{
