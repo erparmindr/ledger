@@ -18,12 +18,19 @@ window.Ledger.pages.renderAccountsPage = function(){
       : '<button class="icon-btn" data-edit-acct="' + a.id + '" title="Edit" aria-label="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
       + '<button class="icon-btn" data-archive-acct="' + a.id + '" title="Archive" aria-label="Archive"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg></button>';
     var drift = (a.reconciledBalance !== null && a.reconciledBalance !== undefined) ? Math.round((bal - a.reconciledBalance) * 100) / 100 : null;
-    var driftHtml = (drift !== null && drift !== 0)
-      ? '<div class="acct-drift" data-edit-acct="' + a.id + '" title="Balance drifted from last reconciliation by ' + window.Ledger.fmtMoney(drift, a.currency) + '. Click to fix.">'
-      + '<span class="acct-drift-icon">\u26A0</span>'
-      + '<span class="acct-drift-txt">' + window.Ledger.fmtMoney(drift, a.currency) + ' off</span>'
-      + '</div>'
-      : '';
+    var needsVerif = window.Ledger.needsVerification(a);
+    var driftHtml = '';
+    if(needsVerif){
+      driftHtml = '<div class="acct-drift needs-recon" data-recon-acct="' + a.id + '" title="Needs verification this month">'
+        + '<span class="acct-drift-icon">\u26A0</span>'
+        + '<span class="acct-drift-txt">Needs verification</span>'
+        + '</div>';
+    } else if(drift !== null && drift !== 0){
+      driftHtml = '<div class="acct-drift" data-edit-acct="' + a.id + '" title="Balance drifted from last reconciliation by ' + window.Ledger.fmtMoney(drift, a.currency) + '. Click to fix.">'
+        + '<span class="acct-drift-icon">\u26A0</span>'
+        + '<span class="acct-drift-txt">' + window.Ledger.fmtMoney(drift, a.currency) + ' off</span>'
+        + '</div>';
+    }
     return '<div class="acct-card' + (isCredit?' kind-credit':'') + (archived?' archived':'') + '" data-acct-click="' + a.id + '">'
       + '<div class="acct-card-left">'
       + '  <div class="nm">' + escapeHtml(a.name) + (archived?' <span class="faint">(archived)</span>':'') + '</div>'

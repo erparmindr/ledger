@@ -379,8 +379,34 @@ window.Ledger.pages.renderOverviewPage = function(){
     ? '<div class="empty-state" style="padding:36px 20px;"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg></div><div class="big">No entries yet</div><div class="empty-desc">Use "New transaction" to add your first one.</div></div>'
     : recentTx.map(window.Ledger.renderTxRow).join("");
 
+  /* ---- Reconciliation banner ---- */
+  var overdueAccts = accs.filter(function(a){ return window.Ledger.needsVerification(a); });
+  var reconBannerHtml = '';
+  if(overdueAccts.length > 0){
+    var acctListHtml = overdueAccts.map(function(a){
+      var bal = window.Ledger.accountBalance(a.id);
+      return '<div class="recon-acct-row">'
+        + '<span class="recon-acct-name">' + window.Ledger.escapeHtml(a.name) + ' &middot; ' + a.currency + '</span>'
+        + '<span class="recon-acct-bal num">' + window.Ledger.fmtMoney(bal, a.currency) + '</span>'
+        + '<button class="btn btn-sm recon-verify-btn" data-recon-acct="' + a.id + '">Verify</button>'
+        + '</div>';
+    }).join("");
+    reconBannerHtml = ''
+      + '<div class="recon-banner" id="reconBanner">'
+      + '<div class="recon-banner-summary">'
+      + '<span class="recon-banner-icon">\u26A0</span>'
+      + '<span class="recon-banner-text"><strong>' + overdueAccts.length + ' account' + (overdueAccts.length>1?'s':'') + ' need' + (overdueAccts.length===1?'s':'') + ' verification</strong> \u2014 please check your balances against your bank statement</span>'
+      + '<button class="btn btn-sm recon-toggle-btn" id="reconToggle">Review all</button>'
+      + '<button class="btn btn-sm recon-dismiss-btn" id="reconDismiss">Dismiss</button>'
+      + '</div>'
+      + '<div class="recon-banner-details" id="reconDetails" style="display:none;">'
+      + acctListHtml
+      + '</div>'
+      + '</div>';
+  }
+
   /* ---- Assemble ---- */
-  return ''
+  return reconBannerHtml
     + acctGridHtml
     + '<div class="section-gap">' + cashFlowHtml + '</div>'
     + '<div class="section-gap" style="display:flex; gap:16px; flex-wrap:wrap;">'

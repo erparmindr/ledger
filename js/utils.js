@@ -161,3 +161,66 @@ window.Ledger.showToast = function showToast(msg){
   root.appendChild(el);
   setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 2600);
 };
+
+/* ---- Reconciliation helpers ---- */
+window.Ledger.needsVerification = function needsVerification(account){
+  var now = new Date();
+  var thisMonth = now.getFullYear() + "-" + window.Ledger.pad2(now.getMonth()+1);
+  var created = new Date(account.created);
+  var createdMonth = created.getFullYear() + "-" + window.Ledger.pad2(created.getMonth()+1);
+  if(createdMonth >= thisMonth) return false;
+  if(!account.reconciledAt) return true;
+  var recDate = new Date(account.reconciledAt);
+  var recMonth = recDate.getFullYear() + "-" + window.Ledger.pad2(recDate.getMonth()+1);
+  return recMonth < thisMonth;
+};
+
+window.Ledger.accountBreakdown = function accountBreakdown(accountId){
+  var acc = window.Ledger.findAccount(accountId);
+  if(!acc) return null;
+  var opening = acc.openingBalance || 0;
+  var income = 0, expense = 0, refund = 0, transferOut = 0, transferIn = 0;
+  window.Ledger.DB.transactions.forEach(function(t){
+    var amt = t.amount;
+    if(typeof amt !== "number" || isNaN(amt)) return;
+    if(t.type === "income" && t.account === accountId) income += amt;
+    else if(t.type === "expense" && t.account === accountId) expense += amt;
+    else if(t.type === "refund" && t.account === accountId) refund += amt;
+    else if(t.type === "transfer"){
+      if(t.fromType === "account" && t.fromId === accountId) transferOut += amt;
+      if(t.toType === "account" && t.toId === accountId) transferIn += amt;
+    }
+  });
+  var computed = opening + income - expense + refund - transferOut + transferIn;
+  return { opening:opening, income:income, expense:expense, refund:refund, transferOut:transferOut, transferIn:transferIn, computed:Math.round(computed*100)/100 };
+};
+
+window.Ledger.findDuplicates = function findDuplicates(accountId){
+  var txs = window.Ledger.DB.transactions.filter(function(t){
+    return t.account === accountId || (t.fromType === "account" && t.fromId === accountId) || (t.toType === "account" && t.toId === accountId);
+  });
+  var dupes = [];
+  for(var i = 0; i < txs.length; i++){
+    for(var j = i+1; j < txs.length; j++){
+      if(txs[i].amount === txs[j].amount && txs[i].date === txs[j].date && txs[i].description === txs[j].description && txs[i].id !== txs[j].id){
+        dupes.push(txs[i]);
+        break;
+      }
+    }
+  }
+  return dupes;
+};
+
+window.Ledger.findOrphanTransfers = function findOrphanTransfers(accountId){
+  var orphans = [];
+  window.Ledger.DB.transactions.forEach(function(t){
+    if(t.type !== "transfer") return;
+    if(t.fromType === "account" && t.fromId === accountId && !t.toId){
+      orphans.push(t);
+    }
+    if(t.toType === "account" && t.toId === accountId && !t.fromId){
+      orphans.push(t);
+    }
+  });
+  return orphans;
+};

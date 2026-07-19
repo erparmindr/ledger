@@ -938,3 +938,89 @@ window.Ledger.openFriendSplitModal = function(totalAmount, existing, onDone){
   }
   render();
 };
+
+/* ---------- Reconciliation modal ---------- */
+window.Ledger.openReconModal = function(account){
+  var a = account;
+  var bal = window.Ledger.accountBalance(a.id);
+  var bk = window.Ledger.accountBreakdown(a.id);
+  var dupes = window.Ledger.findDuplicates(a.id);
+  var orphans = window.Ledger.findOrphanTransfers(a.id);
+  var hasIssues = dupes.length > 0 || orphans.length > 0;
+
+  function breakdownRow(label, val, color){
+    return '<div class="recon-row"><span class="recon-row-label">' + label + '</span><span class="recon-row-val num">' + (val >= 0 ? '+' : '') + window.Ledger.fmtMoney(val, a.currency) + '</span></div>';
+  }
+
+  var breakdownHtml = ''
+    + '<div class="recon-breakdown">'
+    + breakdownRow('Opening balance', bk.opening)
+    + breakdownRow('Income', bk.income)
+    + breakdownRow('Expenses', -bk.expense)
+    + breakdownRow('Refunds', bk.refund)
+    + breakdownRow('Transfers out', -bk.transferOut)
+    + breakdownRow('Transfers in', bk.transferIn)
+    + '<div class="recon-row recon-total"><span class="recon-row-label">Computed balance</span><span class="recon-row-val num">' + window.Ledger.fmtMoney(bk.computed, a.currency) + '</span></div>'
+    + '</div>';
+
+  var issuesHtml = '';
+  if(hasIssues){
+    var items = '';
+    dupes.forEach(function(t){
+      items += '<div class="recon-issue-item">'
+        + '<span class="recon-issue-icon">\u26A0</span>'
+        + '<span>Possible duplicate: "' + window.Ledger.escapeHtml(t.description || "Untitled") + '" ' + window.Ledger.fmtMoney(t.amount, a.currency) + ' on ' + t.date + '</span>'
+        + '<button class="btn btn-sm" data-recon-goto-tx="' + t.id + '">View</button>'
+        + '</div>';
+    });
+    orphans.forEach(function(t){
+      items += '<div class="recon-issue-item">'
+        + '<span class="recon-issue-icon">\u26A0</span>'
+        + '<span>Transfer has no matching pair \u2014 ' + window.Ledger.fmtMoney(t.amount, a.currency) + ' on ' + t.date + '</span>'
+        + '<button class="btn btn-sm" data-recon-goto-tx="' + t.id + '">View</button>'
+        + '</div>';
+    });
+    issuesHtml = '<div class="recon-issues"><div class="recon-issues-title">Issues found</div>' + items + '</div>';
+  }
+
+  var html = ''
+    + '<div class="modal-head"><h3>Verify: ' + window.Ledger.escapeHtml(a.name) + '</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div class="modal-body">'
+    + '  <div class="recon-current-bal"><span class="recon-current-label">Current balance</span><span class="recon-current-val num">' + window.Ledger.fmtMoney(bal, a.currency) + '</span></div>'
+    + '  <div class="recon-bank-field"><label>What does your bank say?</label><input type="number" id="reconSetBalance" step="0.01" placeholder="' + window.Ledger.fmtMoney(bal, a.currency) + '"></div>'
+    + '  <details class="recon-details-section"><summary>How this balance was calculated</summary>' + breakdownHtml + '</details>'
+    + (hasIssues ? issuesHtml : '<div class="recon-no-issues">\u2713 No obvious issues detected</div>')
+    + '</div>'
+    + '<div class="modal-foot">'
+    + '  <button class="btn" id="cancelBtn">Cancel</button>'
+    + '  <button class="btn btn-primary" id="saveReconBtn">Confirm balance</button>'
+    + '</div>';
+
+  window.Ledger.openModal(html, function(){
+    document.getElementById("closeModalBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("cancelBtn").addEventListener("click", window.Ledger.closeModal);
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-recon-goto-tx]"), function(btn){
+      btn.addEventListener("click", function(){
+        var txId = btn.getAttribute("data-recon-goto-tx");
+        var tx = window.Ledger.DB.transactions.find(function(t){ return t.id === txId; });
+        if(tx) window.Ledger.openTxModal(tx);
+      });
+    });
+
+    document.getElementById("saveReconBtn").addEventListener("click", function(){
+      var setBal = document.getElementById("reconSetBalance").value;
+      var newBal = (setBal !== "" && !isNaN(parseFloat(setBal))) ? parseFloat(setBal) : bal;
+      var txSum = bal - (a.openingBalance || 0);
+      var newOpening = newBal - txSum;
+      var rec = Object.assign({}, a, {
+        openingBalance: Math.round(newOpening * 100) / 100,
+        reconciledBalance: Math.round(newBal * 100) / 100,
+        reconciledAt: Date.now()
+      });
+      window.Ledger.updateAccount(rec);
+      window.Ledger.closeModal();
+      window.Ledger.showToast("Balance verified for " + a.name);
+    });
+  });
+};

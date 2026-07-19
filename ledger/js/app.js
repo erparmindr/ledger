@@ -188,6 +188,23 @@ window.Ledger.wirePageEvents = function(){
         window.Ledger.navigateTo("transactions");
       });
     });
+    var reconToggle = document.getElementById("reconToggle");
+    if(reconToggle) reconToggle.addEventListener("click", function(){
+      var details = document.getElementById("reconDetails");
+      if(details) details.style.display = details.style.display === "none" ? "block" : "none";
+    });
+    var reconDismiss = document.getElementById("reconDismiss");
+    if(reconDismiss) reconDismiss.addEventListener("click", function(){
+      var banner = document.getElementById("reconBanner");
+      if(banner) banner.style.display = "none";
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-recon-acct]"), function(btn){
+      btn.addEventListener("click", function(){
+        var acctId = btn.getAttribute("data-recon-acct");
+        var acct = window.Ledger.findAccount(acctId);
+        if(acct) window.Ledger.openReconModal(acct);
+      });
+    });
     window.Ledger.wireTxRowActions();
   }
 
