@@ -942,7 +942,7 @@ select[data-no-cd]:focus-visible{
 
 /* ---- Grouped tx rows (year/month layout) ---- */
 .grp-row{
-  display:grid; grid-template-columns:110px 1fr 80px 120px 100px 100px;
+  display:grid; grid-template-columns:110px 1fr 80px 120px 100px 100px 32px;
   align-items:center; padding:9px 18px; gap:10px;
   border-bottom:1px solid var(--border-soft); font-size:13px;
   transition:background var(--transition-fast);
@@ -993,27 +993,27 @@ select[data-no-cd]:focus-visible{
 
 /* ---- Grouped column header ---- */
 .grp-col-header{
-  display:grid; grid-template-columns:110px 1fr 80px 120px 100px 100px;
+  display:grid; grid-template-columns:110px 1fr 80px 120px 100px 100px 32px;
   padding:6px 18px; gap:10px; font-size:10.5px; font-weight:700;
   color:var(--text-faint); text-transform:uppercase; letter-spacing:0.06em;
   border-bottom:1px solid var(--border-soft); background:var(--surface-2);
 }
-.grp-col-header.show-runbal{ grid-template-columns:110px 1fr 80px 120px 100px 100px 100px; }
+.grp-col-header.show-runbal{ grid-template-columns:110px 1fr 80px 120px 100px 100px 100px 32px; }
 
 /* Responsive: hide type, cat, account on small screens */
 @media(max-width:880px){
-  .grp-row{ grid-template-columns:80px 1fr 80px; }
+  .grp-row{ grid-template-columns:80px 1fr 32px; }
   .grp-row .grp-type,
   .grp-row .grp-cat,
   .grp-row .grp-acct,
   .grp-row .grp-runbal{ display:none; }
-  .grp-col-header{ grid-template-columns:80px 1fr 80px; }
+  .grp-col-header{ grid-template-columns:80px 1fr 32px; }
   .grp-col-header span:nth-child(3),
   .grp-col-header span:nth-child(4),
   .grp-col-header span:nth-child(5),
   .grp-col-header span:nth-child(7){ display:none; }
   .tx-card-with-runbal .yr-body .grp-row,
-  .tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:80px 1fr 80px; }
+  .tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:80px 1fr 32px; }
   .tx-card-with-runbal .yr-body .grp-row .grp-runbal,
   .tx-card-with-runbal .mo-body .grp-row .grp-runbal{ display:none; }
 }
