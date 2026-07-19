@@ -666,6 +666,7 @@ window.Ledger.openAccountModal = function(existing){
   var a = existing ? Object.assign({}, existing) : { name:"", type:"checking", currency:"USD", openingBalance:0, archived:false };
   var typeOpts = window.Ledger.ACCOUNT_TYPES.map(function(t){ return '<option value="'+t.id+'" '+(a.type===t.id?'selected':'')+'>'+t.label+'</option>'; }).join("");
   var curOpts = window.Ledger.CURRENCIES.map(function(c){ return '<option value="'+c+'" '+(a.currency===c?'selected':'')+'>'+c+'</option>'; }).join("");
+  var curBal = isEdit ? window.Ledger.accountBalance(a.id) : 0;
 
   var html = ''
     + '<div class="modal-head"><h3>' + (isEdit?'Edit account':'Add account') + '</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
@@ -675,6 +676,12 @@ window.Ledger.openAccountModal = function(existing){
     + '    <div class="field"><label>Type</label><select id="acType">' + typeOpts + '</select></div>'
     + '    <div class="field"><label>Currency</label><select id="acCurrency">' + curOpts + '</select></div>'
     + '  </div>'
+    + (isEdit ? '  <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; display:flex; align-items:center; justify-content:space-between;">'
+      + '    <div><div style="font-size:11px; font-weight:700; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.05em;">Current balance</div>'
+      + '    <div style="font-size:18px; font-weight:800; margin-top:2px; font-family:var(--font-num); font-variant-numeric:tabular-nums;">' + window.Ledger.fmtMoney(curBal, a.currency) + '</div></div>'
+      + '  </div>'
+      + '  <div class="field"><label>Set balance <span class="faint">(type new balance to correct)</span></label><input type="number" id="acSetBalance" step="0.01" placeholder="' + window.Ledger.fmtMoney(curBal, a.currency) + '"></div>'
+    : '')
     + '  <div class="field"><label>Opening balance' + (a.type==='credit_card' ? ' <span class="faint">(negative if you owe)</span>' : '') + '</label><input type="number" id="acOpening" step="0.01" value="' + (a.openingBalance||0) + '"></div>'
     + (isEdit ? '  <label style="display:flex; align-items:center; gap:8px; font-size:13px;"><input type="checkbox" id="acArchived" ' + (a.archived?'checked':'') + '> Archived (hide from active lists)</label>' : '')
     + '</div>'
@@ -689,12 +696,20 @@ window.Ledger.openAccountModal = function(existing){
     document.getElementById("saveAcctBtn").addEventListener("click", function(){
       var name = document.getElementById("acName").value.trim();
       if(!name){ window.Ledger.showToast("Enter an account name"); return; }
+      var ob = parseFloat(document.getElementById("acOpening").value) || 0;
+      if(isEdit){
+        var setBal = document.getElementById("acSetBalance").value;
+        if(setBal !== "" && !isNaN(parseFloat(setBal))){
+          var txSum = curBal - a.openingBalance;
+          ob = parseFloat(setBal) - txSum;
+        }
+      }
       var rec = {
         id: isEdit ? a.id : window.Ledger.uid(),
         name:name,
         type: document.getElementById("acType").value,
         currency: document.getElementById("acCurrency").value,
-        openingBalance: parseFloat(document.getElementById("acOpening").value) || 0,
+        openingBalance: ob,
         archived: isEdit ? document.getElementById("acArchived").checked : false,
         created: isEdit ? a.created : Date.now()
       };
