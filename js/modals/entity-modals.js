@@ -1044,6 +1044,8 @@ window.Ledger.openDuplicatesModal = function(){
   var totalDupes = 0;
   groups.forEach(function(g){ totalDupes += g.length; });
 
+  window.Ledger._dupeGroups = groups;
+
   var groupsHtml = groups.map(function(g, gi){
     var rows = g.map(function(t){
       var acct = window.Ledger.findAccount(t.account);
@@ -1051,7 +1053,11 @@ window.Ledger.openDuplicatesModal = function(){
       var cat = window.Ledger.findCategory(t.category);
       var catName = cat ? cat.name : "";
       var desc = window.Ledger.escapeHtml(t.description || "Untitled");
-      return '<div class="dupe-row" data-dupe-tx="' + t.id + '">'
+      var sorted = g.slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
+      var keepId = sorted[0].id;
+      var isKeep = t.id === keepId;
+      return '<div class="dupe-row' + (isKeep ? ' dupe-keep' : '') + '" data-dupe-tx="' + t.id + '">'
+        + '<span class="dupe-row-badge">' + (isKeep ? 'KEEP' : '') + '</span>'
         + '<span class="dupe-row-date">' + t.date + '</span>'
         + '<span class="dupe-row-desc">' + desc + '</span>'
         + '<span class="dupe-row-cat">' + catName + '</span>'
@@ -1059,12 +1065,15 @@ window.Ledger.openDuplicatesModal = function(){
         + '<span class="dupe-row-amt num">' + window.Ledger.fmtMoney(t.amount, acct ? acct.currency : null) + '</span>'
         + '<span class="dupe-row-actions">'
         + '  <button class="icon-btn sm" data-dupe-view="' + t.id + '" title="View"><i data-lucide="eye"></i></button>'
-        + '  <button class="icon-btn sm danger" data-dupe-del="' + t.id + '" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+        + (!isKeep ? '  <button class="icon-btn sm danger" data-dupe-del="' + t.id + '" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' : '')
         + '</span>'
         + '</div>';
     }).join("");
+    var delCount = g.length - 1;
     return '<div class="dupe-group">'
-      + '<div class="dupe-group-header">Group ' + (gi+1) + ' \u2014 ' + g.length + ' transactions</div>'
+      + '<div class="dupe-group-header"><span>Group ' + (gi+1) + ' \u2014 ' + g.length + ' transactions</span>'
+      + (delCount > 0 ? '<button class="btn btn-sm btn-danger" data-dupe-group-del="' + gi + '">Delete ' + delCount + ' duplicate' + (delCount !== 1 ? 's' : '') + '</button>' : '')
+      + '</div>'
       + rows
       + '</div>';
   }).join("");
@@ -1103,6 +1112,51 @@ window.Ledger.openDuplicatesModal = function(){
           window.Ledger.deleteTransaction(txId);
           window.Ledger.closeModal();
           window.Ledger.openDuplicatesModal();
+        });
+      });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-dupe-group-del]"), function(btn){
+      btn.addEventListener("click", function(){
+        var gi = parseInt(btn.getAttribute("data-dupe-group-del"), 10);
+        var groups = window.Ledger._dupeGroups;
+        if(!groups || !groups[gi]) return;
+        var g = groups[gi];
+        var sorted = g.slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
+        var keep = sorted[0];
+        var toDelete = sorted.slice(1);
+
+        var previewRows = toDelete.map(function(t){
+          var acct = window.Ledger.findAccount(t.account);
+          var desc = window.Ledger.escapeHtml(t.description || "Untitled");
+          return '<div class="dupe-preview-row">'
+            + '<span class="dupe-preview-date">' + t.date + '</span>'
+            + '<span class="dupe-preview-desc">' + desc + '</span>'
+            + '<span class="dupe-preview-amt num">' + window.Ledger.fmtMoney(t.amount, acct ? acct.currency : null) + '</span>'
+            + '</div>';
+        }).join("");
+
+        var previewHtml = ''
+          + '<div class="modal-head"><h3>Review deletion</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+          + '<div class="modal-body">'
+          + '<div class="dupe-preview-keep">Keeping: <strong>' + window.Ledger.escapeHtml(keep.description || "Untitled") + '</strong> \u2014 ' + keep.date + ' \u2014 ' + window.Ledger.fmtMoney(keep.amount, window.Ledger.findAccount(keep.account) ? window.Ledger.findAccount(keep.account).currency : null) + '</div>'
+          + '<div class="dupe-preview-label">Will delete ' + toDelete.length + ' transaction' + (toDelete.length !== 1 ? 's' : '') + ':</div>'
+          + '<div class="dupe-preview-list">' + previewRows + '</div>'
+          + '</div>'
+          + '<div class="modal-foot">'
+          + '  <button class="btn" id="cancelBtn">Cancel</button>'
+          + '  <button class="btn btn-danger" id="confirmDelBtn">Delete ' + toDelete.length + ' transaction' + (toDelete.length !== 1 ? 's' : '') + '</button>'
+          + '</div>';
+
+        window.Ledger.openSubModal(previewHtml, function(){
+          document.getElementById("closeModalBtn").addEventListener("click", function(){ window.Ledger.closeSubModal(); });
+          document.getElementById("cancelBtn").addEventListener("click", function(){ window.Ledger.closeSubModal(); });
+          document.getElementById("confirmDelBtn").addEventListener("click", function(){
+            toDelete.forEach(function(t){ window.Ledger.deleteTransaction(t.id); });
+            window.Ledger.closeSubModal();
+            window.Ledger.showToast(toDelete.length + " duplicate" + (toDelete.length !== 1 ? "s" : "") + " deleted");
+            window.Ledger.openDuplicatesModal();
+          });
         });
       });
     });
