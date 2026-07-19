@@ -107,6 +107,39 @@ window.Ledger.renderPage = function(){
       }
     }
   }
+
+  /* ---- Date range picker inside rDatePreset dropdown (reports) ---- */
+  if(window.Ledger.currentPage === "reports"){
+    var rDatePresetSel = document.getElementById("rDatePreset");
+    if(rDatePresetSel){
+      var rCdWrap = rDatePresetSel.previousElementSibling;
+      if(rCdWrap && rCdWrap.classList.contains("cd-wrap")){
+        var rCdList = rCdWrap.querySelector(".cd-list");
+        var rDateRangeDiv = document.createElement("div");
+        rDateRangeDiv.className = "cd-date-range";
+        rDateRangeDiv.innerHTML =
+          '<div class="cdr-inputs">'
+          + '<input type="date" id="rDateFrom" value="' + (window.Ledger.reportState.dateFrom || "") + '">'
+          + '<span class="cdr-sep">&ndash;</span>'
+          + '<input type="date" id="rDateTo" value="' + (window.Ledger.reportState.dateTo || "") + '">'
+          + '</div>';
+        var rIsCustom = rDatePresetSel.value === "custom";
+        rDateRangeDiv.style.display = rIsCustom ? "" : "none";
+        rCdList.appendChild(rDateRangeDiv);
+        var rCustomItem = rCdList.querySelector('[data-val="custom"]');
+        if(rCustomItem){
+          rCustomItem.setAttribute("data-no-close", "true");
+          rCustomItem.addEventListener("click", function(){
+            rDateRangeDiv.style.display = "";
+          });
+        }
+        var rDateFrom = rDateRangeDiv.querySelector("#rDateFrom");
+        var rDateTo = rDateRangeDiv.querySelector("#rDateTo");
+        if(rDateFrom) rDateFrom.addEventListener("change", function(e){ e.stopPropagation(); window.Ledger.reportState.dateFrom = rDateFrom.value; window.Ledger.renderPage(); });
+        if(rDateTo) rDateTo.addEventListener("change", function(e){ e.stopPropagation(); window.Ledger.reportState.dateTo = rDateTo.value; window.Ledger.renderPage(); });
+      }
+    }
+  }
 };
 
 /* ============================================================
@@ -413,13 +446,11 @@ window.Ledger.wirePageEvents = function(){
         window.Ledger.reportState.currency = document.getElementById("rCurrency").value;
         window.Ledger.reportState.category = document.getElementById("rCategory").value;
         if(id === "rCategory") window.Ledger.reportState.category = el.value;
-        window.Ledger.renderPage();
+        if(window.Ledger.reportState.datePreset !== "custom"){
+          window.Ledger.renderPage();
+        }
       });
     });
-    var rFrom = document.getElementById("rDateFrom");
-    var rTo = document.getElementById("rDateTo");
-    if(rFrom) rFrom.addEventListener("change", function(){ window.Ledger.reportState.dateFrom = rFrom.value; window.Ledger.renderPage(); });
-    if(rTo) rTo.addEventListener("change", function(){ window.Ledger.reportState.dateTo = rTo.value; window.Ledger.renderPage(); });
     var rSearch = document.getElementById("rSearch");
     if(rSearch) rSearch.addEventListener("input", function(){ window.Ledger.reportState.search = rSearch.value; });
     Array.prototype.forEach.call(document.querySelectorAll("[data-rtab]"), function(b){

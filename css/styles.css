@@ -445,12 +445,17 @@ select:focus-visible{
 
 /* Filters bar dropdowns — same treatment */
 .filters-bar select{
+  height:34px;
   background-color:var(--fb-bg);
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat:no-repeat;
   background-position:right 10px center;
   background-size:12px;
-  padding:8px 30px 8px 12px;
+  padding:0 30px 0 12px;
+  font-size:12px;
+  font-weight:600;
+  border-radius:var(--radius-md);
+  min-width:0;
 }
 [data-theme="dark"] .filters-bar select{
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%238D96A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -554,12 +559,38 @@ select:focus-visible{
 }
 .filters-bar > *{ margin:0; flex-shrink:0; }
 .filters-bar > * + *{ margin-left:12px; }
-.filters-bar select{
-  height:34px; padding:0 30px 0 10px; font-size:12px; font-weight:600;
-  border-radius:var(--radius-md); min-width:0;
+
+/* Native selects with data-no-cd — match custom dropdown trigger look */
+select[data-no-cd]{
+  background-color:var(--surface-2);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:12px;
+  padding:10px 36px 10px 14px;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  color:var(--text);
+  font-weight:600;
+  font-size:var(--text-base);
+  cursor:pointer;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  transition:all var(--transition-fast);
 }
-.filters-bar select:hover{ border-color:var(--text-dim); background-color:var(--surface-hi); }
-.filters-bar select:focus-visible{ outline:none; border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
+[data-theme="dark"] select[data-no-cd]{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%238D96A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+select[data-no-cd]:hover{
+  border-color:var(--text-dim);
+  background-color:var(--surface-hi);
+}
+select[data-no-cd]:focus-visible{
+  outline:none;
+  border-color:var(--brass);
+  box-shadow:0 0 0 3px var(--brass-soft);
+}
 .filters-bar select.is-filtered{ border-color:var(--brass); box-shadow:0 0 0 1px var(--brass-soft); }
 .filters-bar .search-inline{
   display:flex; align-items:center; gap:6px;
@@ -871,6 +902,18 @@ select:focus-visible{
 .subcat-row{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:var(--text-dim); font-weight:500; }
 
 .inline-add{ display:flex; gap:8px; margin-top:14px; }
+
+/* ---- Import preview table selects ---- */
+.prev-type, .prev-category, .prev-toacc, .prev-account{
+  font-size:11.5px; padding:5px 7px; border-radius:8px;
+  border:1px solid var(--border); background:var(--surface-2); color:var(--text);
+  font-weight:600; height:auto; min-width:0;
+}
+.prev-type:focus-visible, .prev-category:focus-visible, .prev-toacc:focus-visible, .prev-account:focus-visible{
+  outline:none; border-color:var(--brass); box-shadow:0 0 0 2px var(--brass-soft);
+}
+.border-sage{ border-color:var(--sage) !important; }
+.border-clay{ border-color:var(--clay) !important; }
 .inline-add input{ flex:1; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:8px 11px; font-weight:500; }
 
 /* ---- Floating action button ---- */

@@ -545,10 +545,6 @@ window.Ledger.pages.renderReportsPage = function(){
     + '<div class="card">'
     + '  <div class="filters-bar">'
     + '    <select id="rDatePreset">'+dateOpts+'</select>'
-    + (f.datePreset === "custom" ? (
-        '    <input type="date" id="rDateFrom" value="'+f.dateFrom+'">'
-        + '    <input type="date" id="rDateTo" value="'+f.dateTo+'">'
-      ) : "")
     + '    <select id="rAccount">'+accOpts+'</select>'
     + '    <select id="rCurrency">'+curOpts+'</select>'
     + '    <select id="rCategory">'+catOpts+'</select>'

@@ -152,7 +152,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       + window.Ledger.fmtMoney(Math.abs(r.amount))
       + '</td>'
       + '<td style="'+tdStyle+'">'
-      + '  <select class="prev-type" data-idx="'+i+'" style="font-size:11.5px; padding:5px 7px; border-radius:8px; border:1px solid var(--border); background:var(--surface-2); color:var(--text);">'
+      + '  <select class="prev-type" data-idx="'+i+'">'
       + '    <option value="expense" '+(preType==="expense"?"selected":"")+'>Expense</option>'
       + '    <option value="income" '+(preType==="income"?"selected":"")+'>Income</option>'
       + '    <option value="transfer" '+(preType==="transfer"?"selected":"")+'>Transfer</option>'
@@ -160,12 +160,12 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       + '  </select>'
       + '</td>'
       + '<td style="'+tdStyle+'">'
-      + '  <select class="prev-category" data-idx="'+i+'" style="font-size:11.5px; padding:5px 7px; border-radius:8px; border:1px solid ' + (r.suggestedCategoryId ? 'var(--sage)' : 'var(--clay)') + '; background:var(--surface-2); color:var(--text);">'
+      + '  <select class="prev-category' + (r.suggestedCategoryId ? ' border-sage' : ' border-clay') + '" data-idx="'+i+'">'
       + catOptsFor(preType, r.suggestedCategoryId)
       + '  </select>'
       + '</td>'
       + '<td style="'+tdStyle+' display:'+(preType==='transfer'?'':'none')+';">'
-      + '  <select class="prev-toacc" data-idx="'+i+'" style="font-size:11.5px; padding:5px 7px; border-radius:8px; border:1px solid var(--clay); background:var(--surface-2); color:var(--text);">'
+      + '  <select class="prev-toacc border-clay" data-idx="'+i+'">'
       + toAccOpts
       + '  </select>'
       + '</td>'

@@ -72,7 +72,7 @@ window.Ledger.pages.renderPeoplePage = function(){
           var peopleOpts = '<option value="">Assign to&hellip;</option>' + DB.people.map(function(p){ return '<option value="'+p.id+'">'+escapeHtml(p.name)+'</option>'; }).join("");
           return '<div style="display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-top:1px solid var(--border-soft);">'
             + '<span style="font-size:12.5px;">' + escapeHtml(d.description) + ' <span class="faint">&middot; ' + dateDisp + ' &middot; ' + fmtMoney(d.amount, d.currency) + '</span></span>'
-            + '<select class="assign-pending-sel" data-debt-id="' + d.id + '" style="font-size:12px; padding:5px 8px;">' + peopleOpts + '</select>'
+            + '<select class="assign-pending-sel" data-debt-id="' + d.id + '">' + peopleOpts + '</select>'
             + '</div>';
         }).join("")
       + '</div>';
