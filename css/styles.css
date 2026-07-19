@@ -634,11 +634,11 @@ select:focus-visible{
 /* Smooth type-section transitions */
 .tx-section{
   display:flex; flex-direction:column; gap:14px;
-  max-height:800px; opacity:1; overflow:hidden;
-  transition:max-height 0.3s ease, opacity 0.25s ease, margin 0.25s ease, padding 0.25s ease;
+  max-height:800px; opacity:1; overflow:visible;
+  transition:max-height 0.3s ease, opacity 0.25s ease;
 }
 .tx-section.tx-hidden{
-  max-height:0; opacity:0; pointer-events:none;
+  max-height:0; opacity:0; pointer-events:none; overflow:hidden;
   margin:0 !important; padding:0 !important;
 }
 
