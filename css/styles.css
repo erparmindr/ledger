@@ -1114,7 +1114,30 @@ select[data-no-cd]:focus-visible{
 .cat-card-subs{
   margin-top:10px; padding-top:10px;
   border-top:1px solid var(--border-soft);
+}
+.cat-card-sub-head{
+  display:flex; align-items:center; justify-content:space-between;
+  cursor:pointer; padding:2px 0; user-select:none;
+}
+.cat-card-sub-head:hover .cat-card-sub-title{ color:var(--text); }
+.cat-card-sub-title{
+  font-size:11px; font-weight:600; color:var(--text-dim);
+  text-transform:uppercase; letter-spacing:0.04em;
+  transition:color var(--transition-fast);
+}
+.cat-card-chevron{
+  color:var(--text-faint); display:flex; align-items:center;
+  transition:transform 0.25s ease;
+}
+.cat-card.collapsed .cat-card-chevron{ transform:rotate(-90deg); }
+.cat-card-sub-list{
   display:flex; flex-direction:column; gap:6px;
+  margin-top:8px; max-height:500px; overflow:hidden;
+  transition:max-height 0.3s ease, opacity 0.2s ease, margin 0.2s ease;
+  opacity:1;
+}
+.cat-card.collapsed .cat-card-sub-list{
+  max-height:0; opacity:0; margin-top:0; pointer-events:none;
 }
 .cat-card-sub{
   display:flex; align-items:center; justify-content:space-between;

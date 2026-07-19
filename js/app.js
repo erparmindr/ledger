@@ -330,6 +330,12 @@ window.Ledger.wirePageEvents = function(){
         window.Ledger.renderPage();
       });
     });
+    // Collapse/expand subcategories
+    Array.prototype.forEach.call(document.querySelectorAll(".cat-card-sub-head"), function(head){
+      head.addEventListener("click", function(){
+        head.closest(".cat-card").classList.toggle("collapsed");
+      });
+    });
     // Add category
     ["addCatBtnExpense","addCatBtnIncome","addCatBtnTransfer"].forEach(function(btnId){
       var btn = document.getElementById(btnId);

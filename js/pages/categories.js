@@ -33,6 +33,11 @@ window.Ledger.pages.renderCategoriesPage = function(){
     var subsHtml = "";
     if(hasSubs){
       subsHtml = '<div class="cat-card-subs">'
+        + '<div class="cat-card-sub-head">'
+        + '<span class="cat-card-sub-title">Subcategories (' + subCount + ')</span>'
+        + '<span class="cat-card-chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>'
+        + '</div>'
+        + '<div class="cat-card-sub-list">'
         + c.subs.map(function(s){
           var sc = subCounts[c.id + "|" + s.id] || 0;
           return '<div class="cat-card-sub">'
