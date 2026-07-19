@@ -38,6 +38,8 @@
   /* Transitions */
   --transition-fast:0.15s cubic-bezier(0.4,0,0.2,1);
   --transition-normal:0.2s cubic-bezier(0.4,0,0.2,1);
+  /* Icon filter (calendar picker etc.) */
+  --icon-filter:none;
 }
 [data-theme="dark"]{
   --bg:#000000;
@@ -62,6 +64,7 @@
   --blue-soft:rgba(111,174,239,0.14);
   --shadow-card:0 10px 28px -16px rgba(0,0,0,0.8);
   --shadow-lift:0 16px 40px -20px rgba(0,0,0,0.9);
+  --icon-filter:invert(1);
 }
 
 *{box-sizing:border-box;}
@@ -389,6 +392,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
    ============================================================ */
 .field input,
 .field textarea{
+  appearance:none;
+  -webkit-appearance:none;
   background:var(--surface-2);
   border:1px solid var(--border);
   border-radius:var(--radius-md);
@@ -398,6 +403,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   font-size:13px;
   transition:all var(--transition-fast);
 }
+.field input::-webkit-calendar-picker-indicator{
+  opacity:0.5;
+  cursor:pointer;
+  filter:var(--icon-filter);
+}
+.field input:hover::-webkit-calendar-picker-indicator{ opacity:0.8; }
 
 .field input:hover,
 .field textarea:hover{
@@ -1039,16 +1050,25 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
 .cdr-inputs input[type="date"]{
   flex:1;
   height:32px;
+  appearance:none;
+  -webkit-appearance:none;
   background:var(--surface-2);
   border:1px solid var(--border);
   border-radius:var(--radius-sm);
   padding:0 8px;
   font-size:12px;
   font-weight:500;
+  font-family:inherit;
   color:var(--text);
   min-width:0;
   transition:all var(--transition-fast);
 }
+.cdr-inputs input[type="date"]::-webkit-calendar-picker-indicator{
+  opacity:0.5;
+  cursor:pointer;
+  filter:var(--icon-filter);
+}
+.cdr-inputs input[type="date"]:hover::-webkit-calendar-picker-indicator{ opacity:0.8; }
 .cdr-inputs input[type="date"]:hover{ border-color:var(--text-dim); }
 .cdr-inputs input[type="date"]:focus{ outline:none; border-color:var(--brass); box-shadow:0 0 0 2px var(--brass-soft); }
 .cdr-sep{ color:var(--text-faint); font-size:12px; flex-shrink:0; }
