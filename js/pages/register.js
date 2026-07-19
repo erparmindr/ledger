@@ -150,16 +150,9 @@ window.Ledger.pages.renderRegisterPage = function(){
     + '  <option value="transfer" ' + (f.type==="transfer"?"selected":"") + '>Transfer</option>'
     + '  <option value="refund" ' + (f.type==="refund"?"selected":"") + '>Refund</option>'
     + '</select>'
-    + '<div class="date-group">'
     + '<select id="fDatePreset" class="' + filteredCls(f.datePreset) + '">' + window.Ledger.DATE_PRESETS.map(function(p){
       return '<option value="'+p.id+'" '+(f.datePreset===p.id?"selected":"")+'>'+p.label+'</option>';
     }).join("") + '</select>'
-    + (f.datePreset === "custom" ? (
-      '<input type="date" id="fDateFrom" value="' + f.dateFrom + '">'
-      + '<span class="date-sep">&ndash;</span>'
-      + '<input type="date" id="fDateTo" value="' + f.dateTo + '">'
-    ) : "")
-    + '</div>'
     + clearBtnHtml
     + '<button class="btn btn-sm" id="exportCsvBtn"' + (!hasAnyTx ? ' disabled title="Add transactions before exporting"' : '') + '>Export CSV</button>'
     + '</div>';

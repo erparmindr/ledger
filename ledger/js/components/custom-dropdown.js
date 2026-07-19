@@ -41,7 +41,9 @@ window.Ledger.initCustomDropdowns = function(){
         trigger.textContent = item.textContent;
         Array.prototype.forEach.call(list.querySelectorAll(".cd-item"), function(x){ x.classList.remove("selected"); });
         item.classList.add("selected");
-        wrap.classList.remove("open");
+        if(!item.hasAttribute("data-no-close")){
+          wrap.classList.remove("open");
+        }
         sel.dispatchEvent(new Event("change", {bubbles:true}));
       });
     });

@@ -74,6 +74,39 @@ window.Ledger.renderPage = function(){
   window.Ledger.wirePageEvents();
   window.Ledger.refreshIcons();
   window.Ledger.initCustomDropdowns();
+
+  /* ---- Date range picker inside fDatePreset dropdown ---- */
+  if(window.Ledger.currentPage === "transactions"){
+    var fDatePresetSel = document.getElementById("fDatePreset");
+    if(fDatePresetSel){
+      var cdWrap = fDatePresetSel.previousElementSibling;
+      if(cdWrap && cdWrap.classList.contains("cd-wrap")){
+        var cdList = cdWrap.querySelector(".cd-list");
+        var dateRangeDiv = document.createElement("div");
+        dateRangeDiv.className = "cd-date-range";
+        dateRangeDiv.innerHTML =
+          '<div class="cdr-inputs">'
+          + '<input type="date" id="fDateFrom" value="' + (window.Ledger.registerFilters.dateFrom || "") + '">'
+          + '<span class="cdr-sep">&ndash;</span>'
+          + '<input type="date" id="fDateTo" value="' + (window.Ledger.registerFilters.dateTo || "") + '">'
+          + '</div>';
+        var isCustom = fDatePresetSel.value === "custom";
+        dateRangeDiv.style.display = isCustom ? "" : "none";
+        cdList.appendChild(dateRangeDiv);
+        var customItem = cdList.querySelector('[data-val="custom"]');
+        if(customItem){
+          customItem.setAttribute("data-no-close", "true");
+          customItem.addEventListener("click", function(){
+            dateRangeDiv.style.display = "";
+          });
+        }
+        var fDateFrom = dateRangeDiv.querySelector("#fDateFrom");
+        var fDateTo = dateRangeDiv.querySelector("#fDateTo");
+        if(fDateFrom) fDateFrom.addEventListener("change", function(e){ e.stopPropagation(); window.Ledger.registerFilters.dateFrom = fDateFrom.value; window.Ledger.renderPage(); });
+        if(fDateTo) fDateTo.addEventListener("change", function(e){ e.stopPropagation(); window.Ledger.registerFilters.dateTo = fDateTo.value; window.Ledger.renderPage(); });
+      }
+    }
+  }
 };
 
 /* ============================================================
@@ -119,12 +152,11 @@ window.Ledger.wirePageEvents = function(){
         window.Ledger.registerFilters.subcategory = document.getElementById("fSubcategory").value;
         window.Ledger.registerFilters.type = document.getElementById("fType").value;
         window.Ledger.registerFilters.datePreset = document.getElementById("fDatePreset").value;
-        window.Ledger.renderPage();
+        if(window.Ledger.registerFilters.datePreset !== "custom"){
+          window.Ledger.renderPage();
+        }
       });
     });
-    var dFrom = document.getElementById("fDateFrom"), dTo = document.getElementById("fDateTo");
-    if(dFrom) dFrom.addEventListener("change", function(){ window.Ledger.registerFilters.dateFrom = dFrom.value; window.Ledger.renderPage(); });
-    if(dTo) dTo.addEventListener("change", function(){ window.Ledger.registerFilters.dateTo = dTo.value; window.Ledger.renderPage(); });
     var exportBtn = document.getElementById("exportCsvBtn");
     if(exportBtn) exportBtn.addEventListener("click", window.Ledger.exportCsv);
     function wireClearFilters(btnId){

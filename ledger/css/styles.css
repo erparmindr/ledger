@@ -561,16 +561,6 @@ select:focus-visible{
 .filters-bar select:hover{ border-color:var(--text-dim); background-color:var(--surface-hi); }
 .filters-bar select:focus-visible{ outline:none; border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
 .filters-bar select.is-filtered{ border-color:var(--brass); box-shadow:0 0 0 1px var(--brass-soft); }
-.filters-bar input[type="date"]{
-  height:34px; background:var(--fb-bg);
-  border:1px solid var(--border); border-radius:var(--radius-md);
-  padding:0 10px; font-size:12px; color:var(--text); font-weight:600;
-  transition:all var(--transition-fast);
-}
-.filters-bar input[type="date"]:hover{ border-color:var(--text-dim); }
-.filters-bar input[type="date"]:focus{ outline:none; border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
-.filters-bar .date-group{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
-.filters-bar .date-group .date-sep{ color:var(--text-dim); font-size:12px; }
 .filters-bar .search-inline{
   display:flex; align-items:center; gap:6px;
   background:var(--fb-bg); border:1px solid var(--border);
@@ -991,6 +981,34 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   outline:2px solid var(--brass);
   outline-offset:-2px;
 }
+
+/* ---- Date range picker inside dropdown list ---- */
+.cd-date-range{
+  border-top:1px solid var(--border-soft);
+  padding:10px;
+  margin-top:4px;
+}
+.cdr-inputs{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.cdr-inputs input[type="date"]{
+  flex:1;
+  height:32px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:0 8px;
+  font-size:12px;
+  font-weight:500;
+  color:var(--text);
+  min-width:0;
+  transition:all var(--transition-fast);
+}
+.cdr-inputs input[type="date"]:hover{ border-color:var(--text-dim); }
+.cdr-inputs input[type="date"]:focus{ outline:none; border-color:var(--brass); box-shadow:0 0 0 2px var(--brass-soft); }
+.cdr-sep{ color:var(--text-faint); font-size:12px; flex-shrink:0; }
 
 /* ============================================================
    RESPONSIVE — small phones
