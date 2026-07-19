@@ -569,6 +569,8 @@ select:focus-visible{
 }
 .filters-bar input[type="date"]:hover{ border-color:var(--text-dim); }
 .filters-bar input[type="date"]:focus{ outline:none; border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
+.filters-bar .date-group{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.filters-bar .date-group .date-sep{ color:var(--text-dim); font-size:12px; }
 .filters-bar .search-inline{
   display:flex; align-items:center; gap:6px;
   background:var(--fb-bg); border:1px solid var(--border);
