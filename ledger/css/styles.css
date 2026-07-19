@@ -1071,14 +1071,73 @@ select[data-no-cd]:focus-visible{
 [data-theme="dark"] .toast{ background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
 @keyframes toast-in{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
 
-.category-row{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-soft); }
-.category-row:last-child{ border-bottom:none; }
-.subcat-list{ padding-left:18px; margin-top:5px; display:flex; flex-direction:column; gap:7px; }
-.subcat-row{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:var(--text-dim); font-weight:500; }
+/* ---- Categories page ---- */
+.cat-page-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.cat-page-title{ font-size:16px; font-weight:800; margin:0; }
+.cat-tabs{ margin-bottom:20px; }
+.tab-count{ font-size:11px; opacity:0.6; font-weight:500; }
+.cat-tab-content{ min-height:200px; }
+.cat-add-row{ display:flex; gap:8px; margin-bottom:16px; }
+.cat-add-input{
+  flex:1; background:var(--surface-2); border:1px solid var(--border);
+  border-radius:var(--radius-md); padding:9px 14px; font-weight:500; font-size:13px;
+  color:var(--text); font-family:inherit; transition:all var(--transition-fast);
+}
+.cat-add-input:hover{ border-color:var(--text-dim); }
+.cat-add-input:focus{ outline:none; border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
+.cat-add-input::placeholder{ color:var(--text-faint); }
+.cat-card-grid{
+  display:grid; grid-template-columns:repeat(2, 1fr); gap:12px;
+}
+.cat-card{
+  background:var(--surface-2); border:1px solid var(--border-soft);
+  border-radius:var(--radius); padding:14px 16px;
+  transition:all var(--transition-fast);
+}
+.cat-card:hover{ border-color:var(--border); box-shadow:var(--shadow-card); }
+.cat-card-head{ display:flex; justify-content:space-between; align-items:flex-start; }
+.cat-card-info{ flex:1; min-width:0; }
+.cat-card-name{
+  font-size:14px; font-weight:700; color:var(--text);
+  display:block; margin-bottom:4px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.cat-card-meta{ display:flex; gap:8px; flex-wrap:wrap; }
+.cat-card-stat{
+  font-size:11px; font-weight:600; color:var(--text-dim);
+  background:var(--surface); padding:2px 8px;
+  border-radius:var(--radius-pill); white-space:nowrap;
+}
+.cat-card-actions{ display:flex; gap:2px; flex-shrink:0; margin-left:8px; }
+.icon-btn.sm{ padding:5px; }
+.icon-btn.sm i, .icon-btn.sm svg{ width:13px; height:13px; }
+.cat-card-subs{
+  margin-top:10px; padding-top:10px;
+  border-top:1px solid var(--border-soft);
+  display:flex; flex-direction:column; gap:6px;
+}
+.cat-card-sub{
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:12.5px; color:var(--text-dim); font-weight:500;
+}
+.cat-card-sub-name{
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;
+}
+.cat-card-sub-count{
+  font-size:10px; font-weight:600; color:var(--text-faint);
+  background:var(--surface); padding:1px 6px;
+  border-radius:var(--radius-pill); margin-left:6px; flex-shrink:0;
+}
+.cat-card-sub-actions{ display:flex; gap:1px; margin-left:6px; flex-shrink:0; }
+.cat-empty{ text-align:center; padding:40px 0; }
+.cat-empty-icon{ font-size:32px; margin-bottom:10px; opacity:0.4; }
+.cat-empty-msg{ font-size:13px; color:var(--text-dim); }
+.cat-empty-hint{ font-size:12px; color:var(--text-faint); margin-top:4px; }
+/* Responsive: single column on small screens */
+@media(max-width:480px){
+  .cat-card-grid{ grid-template-columns:1fr; }
+}
 
-.inline-add{ display:flex; gap:8px; margin-top:14px; }
-
-/* ---- Import preview table selects ---- */
 .prev-type, .prev-category, .prev-toacc, .prev-account{
   font-size:11.5px; padding:5px 7px; border-radius:8px;
   border:1px solid var(--border); background:var(--surface-2); color:var(--text);
@@ -1089,7 +1148,6 @@ select[data-no-cd]:focus-visible{
 }
 .border-sage{ border-color:var(--sage) !important; }
 .border-clay{ border-color:var(--clay) !important; }
-.inline-add input{ flex:1; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:8px 11px; font-weight:500; }
 
 /* ---- Floating action button ---- */
 .fab{
