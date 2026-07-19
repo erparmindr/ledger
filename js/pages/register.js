@@ -404,7 +404,7 @@ function renderGroupedTxRow(t, showRunning, runBalMap){
   var notesIcon = t.notes ? '<span class="grp-notes" title="' + window.Ledger.escapeHtml(t.notes) + '">📝</span>' : '';
   var runbalCls = showRunning ? ' show-runbal' : '';
 
-  return '<div class="grp-row' + runbalCls + '" data-tx="' + t.id + '">'
+  return '<div class="grp-row" data-tx="' + t.id + '">'
     + '<span class="grp-date">' + dateDisp + '</span>'
     + '<span class="grp-desc">' + window.Ledger.escapeHtml(descLabel) + notesIcon + '</span>'
     + '<span class="grp-type"><span class="grp-type-dot" style="background:' + typeColor + ';"></span>' + typeLabel + '</span>'
@@ -412,9 +412,13 @@ function renderGroupedTxRow(t, showRunning, runBalMap){
     + '<span class="grp-acct">' + window.Ledger.escapeHtml(acctLabel) + '</span>'
     + '<span class="grp-amt ' + amtCls + '">' + sign + window.Ledger.fmtMoney(t.amount, currency) + '</span>'
     + runBalHtml
-    + '<div class="grp-actions">'
-    + '  <button class="icon-btn" data-edit-tx="' + t.id + '" title="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'
-    + '  <button class="icon-btn danger" data-del-tx="' + t.id + '" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
+    + '<div class="grp-kebab">'
+    + '  <button class="kebab-btn" data-kebab="' + t.id + '" title="More actions">&#8942;</button>'
+    + '  <div class="kebab-menu" id="kebab-' + t.id + '">'
+    + '    <button class="kebab-item" data-edit-tx="' + t.id + '"><span class="kebab-icon">\u270F</span> Edit</button>'
+    + '    <div class="kebab-divider"></div>'
+    + '    <button class="kebab-item danger" data-del-tx="' + t.id + '"><span class="kebab-icon">\uD83D\uDDD1</span> Delete</button>'
+    + '  </div>'
     + '</div>'
     + '</div>';
 }

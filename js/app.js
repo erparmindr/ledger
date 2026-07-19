@@ -657,6 +657,24 @@ window.Ledger.wireTxRowActions = function(){
       });
     });
   });
+
+  /* Kebab menu toggle */
+  Array.prototype.forEach.call(document.querySelectorAll("[data-kebab]"), function(btn){
+    btn.addEventListener("click", function(e){
+      e.stopPropagation();
+      var id = btn.getAttribute("data-kebab");
+      var menu = document.getElementById("kebab-" + id);
+      if(!menu) return;
+      var wasOpen = menu.classList.contains("open");
+      document.querySelectorAll(".kebab-menu.open").forEach(function(m){ m.classList.remove("open"); });
+      if(!wasOpen) menu.classList.add("open");
+    });
+  });
+
+  /* Close kebab menus on outside click */
+  document.addEventListener("click", function(){
+    document.querySelectorAll(".kebab-menu.open").forEach(function(m){ m.classList.remove("open"); });
+  });
 };
 
 /* ============================================================
