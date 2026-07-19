@@ -849,14 +849,8 @@ select[data-no-cd]:focus-visible{
 /* ---- Transactions card (explicit block layout) ---- */
 #txCard{
   background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius-lg);
-  box-shadow:var(--shadow-card);
-  transition:border-color var(--transition-fast), box-shadow var(--transition-fast);
   display:block;
-  overflow:hidden;
 }
-#txCard:hover{ border-color:color-mix(in srgb, var(--border) 55%, var(--text-dim) 45%); box-shadow:var(--shadow-lift); }
 .reg-section{ display:block; width:100%; }
 
 /* ---- Transaction column headers ---- */
@@ -899,14 +893,14 @@ select[data-no-cd]:focus-visible{
 .tx-empty{ padding:32px 18px 40px; text-align:center; display:flex; align-items:center; justify-content:center; min-height:460px; }
 
 /* ---- Year > Month grouped transactions layout ---- */
-.yr-section{ border-bottom:1px solid var(--border-soft); }
+.yr-section{ }
 .yr-section:last-child{ border-bottom:none; }
 .yr-header{
   display:flex; align-items:center; justify-content:space-between;
-  padding:12px 18px; background:var(--surface-2); cursor:pointer; user-select:none;
-  border-bottom:1px solid var(--border-soft); transition:background var(--transition-fast);
+  padding:12px 18px; cursor:pointer; user-select:none;
+  transition:background var(--transition-fast);
 }
-.yr-header:hover{ background:var(--surface-hi); }
+.yr-header:hover{ background:var(--surface-2); }
 .yr-title{ font-size:14px; font-weight:800; display:flex; align-items:center; gap:8px; }
 .yr-chevron{ transition:transform 0.2s; color:var(--text-faint); font-size:10px; }
 .yr-section.collapsed > .yr-header .yr-chevron{ transform:rotate(-90deg); }
@@ -917,7 +911,7 @@ select[data-no-cd]:focus-visible{
 .yr-body{ overflow:hidden; transition:max-height 0.3s ease, opacity 0.2s ease; }
 .yr-section.collapsed > .yr-body{ max-height:0!important; opacity:0; pointer-events:none; }
 
-.mo-section{ border-bottom:1px solid var(--border-soft); }
+.mo-section{ }
 .mo-section:last-child{ border-bottom:none; }
 .mo-header{
   display:flex; align-items:center; justify-content:space-between;
@@ -939,7 +933,7 @@ select[data-no-cd]:focus-visible{
 .load-earlier{
   display:flex; flex-direction:column; align-items:center; gap:3px;
   width:100%; padding:16px; border:none;
-  background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md);
+  background:var(--surface-2); border-radius:var(--radius-md);
   color:var(--brass); font-size:13px; font-weight:700; cursor:pointer;
   margin-top:16px; transition:background var(--transition-fast);
 }
@@ -969,9 +963,14 @@ select[data-no-cd]:focus-visible{
 .grp-actions{ display:flex; gap:4px; justify-content:flex-end; opacity:0; transition:opacity var(--transition-fast); }
 .grp-row:hover .grp-actions{ opacity:1; }
 
-/* Show runbal column when account filter is active */
-.tx-card-with-runbal .yr-body .grp-row,
-.tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:110px 1fr 80px 120px 100px 100px 100px; }
+/* ---- Grouped column header ---- */
+.grp-col-header{
+  display:grid; grid-template-columns:110px 1fr 80px 120px 100px 100px;
+  padding:6px 18px; gap:10px; font-size:10.5px; font-weight:700;
+  color:var(--text-faint); text-transform:uppercase; letter-spacing:0.06em;
+  border-bottom:1px solid var(--border-soft); background:var(--surface-2);
+}
+.grp-col-header.show-runbal{ grid-template-columns:110px 1fr 80px 120px 100px 100px 100px; }
 
 /* Responsive: hide type, cat, account on small screens */
 @media(max-width:880px){
@@ -980,6 +979,11 @@ select[data-no-cd]:focus-visible{
   .grp-row .grp-cat,
   .grp-row .grp-acct,
   .grp-row .grp-runbal{ display:none; }
+  .grp-col-header{ grid-template-columns:80px 1fr 80px; }
+  .grp-col-header span:nth-child(3),
+  .grp-col-header span:nth-child(4),
+  .grp-col-header span:nth-child(5),
+  .grp-col-header span:nth-child(7){ display:none; }
   .tx-card-with-runbal .yr-body .grp-row,
   .tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:80px 1fr 80px; }
   .tx-card-with-runbal .yr-body .grp-row .grp-runbal,

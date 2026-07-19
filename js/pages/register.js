@@ -209,17 +209,16 @@ window.Ledger.pages.renderTransactionsPage = function(){
     + '</div>';
 
   /* ---- Column headers ---- */
-  var colHdrCls = 'tx-col-header show-type show-cat show-acct';
+  var colHdrCls = 'grp-col-header';
   if(showRunning) colHdrCls += ' show-runbal';
   var colHeaders = '<div class="' + colHdrCls + '">'
-    + '<span class="col-date">Date</span>'
-    + '<span class="col-desc">Description</span>'
-    + '<span class="col-type">Type</span>'
-    + '<span class="col-cat">Category</span>'
-    + '<span class="col-acct">Account</span>'
-    + '<span class="col-amt">Amount</span>'
-    + (showRunning ? '<span class="col-runbal">Balance</span>' : '')
-    + '<span class="rowactions"></span>'
+    + '<span>Date</span>'
+    + '<span>Description</span>'
+    + '<span>Type</span>'
+    + '<span>Category</span>'
+    + '<span>Account</span>'
+    + '<span>Amount</span>'
+    + (showRunning ? '<span>Balance</span>' : '')
     + '</div>';
 
   /* ---- Transaction list or empty state ---- */
