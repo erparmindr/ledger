@@ -5,20 +5,6 @@ window.Ledger.pages.renderCategoriesPage = function(){
   var DB = window.Ledger.DB;
   var activeTab = window.Ledger._catTab || "expense";
 
-  var txCounts = {};
-  var subCounts = {};
-  DB.transactions.forEach(function(t){
-    if(t.categorySplits && t.categorySplits.length){
-      t.categorySplits.forEach(function(s){ txCounts[s.categoryId] = (txCounts[s.categoryId]||0) + 1; });
-    } else if(t.category){
-      txCounts[t.category] = (txCounts[t.category]||0) + 1;
-      if(t.subcategory){
-        var subKey = t.category + "|" + t.subcategory;
-        subCounts[subKey] = (subCounts[subKey]||0) + 1;
-      }
-    }
-  });
-
   var expCount = DB.categories.filter(function(c){ return c.type==="expense"; }).length;
   var incCount = DB.categories.filter(function(c){ return c.type==="income"; }).length;
   var trfCount = DB.categories.filter(function(c){ return c.type==="transfer"; }).length;
@@ -26,18 +12,20 @@ window.Ledger.pages.renderCategoriesPage = function(){
   var tabIcons = { expense:"\u2212", income:"+", transfer:"\u21c4" };
 
   function renderCatCard(c){
-    var count = txCounts[c.id] || 0;
     var subCount = c.subs ? c.subs.length : 0;
     var hasSubs = subCount > 0;
 
     var subsHtml = "";
     if(hasSubs){
       subsHtml = '<div class="cat-card-subs">'
+        + '<div class="cat-card-sub-head">'
+        + '<span class="cat-card-sub-title">Subcategories</span>'
+        + '<span class="cat-card-chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>'
+        + '</div>'
+        + '<div class="cat-card-sub-list">'
         + c.subs.map(function(s){
-          var sc = subCounts[c.id + "|" + s.id] || 0;
           return '<div class="cat-card-sub">'
             + '<span class="cat-card-sub-name">' + window.Ledger.escapeHtml(s.name) + '</span>'
-            + (sc > 0 ? '<span class="cat-card-sub-count">' + sc + '</span>' : '')
             + '<span class="cat-card-sub-actions">'
             + '<button class="icon-btn sm" data-rename-sub="' + c.id + '|' + s.id + '" title="Rename" aria-label="Rename"><i data-lucide="pencil"></i></button>'
             + '<button class="icon-btn sm danger" data-del-sub="' + c.id + '|' + s.id + '" title="Delete" aria-label="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
@@ -50,10 +38,6 @@ window.Ledger.pages.renderCategoriesPage = function(){
       + '<div class="cat-card-head">'
       + '  <div class="cat-card-info">'
       + '    <span class="cat-card-name">' + window.Ledger.escapeHtml(c.name) + '</span>'
-      + '    <div class="cat-card-meta">'
-      + '      <span class="cat-card-stat">' + count + ' tx' + (count !== 1 ? 's' : '') + '</span>'
-      + (hasSubs ? '      <span class="cat-card-stat">' + subCount + ' sub' + (subCount !== 1 ? 's' : '') + '</span>' : '')
-      + '    </div>'
       + '  </div>'
       + '  <div class="cat-card-actions">'
       + '    <button class="icon-btn sm" data-add-sub="' + c.id + '" title="Add subcategory" aria-label="Add subcategory"><i data-lucide="plus"></i></button>'

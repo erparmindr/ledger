@@ -1103,12 +1103,6 @@ select[data-no-cd]:focus-visible{
   display:block; margin-bottom:4px;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
-.cat-card-meta{ display:flex; gap:8px; flex-wrap:wrap; }
-.cat-card-stat{
-  font-size:11px; font-weight:600; color:var(--text-dim);
-  background:var(--surface); padding:2px 8px;
-  border-radius:var(--radius-pill); white-space:nowrap;
-}
 .cat-card-actions{ display:flex; gap:2px; flex-shrink:0; margin-left:8px; }
 .icon-btn.sm{ padding:5px; }
 .icon-btn.sm i, .icon-btn.sm svg{ width:13px; height:13px; }
@@ -1146,11 +1140,6 @@ select[data-no-cd]:focus-visible{
 }
 .cat-card-sub-name{
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;
-}
-.cat-card-sub-count{
-  font-size:10px; font-weight:600; color:var(--text-faint);
-  background:var(--surface); padding:1px 6px;
-  border-radius:var(--radius-pill); margin-left:6px; flex-shrink:0;
 }
 .cat-card-sub-actions{ display:flex; gap:1px; margin-left:6px; flex-shrink:0; }
 .cat-empty{ text-align:center; padding:40px 0; }
