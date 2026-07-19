@@ -77,3 +77,42 @@ window.Ledger.initCustomDropdowns = function(){
     });
   }
 };
+
+/* ============================================================
+   REFRESH — rebuild cd-items after native select innerHTML changes
+   ============================================================ */
+window.Ledger.refreshCustomDropdown = function(sel){
+  if(!sel) return;
+  var wrap = sel.previousElementSibling;
+  if(!wrap || !wrap.classList.contains("cd-wrap")) return;
+  var list = wrap.querySelector(".cd-list");
+  var trigger = wrap.querySelector(".cd-trigger");
+  if(!list || !trigger) return;
+
+  list.innerHTML = "";
+  var options = sel.querySelectorAll("option");
+  var currentVal = sel.value;
+
+  Array.prototype.forEach.call(options, function(opt){
+    var item = document.createElement("div");
+    item.className = "cd-item" + (opt.value === currentVal ? " selected" : "");
+    item.setAttribute("data-val", opt.value);
+    if(opt.disabled) item.className += " cd-disabled";
+    item.textContent = opt.textContent;
+    if(opt.value === currentVal) trigger.textContent = opt.textContent;
+    list.appendChild(item);
+
+    item.addEventListener("click", function(e){
+      e.stopPropagation();
+      if(item.classList.contains("cd-disabled")) return;
+      sel.value = item.getAttribute("data-val");
+      trigger.textContent = item.textContent;
+      Array.prototype.forEach.call(list.querySelectorAll(".cd-item"), function(x){ x.classList.remove("selected"); });
+      item.classList.add("selected");
+      if(!item.hasAttribute("data-no-close")){
+        wrap.classList.remove("open");
+      }
+      sel.dispatchEvent(new Event("change", {bubbles:true}));
+    });
+  });
+};

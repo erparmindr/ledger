@@ -59,9 +59,9 @@ window.Ledger.openTxModal = function(existing){
     + '  <div id="exIncFields" style="display:' + (t.type==='transfer'?'none':'flex') + '; flex-direction:column; gap:14px;">'
     + '    <div class="form-row">'
     + '      <div class="field"><label id="txAccountLabel">' + (t.type==='refund'?'Refund to account':'Account') + '</label><select id="txAccount">' + accOptsAll + '</select></div>'
-    + '      <div class="field"><label>Category</label><select id="txCategory" data-no-cd>' + catOptions(t.type==='income'?'income':'expense') + '</select></div>'
+    + '      <div class="field"><label>Category</label><select id="txCategory">' + catOptions(t.type==='income'?'income':'expense') + '</select></div>'
     + '    </div>'
-    + '    <div class="field" id="subcatField" style="display:none;"><label>Subcategory <span class="faint">(optional)</span></label><select id="txSubcategory" data-no-cd></select></div>'
+    + '    <div class="field" id="subcatField" style="display:none;"><label>Subcategory <span class="faint">(optional)</span></label><select id="txSubcategory"></select></div>'
     + '    <div id="refundPickerField" style="display:' + (t.type==='refund'?'flex':'none') + '; flex-direction:column; gap:8px;">'
     + '      <label>Select original transaction <span class="faint">(optional &mdash; or pick a category below)</span></label>'
     + '      <input type="text" id="refundSearch" placeholder="Search by description, date, amount, or account..." style="font-size:13px; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text);">'
@@ -78,17 +78,17 @@ window.Ledger.openTxModal = function(existing){
     + '  </div>'
     + '  <div id="transferFields" style="display:' + (t.type==='transfer'?'flex':'none') + '; flex-direction:column; gap:14px;">'
     + '    <div class="form-row">'
-    + '      <div class="field"><label>From</label><select id="txFromType" data-no-cd><option value="account">Account</option><option value="person">Person</option></select></div>'
-    + '      <div class="field"><label>&nbsp;</label><select id="txFromId" data-no-cd>' + accOptsAll + '</select></div>'
+    + '      <div class="field"><label>From</label><select id="txFromType"><option value="account">Account</option><option value="person">Person</option></select></div>'
+    + '      <div class="field"><label>&nbsp;</label><select id="txFromId">' + accOptsAll + '</select></div>'
     + '    </div>'
     + '    <div class="form-row">'
-    + '      <div class="field"><label>To</label><select id="txToType" data-no-cd><option value="account">Account</option><option value="person">Person</option></select></div>'
-    + '      <div class="field"><label>&nbsp;</label><select id="txToId" data-no-cd>' + accOptsAll + '</select></div>'
+    + '      <div class="field"><label>To</label><select id="txToType"><option value="account">Account</option><option value="person">Person</option></select></div>'
+    + '      <div class="field"><label>&nbsp;</label><select id="txToId">' + accOptsAll + '</select></div>'
     + '    </div>'
     + '    <div class="form-row">'
-    + '      <div class="field"><label>Category</label><select id="txTransferCategory" data-no-cd>' + catOptions("transfer") + '</select></div>'
+    + '      <div class="field"><label>Category</label><select id="txTransferCategory">' + catOptions("transfer") + '</select></div>'
     + '    </div>'
-    + '    <div class="field" id="transferSubcatField" style="display:none;"><label>Subcategory <span class="faint">(optional)</span></label><select id="txTransferSubcategory" data-no-cd></select></div>'
+    + '    <div class="field" id="transferSubcatField" style="display:none;"><label>Subcategory <span class="faint">(optional)</span></label><select id="txTransferSubcategory"></select></div>'
     + '    <div id="conversionField" class="field" style="display:none;">'
     + '      <label>Amount received <span class="faint" id="conversionCurLabel"></span></label>'
     + '      <input type="number" id="txConvertedAmount" step="0.01" min="0.01" placeholder="0.00">'
@@ -124,6 +124,7 @@ window.Ledger.openTxModal = function(existing){
         subField.style.display = "none";
         subSel.innerHTML = "";
       }
+      window.Ledger.refreshCustomDropdown(subSel);
     }
     document.getElementById("txCategory").addEventListener("change", refreshSubcatOptions);
     refreshSubcatOptions();
@@ -142,6 +143,7 @@ window.Ledger.openTxModal = function(existing){
         subField.style.display = "none";
         subSel.innerHTML = "";
       }
+      window.Ledger.refreshCustomDropdown(subSel);
     }
     document.getElementById("txTransferCategory").addEventListener("change", refreshTransferSubcatOptions);
     refreshTransferSubcatOptions();
@@ -155,11 +157,12 @@ window.Ledger.openTxModal = function(existing){
         if(currentType === "expense" || currentType === "income" || currentType === "refund"){
           var catSel = document.getElementById("txCategory");
           catSel.innerHTML = catOptions(currentType === "refund" ? "expense" : currentType);
+          window.Ledger.refreshCustomDropdown(catSel);
           refreshSubcatOptions();
         }
         if(currentType === "transfer"){
           var transferCatSel = document.getElementById("txTransferCategory");
-          if(transferCatSel){ transferCatSel.innerHTML = catOptions("transfer"); refreshTransferSubcatOptions(); }
+          if(transferCatSel){ transferCatSel.innerHTML = catOptions("transfer"); window.Ledger.refreshCustomDropdown(transferCatSel); refreshTransferSubcatOptions(); }
         }
         // Hide split buttons for refund (not applicable)
         var splitBtns = document.getElementById("openCategorySplitBtn");
@@ -180,6 +183,7 @@ window.Ledger.openTxModal = function(existing){
       var kind = document.getElementById(typeSelId).value;
       var sel = document.getElementById(idSelId);
       sel.innerHTML = kind === "account" ? accOptsAll : peopleOpts;
+      window.Ledger.refreshCustomDropdown(sel);
     }
     function checkCurrencyMismatch(){
       var fromType = document.getElementById("txFromType").value;
@@ -209,11 +213,15 @@ window.Ledger.openTxModal = function(existing){
     document.getElementById("txToId").addEventListener("change", checkCurrencyMismatch);
     if(isEdit && t.type === "transfer"){
       document.getElementById("txFromType").value = t.fromType;
+      window.Ledger.refreshCustomDropdown(document.getElementById("txFromType"));
       refreshEntitySelect("txFromType","txFromId");
       document.getElementById("txFromId").value = t.fromId;
+      window.Ledger.refreshCustomDropdown(document.getElementById("txFromId"));
       document.getElementById("txToType").value = t.toType;
+      window.Ledger.refreshCustomDropdown(document.getElementById("txToType"));
       refreshEntitySelect("txToType","txToId");
       document.getElementById("txToId").value = t.toId;
+      window.Ledger.refreshCustomDropdown(document.getElementById("txToId"));
       checkCurrencyMismatch();
       if(linkedToAmount != null){
         document.getElementById("txConvertedAmount").value = linkedToAmount;
