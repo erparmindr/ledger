@@ -1088,6 +1088,7 @@ select[data-no-cd]:focus-visible{
 .cat-add-input::placeholder{ color:var(--text-faint); }
 .cat-card-grid{
   display:grid; grid-template-columns:repeat(2, 1fr); gap:12px;
+  align-items:start;
 }
 .cat-card{
   background:var(--surface-2); border:1px solid var(--border-soft);
