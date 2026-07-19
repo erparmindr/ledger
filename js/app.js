@@ -49,7 +49,8 @@ window.Ledger.getPageSubtitle = function(page){
 window.Ledger.navigateTo = function(page){
   window.Ledger.currentPage = page;
   localStorage.setItem("ledger_page", page);
-  document.getElementById("pageTitle").textContent = window.Ledger.NAV_ITEMS.find(function(n){ return n.id===page; }).label;
+  var navItem = window.Ledger.NAV_ITEMS.find(function(n){ return n.id===page; });
+  document.getElementById("pageTitle").textContent = navItem ? navItem.label : page;
   document.getElementById("pageSubtitle").textContent = window.Ledger.getPageSubtitle(page);
   document.getElementById("globalSearchWrap").style.display = (page === "transactions") ? "flex" : "none";
   var fab = document.getElementById("newTxBtn");
@@ -90,14 +91,14 @@ window.Ledger.renderPage = function(){
         dateRangeDiv.innerHTML =
           '<div style="display:flex;gap:8px;align-items:center;">'
           + '<div class="dp-wrap dp-compact">'
-          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (fValFrom ? '' : ' placeholder') + '">' + (fValFrom ? window.Ledger.dpFormatDate(fValFrom) : 'From') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
-          + '<input type="hidden" class="dp-hidden" id="fDateFrom" value="' + fValFrom + '">'
+          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (fValFrom ? '' : ' placeholder') + '">' + (fValFrom ? window.Ledger.escapeHtml(window.Ledger.dpFormatDate(fValFrom)) : 'From') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
+          + '<input type="hidden" class="dp-hidden" id="fDateFrom" value="' + window.Ledger.escapeHtml(fValFrom) + '">'
           + '<div class="dp-panel"></div>'
           + '</div>'
           + '<span class="cdr-sep">&ndash;</span>'
           + '<div class="dp-wrap dp-compact">'
-          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (fValTo ? '' : ' placeholder') + '">' + (fValTo ? window.Ledger.dpFormatDate(fValTo) : 'To') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
-          + '<input type="hidden" class="dp-hidden" id="fDateTo" value="' + fValTo + '">'
+          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (fValTo ? '' : ' placeholder') + '">' + (fValTo ? window.Ledger.escapeHtml(window.Ledger.dpFormatDate(fValTo)) : 'To') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
+          + '<input type="hidden" class="dp-hidden" id="fDateTo" value="' + window.Ledger.escapeHtml(fValTo) + '">'
           + '<div class="dp-panel"></div>'
           + '</div>'
           + '</div>';
@@ -131,14 +132,14 @@ window.Ledger.renderPage = function(){
         rDateRangeDiv.innerHTML =
           '<div style="display:flex;gap:8px;align-items:center;">'
           + '<div class="dp-wrap dp-compact">'
-          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (rValFrom ? '' : ' placeholder') + '">' + (rValFrom ? window.Ledger.dpFormatDate(rValFrom) : 'From') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
-          + '<input type="hidden" class="dp-hidden" id="rDateFrom" value="' + rValFrom + '">'
+          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (rValFrom ? '' : ' placeholder') + '">' + (rValFrom ? window.Ledger.escapeHtml(window.Ledger.dpFormatDate(rValFrom)) : 'From') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
+          + '<input type="hidden" class="dp-hidden" id="rDateFrom" value="' + window.Ledger.escapeHtml(rValFrom) + '">'
           + '<div class="dp-panel"></div>'
           + '</div>'
           + '<span class="cdr-sep">&ndash;</span>'
           + '<div class="dp-wrap dp-compact">'
-          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (rValTo ? '' : ' placeholder') + '">' + (rValTo ? window.Ledger.dpFormatDate(rValTo) : 'To') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
-          + '<input type="hidden" class="dp-hidden" id="rDateTo" value="' + rValTo + '">'
+          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (rValTo ? '' : ' placeholder') + '">' + (rValTo ? window.Ledger.escapeHtml(window.Ledger.dpFormatDate(rValTo)) : 'To') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
+          + '<input type="hidden" class="dp-hidden" id="rDateTo" value="' + window.Ledger.escapeHtml(rValTo) + '">'
           + '<div class="dp-panel"></div>'
           + '</div>'
           + '</div>';
@@ -450,7 +451,8 @@ window.Ledger.wirePageEvents = function(){
   }
 
   if(window.Ledger.currentPage === "payees"){
-    document.getElementById("addPersonBtn").addEventListener("click", function(){ window.Ledger.openPersonModal(null); });
+    var addPersonEl = document.getElementById("addPersonBtn");
+    if(addPersonEl) addPersonEl.addEventListener("click", function(){ window.Ledger.openPersonModal(null); });
     Array.prototype.forEach.call(document.querySelectorAll("[data-edit-person]"), function(b){
       b.addEventListener("click", function(){ window.Ledger.openPersonModal(window.Ledger.findPerson(b.getAttribute("data-edit-person"))); });
     });
@@ -531,14 +533,15 @@ window.Ledger.wirePageEvents = function(){
   }
 
   if(window.Ledger.currentPage === "scheduled"){
-    document.getElementById("addRecurringBtn").addEventListener("click", function(){
+    var addRecurringEl = document.getElementById("addRecurringBtn");
+    if(addRecurringEl) addRecurringEl.addEventListener("click", function(){
       var name = document.getElementById("rName").value.trim();
       var amount = parseFloat(document.getElementById("rAmount").value);
       var frequency = document.getElementById("rFrequency").value;
       var startDate = document.getElementById("rStartDate").value;
       var type = document.getElementById("rType").value;
       var account = document.getElementById("rAccount").value;
-      if(!name || !amount || amount<=0 || !startDate || !account){ window.Ledger.showToast("Fill in all fields"); return; }
+      if(!name || isNaN(amount) || amount<=0 || !startDate || !account){ window.Ledger.showToast("Fill in all fields"); return; }
       window.Ledger.addRecurring({ id:window.Ledger.uid(), name:name, amount:amount, frequency:frequency, startDate:startDate, type:type, account:account });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-confirm-recurring]"), function(b){

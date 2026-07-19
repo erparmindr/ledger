@@ -47,7 +47,11 @@ window.Ledger.filteredTransactions = function(){
         if(!t.categorySplits.some(function(s){ return s.categoryId === f.category; })) return false;
       } else if(t.category !== f.category) return false;
     }
-    if(f.subcategory !== "all" && t.subcategory !== f.subcategory) return false;
+    if(f.subcategory !== "all"){
+      if(t.categorySplits && t.categorySplits.length){
+        if(!t.categorySplits.some(function(s){ return s.subcategoryId === f.subcategory; })) return false;
+      } else if(t.subcategory !== f.subcategory) return false;
+    }
     if(!window.Ledger.matchesDatePreset(t.date, f.datePreset, f.dateFrom, f.dateTo)) return false;
     if(f.search && f.search.trim()){
       var q = f.search.trim().toLowerCase();
@@ -87,15 +91,17 @@ window.Ledger.pages.renderRegisterPage = function(){
       }).sort(function(a,b){ return (a.date+a.id).localeCompare(b.date+b.id); });
       var running = acc.openingBalance || 0;
       chrono.forEach(function(t){
-        if(t.type==="expense" && t.account===acc.id) running -= t.amount;
-        else if(t.type==="income" && t.account===acc.id) running += t.amount;
-        else if(t.type==="refund" && t.account===acc.id) running += t.amount;
+        var amt = t.amount;
+        if(typeof amt !== "number" || isNaN(amt) || !isFinite(amt)) return;
+        if(t.type==="expense" && t.account===acc.id) running -= amt;
+        else if(t.type==="income" && t.account===acc.id) running += amt;
+        else if(t.type==="refund" && t.account===acc.id) running += amt;
         else if(t.type==="transfer"){
           if(t.pending){
-            if(t.fromType==="account" && t.fromId===acc.id) running -= t.amount;
+            if(t.fromType==="account" && t.fromId===acc.id) running -= amt;
           } else {
-            if(t.fromType==="account" && t.fromId===acc.id) running -= t.amount;
-            if(t.toType==="account" && t.toId===acc.id) running += t.amount;
+            if(t.fromType==="account" && t.fromId===acc.id) running -= amt;
+            if(t.toType==="account" && t.toId===acc.id) running += amt;
           }
         }
         runBalMap[t.id] = running;
@@ -117,7 +123,7 @@ window.Ledger.pages.renderRegisterPage = function(){
 
   var chipsHtml = '<div class="reg-summary">'
     + '<div class="reg-chip dot-sage"><span class="chip-dot"></span>Income <span class="chip-val pos">+' + window.Ledger.fmtMoneyShort(totalIncome) + '</span></div>'
-    + '<div class="reg-chip dot-clay"><span class="chip-dot"></span>Expenses <span class="chip-val neg">\u2212' + window.Ledger.fmtMoneyShort(totalExpense) + '</span></div>'
+    + '<div class="reg-chip dot-clay"><span class="chip-dot"></span>Expenses <span class="chip-val neg">' + window.Ledger.fmtMoneyShort(-totalExpense) + '</span></div>'
     + '<div class="reg-chip dot-brass"><span class="chip-dot"></span>Transfers <span class="chip-val">' + totalTransfer + '</span></div>'
     + '<div class="reg-chip dot-dim"><span class="chip-dot"></span>' + list.length + ' transaction' + (list.length !== 1 ? 's' : '') + '</div>'
     + '</div>';

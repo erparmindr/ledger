@@ -1,7 +1,7 @@
 // Ledger service worker — caches the app shell for offline use and installability.
 // Bump CACHE_NAME whenever files change so returning users get the update
 // instead of a stale cached copy.
-const CACHE_NAME = "ledger-cache-v103";
+const CACHE_NAME = "ledger-cache-v104";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -18,6 +18,7 @@ const APP_SHELL = [
   "./js/modals/entity-modals.js",
   "./js/components/transaction-row.js",
   "./js/components/custom-dropdown.js",
+  "./js/components/date-picker.js",
   "./js/pages/overview.js",
   "./js/pages/register.js",
   "./js/pages/accounts.js",
@@ -35,7 +36,9 @@ const APP_SHELL = [
 self.addEventListener("install", function(event){
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache){
-      return cache.addAll(APP_SHELL);
+      return Promise.allSettled(APP_SHELL.map(function(url){
+        return cache.add(url);
+      }));
     }).then(function(){
       return self.skipWaiting();
     })

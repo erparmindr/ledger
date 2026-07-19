@@ -52,6 +52,7 @@ window.Ledger.reportFilterTx = function(types){
   var f = window.Ledger.reportState;
   return window.Ledger.DB.transactions.filter(function(t){
     if(types.indexOf(t.type) === -1) return false;
+    if(f.type !== "all" && t.type !== f.type) return false;
     if(!window.Ledger.reportMatchesDate(t.date)) return false;
     if(f.account !== "all"){
       var touches = (t.account === f.account) ||
@@ -71,7 +72,11 @@ window.Ledger.reportFilterTx = function(types){
         if(!t.categorySplits.some(function(s){ return s.categoryId === f.category; })) return false;
       } else if(t.category !== f.category) return false;
     }
-    if(f.subcategory !== "all" && t.subcategory !== f.subcategory) return false;
+    if(f.subcategory !== "all"){
+      if(t.categorySplits && t.categorySplits.length){
+        if(!t.categorySplits.some(function(s){ return s.subcategoryId === f.subcategory; })) return false;
+      } else if(t.subcategory !== f.subcategory) return false;
+    }
     if(f.search && f.search.trim()){
       var q = f.search.trim().toLowerCase();
       var hay = ((t.desc||"") + " " + (t.notes||"")).toLowerCase();

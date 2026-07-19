@@ -18,7 +18,7 @@
   --fb-bg:#DDE0E8;
   --text:#181B23;
   --text-dim:#6B7280;
-  --text-faint:#9CA3AF;
+   --text-faint:#7E8594;
   --text-on-brass:#241A02;
   --brass:#C99A2E;
   --brass-bright:#E8B33C;
@@ -51,7 +51,7 @@
   --fb-bg:#2A2A2E;
   --text:#F3F5F9;
   --text-dim:#8D96A8;
-  --text-faint:#535B6B;
+   --text-faint:#717B91;
   --text-on-brass:#1a1200;
   --brass:#F0C24E;
   --brass-bright:#FAD877;
@@ -148,8 +148,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   content:'L';
   width:32px; height:32px; border-radius:10px; flex-shrink:0;
   background:linear-gradient(135deg, var(--brass-bright), var(--brass));
-  color:#241A02;
-  font-weight:800; font-size:15px;
+   color:var(--text-on-brass);
+   font-weight:800; font-size:15px;
   display:flex; align-items:center; justify-content:center;
   box-shadow:0 4px 12px rgba(240,194,78,0.35);
 }
@@ -212,8 +212,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .theme-toggle button:hover{ color:var(--text); }
 .theme-toggle button.active{
   background:linear-gradient(135deg, var(--brass-bright), var(--brass));
-  color:#241A02;
-  box-shadow:0 2px 8px rgba(240,194,78,0.3);
+   color:var(--text-on-brass);
+   box-shadow:0 2px 8px rgba(240,194,78,0.3);
 }
 
 .mobile-topbar{
@@ -276,10 +276,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 }
 .btn:active{ transform:scale(0.97); }
 .btn-primary{
-  background:linear-gradient(165deg, var(--brass-bright), var(--brass));
-  border-color:var(--brass);
-  color:#241A02;
-  box-shadow:0 4px 12px -2px rgba(240,194,78,0.35);
+   background:linear-gradient(165deg, var(--brass-bright), var(--brass));
+   border-color:var(--brass);
+   color:var(--text-on-brass);
+   box-shadow:0 4px 12px -2px rgba(240,194,78,0.35);
 }
 .btn-primary:hover{
   background:linear-gradient(165deg, #ffe066, var(--brass-bright));
@@ -956,7 +956,7 @@ select[data-no-cd]:focus-visible{
 .toggle-pair button:hover{ color:var(--text); }
 .toggle-pair button.active{
   background:linear-gradient(135deg, var(--brass-bright), var(--brass));
-  color:#241A02;
+  color:var(--text-on-brass);
 }
 
 /* ---- Overview pill dropdown ---- */
@@ -966,7 +966,7 @@ select[data-no-cd]:focus-visible{
   background:linear-gradient(135deg, var(--brass-bright), var(--brass));
   border:none; border-radius:var(--radius-pill);
   padding:5px 14px 5px 10px; cursor:pointer;
-  font-size:11px; font-weight:700; color:#241A02;
+  font-size:11px; font-weight:700; color:var(--text-on-brass);
   box-shadow:0 1px 4px rgba(240,194,78,0.25);
   transition:box-shadow var(--transition-fast);
   line-height:1;
@@ -997,7 +997,7 @@ select[data-no-cd]:focus-visible{
 .report-tabs button:hover{ color:var(--text); }
 .report-tabs button.active{
   background:linear-gradient(135deg, var(--brass-bright), var(--brass));
-  color:#241A02; box-shadow:0 2px 8px rgba(240,194,78,0.3);
+   color:var(--text-on-brass); box-shadow:0 2px 8px rgba(240,194,78,0.3);
 }
 [data-theme="dark"] .report-tabs button.active{ color:#1a1200; }
 

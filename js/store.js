@@ -141,6 +141,7 @@ window.Ledger.updateTransaction = function(id, changes) {
 };
 
 window.Ledger.upsertTransaction = function(rec) {
+  if(!rec || !rec.id) return;
   var idx = window.Ledger.DB.transactions.findIndex(function(x){ return x.id === rec.id; });
   if(idx >= 0) window.Ledger.DB.transactions[idx] = rec;
   else window.Ledger.DB.transactions.push(rec);
@@ -286,11 +287,14 @@ window.Ledger.replaceDebtItemsForTransaction = function(mainId, debtItems) {
   for(var i = 0; i < debtItems.length; i++){
     window.Ledger.DB.debtItems.push(debtItems[i]);
   }
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
 };
 
 window.Ledger.updateDebtItem = function(id, changes, skipSave) {
   var d = window.Ledger.DB.debtItems.find(function(x){ return x.id === id; });
-  if(d) Object.assign(d, changes);
+  if(!d) return;
+  Object.assign(d, changes);
   if(!skipSave){
     window.Ledger.saveData();
     window.Ledger.renderPage();

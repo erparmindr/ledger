@@ -14,6 +14,7 @@ window.Ledger.escapeHtml = function escapeHtml(s){
 };
 window.Ledger.fmtMoney = function fmtMoney(n, currency){
   currency = currency || "USD";
+  if(typeof n !== "number" || isNaN(n)) n = 0;
   var neg = n < 0;
   var abs = Math.abs(n);
   var str = abs.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -23,6 +24,7 @@ window.Ledger.fmtMoney = function fmtMoney(n, currency){
 };
 window.Ledger.fmtMoneyShort = function fmtMoneyShort(n, currency){
   currency = currency || "USD";
+  if(typeof n !== "number" || isNaN(n)) n = 0;
   var neg = n < 0;
   var abs = Math.abs(n);
   var symbols = {USD:"$",CAD:"$",EUR:"\u20AC",GBP:"\u00A3",INR:"\u20B9",AUD:"$",JPY:"\u00A5"};
@@ -58,19 +60,21 @@ window.Ledger.accountBalance = function accountBalance(accountId){
   if(!acc) return 0;
   var bal = acc.openingBalance || 0;
   Ledger.DB.transactions.forEach(function(t){
-    if(t.type === "expense" && t.account === accountId) bal -= t.amount;
-    else if(t.type === "income" && t.account === accountId) bal += t.amount;
-    else if(t.type === "refund" && t.account === accountId) bal += t.amount;
+    var amt = t.amount;
+    if(typeof amt !== "number" || isNaN(amt) || !isFinite(amt)) return;
+    if(t.type === "expense" && t.account === accountId) bal -= amt;
+    else if(t.type === "income" && t.account === accountId) bal += amt;
+    else if(t.type === "refund" && t.account === accountId) bal += amt;
     else if(t.type === "transfer"){
       if(t.pending){
-        if(t.fromType === "account" && t.fromId === accountId) bal -= t.amount;
+        if(t.fromType === "account" && t.fromId === accountId) bal -= amt;
       } else {
-        if(t.fromType === "account" && t.fromId === accountId) bal -= t.amount;
-        if(t.toType === "account" && t.toId === accountId) bal += t.amount;
+        if(t.fromType === "account" && t.fromId === accountId) bal -= amt;
+        if(t.toType === "account" && t.toId === accountId) bal += amt;
       }
     }
   });
-  return bal;
+  return Math.round(bal * 100) / 100;
 };
 
 window.Ledger.personBalanceByCurrency = function personBalanceByCurrency(personId){
@@ -84,13 +88,15 @@ window.Ledger.personBalanceByCurrency = function personBalanceByCurrency(personI
   Ledger.DB.transactions.forEach(function(t){
     if(t.type !== "transfer") return;
     if(t.debtItemId) return;
+    var amt = t.amount;
+    if(typeof amt !== "number" || isNaN(amt) || !isFinite(amt)) return;
     if(t.toType === "person" && t.toId === personId){
       var fromRef = window.Ledger.entityRef(t.fromType, t.fromId);
-      add(fromRef ? fromRef.currency : "USD", t.amount);
+      add(fromRef ? fromRef.currency : "USD", amt);
     }
     if(t.fromType === "person" && t.fromId === personId){
       var toRef = window.Ledger.entityRef(t.toType, t.toId);
-      add(toRef ? toRef.currency : "USD", -t.amount);
+      add(toRef ? toRef.currency : "USD", -amt);
     }
   });
   Ledger.DB.debtItems.forEach(function(d){

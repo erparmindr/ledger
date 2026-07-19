@@ -11,7 +11,8 @@ window.Ledger.pages.renderAccountsPage = function(){
   function renderCard(a, archived){
     var bal = accountBalance(a.id);
     var isCredit = a.type === "credit_card";
-    var typeLabel = ACCOUNT_TYPES.find(function(t){ return t.id===a.type; }).label;
+    var typeObj = ACCOUNT_TYPES.find(function(t){ return t.id===a.type; });
+    var typeLabel = typeObj ? typeObj.label : a.type;
     var ops = archived
       ? '<button class="icon-btn" data-unarchive-acct="' + a.id + '" title="Unarchive" aria-label="Unarchive"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg></button>'
       : '<button class="icon-btn" data-edit-acct="' + a.id + '" title="Edit" aria-label="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>'

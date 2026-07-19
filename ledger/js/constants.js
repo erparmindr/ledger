@@ -25,12 +25,11 @@ window.Ledger.AUTO_CATEGORY_KEYWORDS = [
   {cat:"Shopping", words:["amazon","target","best buy","bestbuy","dollarama","gap ","old navy","winners","marshalls","ikea","apple.com","apple store"]},
   {cat:"Entertainment", words:["netflix","spotify","disney","hulu","prime video","cinema","movie","theatre","theater","steam","playstation","xbox"]},
   {cat:"Health", words:["shoppers drug mart","shoppersdrugmart","pharmacy","optometry","optical","dental","dentist","clinic","hospital","healthcare"]},
-  {cat:"Housing", words:["rent","mortgage","hydro","property tax"]},
+  {cat:"Housing", words:["rent","mortgage","property tax"]},
   {cat:"Utilities", words:["hydro","electricity","water bill","internet","rogers","bell canada","telus","comcast","at&t","verizon"]},
   {cat:"Travel", words:["expedia","airbnb","booking.com","air canada","westjet","delta air","united airlines","hotel","marriott","hilton"]},
   {cat:"Salary", words:["payroll","salary","direct deposit"]},
-  {cat:"Cashback / Rewards", words:["cashback","cash back","rebate","reward"]},
-  {cat:"Refund", words:["refund","return","reversal","chargeback","credit refund"]}
+  {cat:"Cashback / Rewards", words:["cashback","cash back","rebate","reward"]}
 ];
 
 window.Ledger.learnedCategoryKey = function learnedCategoryKey(desc) {
@@ -65,10 +64,6 @@ window.Ledger.suggestCategoryForDescription = function suggestCategoryForDescrip
     }
   }
   return null;
-};
-
-window.Ledger.learnCategoryMapping = function learnCategoryMapping(desc, categoryId) {
-  window.Ledger.learnCategory(desc, categoryId);
 };
 
 window.Ledger.rankCategorySuggestions = function(desc, forType, DB, findCategory) {
