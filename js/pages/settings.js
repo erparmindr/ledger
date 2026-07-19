@@ -26,7 +26,7 @@ window.Ledger.pages.renderSettingsPage = function(){
     + '  <button class="btn btn-sm" id="importStatementBtn">Paste statement text</button>'
     + '</div>'
 
-    + '<div class="card card-pad section-gap" style="border-color:var(--clay-soft);">'
+    + '<div class="card card-pad section-gap">'
     + '  <h2 style="font-size:16px; font-weight:800; margin:0 0 6px; color:var(--clay);">Reset all data</h2>'
     + '  <p class="muted" style="font-size:12.5px; margin:0 0 14px;">Permanently delete all accounts, transactions, people, categories and recurring items from this browser. Export a backup first if you want to keep anything. <strong>This cannot be undone.</strong></p>'
     + '  <button class="btn btn-danger btn-sm" id="resetAllBtn">Clear all data</button>'

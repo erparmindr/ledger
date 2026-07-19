@@ -16,7 +16,7 @@ window.Ledger.pages.renderPeoplePage = function(){
     var items = openDebtItemsForPerson(p.id);
     var itemsHtml = items.length ? items.map(function(d){
       var dateDisp = new Date(d.date + "T00:00:00").toLocaleDateString(undefined, {month:"short", day:"numeric"});
-      return '<div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-top:1px solid var(--border-soft); font-size:12px;">'
+      return '<div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; font-size:12px;">'
         + '<span>' + escapeHtml(d.description) + ' <span class="faint">&middot; ' + dateDisp + '</span></span>'
         + '<span style="display:flex; align-items:center; gap:8px;">'
         + '  <span class="num" style="font-size:12.5px;">' + fmtMoney(d.amount, d.currency) + '</span>'
@@ -70,7 +70,7 @@ window.Ledger.pages.renderPeoplePage = function(){
       + pending.map(function(d){
           var dateDisp = new Date(d.date + "T00:00:00").toLocaleDateString(undefined, {month:"short", day:"numeric"});
           var peopleOpts = '<option value="">Assign to&hellip;</option>' + DB.people.map(function(p){ return '<option value="'+p.id+'">'+escapeHtml(p.name)+'</option>'; }).join("");
-          return '<div style="display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-top:1px solid var(--border-soft);">'
+          return '<div style="display:flex; justify-content:space-between; align-items:center; padding:9px 0;">'
             + '<span style="font-size:12.5px;">' + escapeHtml(d.description) + ' <span class="faint">&middot; ' + dateDisp + ' &middot; ' + fmtMoney(d.amount, d.currency) + '</span></span>'
             + '<select class="assign-pending-sel" data-debt-id="' + d.id + '">' + peopleOpts + '</select>'
             + '</div>';

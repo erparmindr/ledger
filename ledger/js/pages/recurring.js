@@ -37,7 +37,7 @@ window.Ledger.pages.renderRecurringPage = function(){
     + '<div class="card">'
     + '  <div class="card-header"><h2>Recurring transactions</h2><span class="hint">confirm-to-post, never automatic</span></div>'
     + '  <div class="card-pad" style="padding-top:14px; padding-bottom:6px;">' + rows + '</div>'
-    + '  <div class="card-pad" style="border-top:1px solid var(--border-soft);">'
+    + '  <div class="card-pad">'
     + '    <div class="form-row cols-3">'
     + '      <div class="field"><label>Name</label><input type="text" id="rName" placeholder="e.g. Netflix"></div>'
     + '      <div class="field"><label>Amount</label><input type="number" id="rAmount" step="0.01" min="0.01" placeholder="0.00"></div>'
