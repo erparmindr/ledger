@@ -95,7 +95,7 @@ window.Ledger.pages.renderRegisterPage = function(){
     if(t.type === "income") totalIncome += t.amount;
     else if(t.type === "expense") totalExpense += t.amount;
     else if(t.type === "transfer") totalTransfer++;
-    else if(t.type === "refund") totalIncome += t.amount;
+    else if(t.type === "refund") totalExpense -= t.amount;
   });
 
   var chipsHtml = '<div class="reg-summary">'
