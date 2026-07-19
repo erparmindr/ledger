@@ -921,7 +921,7 @@ select[data-no-cd]:focus-visible{
 .mo-header:hover{ background:var(--surface-2); }
 .mo-title{ font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:7px; }
 .mo-chevron{ transition:transform 0.2s; color:var(--text-faint); font-size:9px; }
-.mo-chevron.open{ transform:rotate(0); }
+.mo-section.collapsed .mo-chevron{ transform:rotate(-90deg); }
 .mo-count{ font-weight:400; font-size:11px; color:var(--text-faint); }
 .mo-summary{ display:flex; gap:10px; font-size:10.5px; font-weight:600; }
 .mo-summary .pos{ color:var(--sage); }

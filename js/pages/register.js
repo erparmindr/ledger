@@ -306,7 +306,7 @@ function renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunn
     html += '<span class="pos">+' + window.Ledger.fmtMoneyShort(yearInc) + '</span>';
     html += '<span class="neg">\u2212' + window.Ledger.fmtMoneyShort(yearExp) + '</span>';
     html += '</div></div>';
-    html += '<div class="yr-body">';
+    html += '<div class="yr-body" style="max-height:' + (isYearCollapsed ? 0 : (yearCount * 48 + monthKeys.length * 40)) + 'px;">';
 
     monthKeys.forEach(function(mk){
       var txs = months[mk];
@@ -319,9 +319,9 @@ function renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunn
       var isMonthCollapsed = cm[mk];
       var bodyMaxH = isMonthCollapsed ? 0 : (txs.length * 48);
 
-      html += '<div class="mo-section">';
+      html += '<div class="mo-section' + (isMonthCollapsed ? ' collapsed' : '') + '">';
       html += '<div class="mo-header" onclick="window.Ledger.toggleRegMonth(\'' + mk + '\')">';
-      html += '<div class="mo-title"><span class="mo-chevron' + (isMonthCollapsed ? '' : ' open') + '">\u25BC</span> ' + window.Ledger.monthLabelOf(mk) + ' <span class="mo-count">(' + txs.length + ')</span></div>';
+      html += '<div class="mo-title"><span class="mo-chevron">\u25BC</span> ' + window.Ledger.monthLabelOf(mk) + ' <span class="mo-count">(' + txs.length + ')</span></div>';
       html += '<div class="mo-summary">';
       html += '<span class="pos">+' + window.Ledger.fmtMoneyShort(inc) + '</span>';
       html += '<span class="neg">\u2212' + window.Ledger.fmtMoneyShort(exp) + '</span>';
