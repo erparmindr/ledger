@@ -37,8 +37,8 @@ window.Ledger.defaultData = function() {
   var uid = window.Ledger.uid;
   return {
     accounts:[
-      {id:uid(), name:"Checking", type:"checking", currency:"USD", openingBalance:0, archived:false, created:Date.now()},
-      {id:uid(), name:"Cash", type:"cash", currency:"USD", openingBalance:0, archived:false, created:Date.now()}
+      {id:uid(), name:"Checking", type:"checking", currency:"USD", openingBalance:0, archived:false, reconciledBalance:null, reconciledAt:null, created:Date.now()},
+      {id:uid(), name:"Cash", type:"cash", currency:"USD", openingBalance:0, archived:false, reconciledBalance:null, reconciledAt:null, created:Date.now()}
     ],
     people:[],
     transactions:[],
@@ -76,8 +76,14 @@ window.Ledger.loadData = function() {
       return r;
     });
 
+    var accounts = (parsed.accounts || d.accounts).map(function(ac){
+      if(typeof ac.reconciledBalance === "undefined") ac.reconciledBalance = null;
+      if(typeof ac.reconciledAt === "undefined") ac.reconciledAt = null;
+      return ac;
+    });
+
     return {
-      accounts: parsed.accounts || d.accounts,
+      accounts: accounts,
       people: parsed.people || [],
       transactions: parsed.transactions || [],
       categories: categories,

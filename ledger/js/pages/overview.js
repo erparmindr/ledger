@@ -135,9 +135,12 @@ window.Ledger.pages.renderOverviewPage = function(){
       var balCls = (isCredit && bal < 0) ? " neg" : "";
       var typeAbrv = a.type === "credit_card" ? "CC" : a.type === "savings" ? "SAV" : a.type === "cash" ? "CASH" : "CHK";
       var typeLabel = a.type === "credit_card" ? "Credit Card" : a.type === "savings" ? "Savings" : a.type === "cash" ? "Cash" : "Checking";
+      var drift = (a.reconciledBalance !== null && a.reconciledBalance !== undefined) ? Math.round((bal - a.reconciledBalance) * 100) / 100 : null;
+      var driftHtml = (drift !== null && drift !== 0) ? '<div class="am-drift">\u26A0 ' + window.Ledger.fmtMoney(drift, a.currency) + ' off</div>' : '';
       return '<div class="acct-mini-card '+toneClass+'" data-acct-click="'+a.id+'">'
         + '<div class="am-top"><div class="am-name">'+window.Ledger.escapeHtml(a.name)+'</div><span class="am-badge '+toneClass+'">'+typeAbrv+'</span></div>'
         + '<div class="am-bal num'+balCls+'">'+window.Ledger.fmtMoney(bal, a.currency)+'</div>'
+        + driftHtml
         + '<div class="am-meta">'+typeLabel+' &middot; '+a.currency+'</div>'
         + '</div>';
     }).join("") + '</div>';

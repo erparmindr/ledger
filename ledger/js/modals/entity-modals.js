@@ -697,11 +697,15 @@ window.Ledger.openAccountModal = function(existing){
       var name = document.getElementById("acName").value.trim();
       if(!name){ window.Ledger.showToast("Enter an account name"); return; }
       var ob = parseFloat(document.getElementById("acOpening").value) || 0;
+      var reb = isEdit ? a.reconciledBalance : null;
+      var rea = isEdit ? a.reconciledAt : null;
       if(isEdit){
         var setBal = document.getElementById("acSetBalance").value;
         if(setBal !== "" && !isNaN(parseFloat(setBal))){
           var txSum = curBal - a.openingBalance;
           ob = parseFloat(setBal) - txSum;
+          reb = parseFloat(setBal);
+          rea = Date.now();
         }
       }
       var rec = {
@@ -711,6 +715,8 @@ window.Ledger.openAccountModal = function(existing){
         currency: document.getElementById("acCurrency").value,
         openingBalance: ob,
         archived: isEdit ? document.getElementById("acArchived").checked : false,
+        reconciledBalance: reb,
+        reconciledAt: rea,
         created: isEdit ? a.created : Date.now()
       };
       if(isEdit){
