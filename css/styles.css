@@ -543,6 +543,117 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .dp-wrap.dp-compact .dp-panel{ min-width:240px; padding:10px; }
 .dp-wrap.dp-compact .dp-day{ width:28px; height:28px; font-size:11px; }
 
+/* ---- Date range picker popover (standalone) ---- */
+.drp-popover{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-lift);
+  padding:14px;
+  min-width:540px;
+}
+.drp-chips{ display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+.drp-chip{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:var(--radius-pill);
+  padding:5px 12px;
+  font-size:12px;
+  font-weight:500;
+  color:var(--text-dim);
+  cursor:pointer;
+  transition:all var(--transition-fast);
+}
+.drp-chip:hover{ background:var(--brass-soft); border-color:var(--brass); color:var(--text); }
+.drp-inputs{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+}
+.drp-input-group{ display:flex; align-items:center; gap:6px; }
+.drp-input-label{ font-size:11px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; }
+.drp-input{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  padding:6px 10px;
+  font-size:13px;
+  font-weight:500;
+  color:var(--text);
+  width:110px;
+  transition:border-color var(--transition-fast);
+}
+.drp-input:focus{ outline:none; border-color:var(--brass); box-shadow:0 0 0 3px var(--brass-soft); }
+.drp-input-sep{ color:var(--text-faint); font-size:14px; flex-shrink:0; }
+.drp-calendars{ display:flex; gap:12px; }
+.drp-calendar{ position:relative; flex:1; min-width:0; }
+.drp-month-title{
+  background:none;
+  border:none;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:600;
+  color:var(--text);
+  padding:2px 6px;
+  border-radius:var(--radius-sm);
+  transition:background var(--transition-fast);
+}
+.drp-month-title:hover{ background:var(--surface-2); }
+/* Month grid overlay */
+.drp-month-grid{
+  position:absolute;
+  top:0; left:0; right:0; bottom:0;
+  background:var(--surface);
+  z-index:10;
+  display:flex;
+  flex-direction:column;
+  padding:0 2px;
+}
+.drp-month-grid-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+.drp-month-grid-head .drp-year-title{ font-size:13px; font-weight:600; color:var(--text); }
+.drp-month-grid-body{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:4px;
+  flex:1;
+  align-content:start;
+}
+.drp-month-cell{
+  background:none;
+  border:1px solid transparent;
+  border-radius:var(--radius-sm);
+  padding:8px 4px;
+  font-size:12px;
+  font-weight:500;
+  color:var(--text-dim);
+  cursor:pointer;
+  transition:all var(--transition-fast);
+  text-align:center;
+}
+.drp-month-cell:hover{ background:var(--surface-2); color:var(--text); }
+.drp-month-cell.current{ background:var(--brass-soft); color:var(--brass-bright); font-weight:600; }
+/* Range highlighting on calendar days */
+.dp-day.in-range{ background:var(--brass-soft); }
+.dp-day.range-start,
+.dp-day.range-end{ background:var(--brass); color:var(--bg); font-weight:600; }
+.dp-day.range-start:hover,
+.dp-day.range-end:hover{ background:var(--brass-bright); }
+/* Footer */
+.drp-foot{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid var(--border-soft);
+}
+
 /* Native select styling — CSS chevron arrow, theme-aware */
 select{
   appearance:none;
@@ -1558,19 +1669,6 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   outline-offset:-2px;
 }
 
-/* ---- Date range picker inside dropdown list ---- */
-.cd-date-range{
-  border-top:1px solid var(--border-soft);
-  padding:10px;
-  margin-top:4px;
-}
-.cdr-inputs{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-.cdr-sep{ color:var(--text-faint); font-size:12px; flex-shrink:0; }
-
 /* ============================================================
    RESPONSIVE — small phones
    ============================================================ */
@@ -1628,6 +1726,13 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   .type-pills{ gap:4px; }
   .type-pill{ padding:8px 6px; font-size:11px; }
   .dp-panel{ min-width:240px; left:auto; right:-8px; }
+  .drp-popover{ width:calc(100vw - 32px); min-width:0; left:16px!important; }
+  .drp-calendars{ flex-direction:column; }
+  .drp-chips{ gap:4px; }
+  .drp-chip{ padding:4px 8px; font-size:11px; }
+  .drp-inputs{ flex-direction:column; align-items:stretch; gap:6px; }
+  .drp-input-sep{ display:none; }
+  .drp-input{ width:100%; box-sizing:border-box; }
   .cd-list{ max-height:180px; }
 }
 

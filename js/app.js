@@ -77,84 +77,33 @@ window.Ledger.renderPage = function(){
   window.Ledger.initCustomDropdowns();
   if(window.Ledger.initDatePickers) window.Ledger.initDatePickers();
 
-  /* ---- Date range picker inside fDatePreset dropdown ---- */
-  if(window.Ledger.currentPage === "transactions"){
-    var fDatePresetSel = document.getElementById("fDatePreset");
-    if(fDatePresetSel){
-      var cdWrap = fDatePresetSel.previousElementSibling;
+  /* ---- Custom date range picker popover ---- */
+  if(window.Ledger.currentPage === "transactions" || window.Ledger.currentPage === "reports"){
+    var isTx = window.Ledger.currentPage === "transactions";
+    var presetId = isTx ? "fDatePreset" : "rDatePreset";
+    var stateObj = isTx ? "registerFilters" : "reportState";
+    var presetSel = document.getElementById(presetId);
+    if(presetSel){
+      var cdWrap = presetSel.previousElementSibling;
       if(cdWrap && cdWrap.classList.contains("cd-wrap")){
         var cdList = cdWrap.querySelector(".cd-list");
-        var fValFrom = window.Ledger.registerFilters.dateFrom || "";
-        var fValTo = window.Ledger.registerFilters.dateTo || "";
-        var dateRangeDiv = document.createElement("div");
-        dateRangeDiv.className = "cd-date-range";
-        dateRangeDiv.innerHTML =
-          '<div style="display:flex;gap:8px;align-items:center;">'
-          + '<div class="dp-wrap dp-compact">'
-          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (fValFrom ? '' : ' placeholder') + '">' + (fValFrom ? window.Ledger.escapeHtml(window.Ledger.dpFormatDate(fValFrom)) : 'From') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
-          + '<input type="hidden" class="dp-hidden" id="fDateFrom" value="' + window.Ledger.escapeHtml(fValFrom) + '">'
-          + '<div class="dp-panel"></div>'
-          + '</div>'
-          + '<span class="cdr-sep">&ndash;</span>'
-          + '<div class="dp-wrap dp-compact">'
-          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (fValTo ? '' : ' placeholder') + '">' + (fValTo ? window.Ledger.escapeHtml(window.Ledger.dpFormatDate(fValTo)) : 'To') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
-          + '<input type="hidden" class="dp-hidden" id="fDateTo" value="' + window.Ledger.escapeHtml(fValTo) + '">'
-          + '<div class="dp-panel"></div>'
-          + '</div>'
-          + '</div>';
-        var isCustom = fDatePresetSel.value === "custom";
-        dateRangeDiv.style.display = isCustom ? "" : "none";
-        cdList.appendChild(dateRangeDiv);
         var customItem = cdList.querySelector('[data-val="custom"]');
         if(customItem){
-          customItem.setAttribute("data-no-close", "true");
           customItem.addEventListener("click", function(){
-            dateRangeDiv.style.display = "";
+            var st = window.Ledger[stateObj];
+            window.Ledger.openDateRangePicker({
+              from: st.dateFrom || "",
+              to: st.dateTo || "",
+              anchorEl: cdWrap,
+              onApply: function(f, t){
+                st.dateFrom = f;
+                st.dateTo = t;
+                st.datePreset = "custom";
+                window.Ledger.renderPage();
+              }
+            });
           });
         }
-        window.Ledger._wireDatePickerPanel(dateRangeDiv.querySelector("#fDateFrom"), "registerFilters", "dateFrom", "renderPage");
-        window.Ledger._wireDatePickerPanel(dateRangeDiv.querySelector("#fDateTo"), "registerFilters", "dateTo", "renderPage");
-      }
-    }
-  }
-
-  /* ---- Date range picker inside rDatePreset dropdown (reports) ---- */
-  if(window.Ledger.currentPage === "reports"){
-    var rDatePresetSel = document.getElementById("rDatePreset");
-    if(rDatePresetSel){
-      var rCdWrap = rDatePresetSel.previousElementSibling;
-      if(rCdWrap && rCdWrap.classList.contains("cd-wrap")){
-        var rCdList = rCdWrap.querySelector(".cd-list");
-        var rValFrom = window.Ledger.reportState.dateFrom || "";
-        var rValTo = window.Ledger.reportState.dateTo || "";
-        var rDateRangeDiv = document.createElement("div");
-        rDateRangeDiv.className = "cd-date-range";
-        rDateRangeDiv.innerHTML =
-          '<div style="display:flex;gap:8px;align-items:center;">'
-          + '<div class="dp-wrap dp-compact">'
-          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (rValFrom ? '' : ' placeholder') + '">' + (rValFrom ? window.Ledger.escapeHtml(window.Ledger.dpFormatDate(rValFrom)) : 'From') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
-          + '<input type="hidden" class="dp-hidden" id="rDateFrom" value="' + window.Ledger.escapeHtml(rValFrom) + '">'
-          + '<div class="dp-panel"></div>'
-          + '</div>'
-          + '<span class="cdr-sep">&ndash;</span>'
-          + '<div class="dp-wrap dp-compact">'
-          + '<div class="dp-display" tabindex="0"><span class="dp-text' + (rValTo ? '' : ' placeholder') + '">' + (rValTo ? window.Ledger.escapeHtml(window.Ledger.dpFormatDate(rValTo)) : 'To') + '</span><span class="dp-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>'
-          + '<input type="hidden" class="dp-hidden" id="rDateTo" value="' + window.Ledger.escapeHtml(rValTo) + '">'
-          + '<div class="dp-panel"></div>'
-          + '</div>'
-          + '</div>';
-        var rIsCustom = rDatePresetSel.value === "custom";
-        rDateRangeDiv.style.display = rIsCustom ? "" : "none";
-        rCdList.appendChild(rDateRangeDiv);
-        var rCustomItem = rCdList.querySelector('[data-val="custom"]');
-        if(rCustomItem){
-          rCustomItem.setAttribute("data-no-close", "true");
-          rCustomItem.addEventListener("click", function(){
-            rDateRangeDiv.style.display = "";
-          });
-        }
-        window.Ledger._wireDatePickerPanel(rDateRangeDiv.querySelector("#rDateFrom"), "reportState", "dateFrom", "renderPage");
-        window.Ledger._wireDatePickerPanel(rDateRangeDiv.querySelector("#rDateTo"), "reportState", "dateTo", "renderPage");
       }
     }
   }
