@@ -1196,7 +1196,7 @@ window.Ledger.openUpdateBalanceModal = function(id){
 window.Ledger.openDeleteAccountModal = function(id){
   var a = window.Ledger.findAccount(id);
   if(!a) return;
-  var txCount = window.Ledger.DB.transactions.filter(function(t){ return t.account === id || t.toAccount === id; }).length;
+  var txCount = window.Ledger.DB.transactions.filter(function(t){ return t.account === id || (t.fromType==="account" && t.fromId===id) || (t.toType==="account" && t.toId===id); }).length;
 
   var html = ''
     + '<div class="modal-head"><h3>Delete account</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'

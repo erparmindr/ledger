@@ -212,7 +212,9 @@ window.Ledger.unarchiveAccount = function(id) {
 
 window.Ledger.deleteAccount = function(id) {
   window.Ledger.DB.accounts = window.Ledger.DB.accounts.filter(function(a){ return a.id !== id; });
-  window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(t){ return t.account !== id && t.toAccount !== id; });
+  window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(t){
+    return t.account !== id && !(t.fromType==="account" && t.fromId===id) && !(t.toType==="account" && t.toId===id);
+  });
   window.Ledger.saveData();
   window.Ledger.renderPage();
   window.Ledger.showToast("Account deleted");
