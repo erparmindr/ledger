@@ -10,7 +10,6 @@ window.Ledger = window.Ledger || {};
  *   init()           → Promise  — open DB, run migrations
  *   load()           → Promise<data>  — read full state
  *   save(data)       → Promise  — persist full state
- *   clear()          → Promise  — wipe persisted state
  *
  * Design:
  *   - DB is always the in-memory `window.Ledger.DB`
@@ -66,18 +65,6 @@ window.Ledger = window.Ledger || {};
     });
   }
 
-  function idbClear(){
-    return openIDB().then(function(db){
-      return new Promise(function(resolve, reject){
-        var tx    = db.transaction(STORE_NAME, "readwrite");
-        var store = tx.objectStore(STORE_NAME);
-        var req   = store.delete(IDB_KEY);
-        req.onsuccess = function(){ resolve(); };
-        req.onerror   = function(){ reject(req.error); };
-      });
-    });
-  }
-
   /* -----------------------------------------------------------
      localStorage helpers (sync, used as fallback / backup)
      ----------------------------------------------------------- */
@@ -91,10 +78,6 @@ window.Ledger = window.Ledger || {};
   function lsWrite(data){
     try{ localStorage.setItem(window.Ledger.STORAGE_KEY, JSON.stringify(data)); }
     catch(e){ console.warn("localStorage write failed:", e); }
-  }
-
-  function lsClear(){
-    try{ localStorage.removeItem(window.Ledger.STORAGE_KEY); }catch(e){}
   }
 
   /* -----------------------------------------------------------
@@ -135,10 +118,6 @@ window.Ledger = window.Ledger || {};
 
     load: function(){
       return idbGet();
-    },
-
-    clear: function(){
-      return idbClear();
     }
   };
 
