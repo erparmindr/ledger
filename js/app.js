@@ -560,6 +560,41 @@ window.Ledger.wirePageEvents = function(){
   }
 
   if(window.Ledger.currentPage === "scheduled"){
+    function schedCatOptions(type){
+      var relevant = window.Ledger.DB.categories.filter(function(c){ return c.type === type; });
+      if(!relevant.length) return '<option value="">No category</option>';
+      return '<option value="">No category</option>' + relevant.map(function(c){
+        return '<option value="'+c.id+'">'+window.Ledger.escapeHtml(c.name)+'</option>';
+      }).join("");
+    }
+    function refreshSchedSubcat(){
+      var catId = document.getElementById("rCategory").value;
+      var field = document.getElementById("rSubcatField");
+      var sel = document.getElementById("rSubcategory");
+      if(!field || !sel) return;
+      if(catId && window.Ledger.categoryHasSubs(catId)){
+        var cat = window.Ledger.findCategory(catId);
+        sel.innerHTML = cat.subs.map(function(s){
+          return '<option value="'+s.id+'">'+window.Ledger.escapeHtml(s.name)+'</option>';
+        }).join("");
+        field.style.display = "flex";
+      } else {
+        field.style.display = "none";
+        sel.innerHTML = "";
+      }
+      window.Ledger.refreshCustomDropdown(sel);
+    }
+    var rTypeEl = document.getElementById("rType");
+    if(rTypeEl) rTypeEl.addEventListener("change", function(){
+      var catSel = document.getElementById("rCategory");
+      catSel.innerHTML = schedCatOptions(rTypeEl.value);
+      window.Ledger.refreshCustomDropdown(catSel);
+      refreshSchedSubcat();
+    });
+    var rCatEl = document.getElementById("rCategory");
+    if(rCatEl) rCatEl.addEventListener("change", refreshSchedSubcat);
+    refreshSchedSubcat();
+
     var addRecurringEl = document.getElementById("addRecurringBtn");
     if(addRecurringEl) addRecurringEl.addEventListener("click", function(){
       var name = document.getElementById("rName").value.trim();
@@ -568,8 +603,12 @@ window.Ledger.wirePageEvents = function(){
       var startDate = document.getElementById("rStartDate").value;
       var type = document.getElementById("rType").value;
       var account = document.getElementById("rAccount").value;
+      var category = document.getElementById("rCategory").value;
+      var subcategory = document.getElementById("rSubcategory").value;
+      var postModeEl = document.querySelector('input[name="rPostMode"]:checked');
+      var postMode = postModeEl ? postModeEl.value : "auto";
       if(!name || isNaN(amount) || amount<=0 || !startDate || !account){ window.Ledger.showToast("Fill in all fields"); return; }
-      window.Ledger.addRecurring({ id:window.Ledger.uid(), name:name, amount:amount, frequency:frequency, startDate:startDate, type:type, account:account });
+      window.Ledger.addRecurring({ id:window.Ledger.uid(), name:name, amount:amount, frequency:frequency, startDate:startDate, type:type, account:account, category:category, subcategory:subcategory, postMode:postMode });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-confirm-recurring]"), function(b){
       b.addEventListener("click", function(){
@@ -579,18 +618,9 @@ window.Ledger.wirePageEvents = function(){
         var acc = window.Ledger.findAccount(r.account);
         window.Ledger.addTransaction({
           id:window.Ledger.uid(), type:r.type, date:window.Ledger.todayISO(), amount:r.amount, desc:r.name,
-          notes:"Posted from recurring item", account:r.account, category:"", subcategory:"", created:Date.now()
+          notes:"Posted from recurring item", account:r.account, category:r.category||"", subcategory:r.subcategory||"", created:Date.now()
         });
-        if(r.frequency === "weekly" || r.frequency === "biweekly"){
-          var step = r.frequency === "weekly" ? 7 : 14;
-          var d = new Date(r.startDate + "T00:00:00");
-          while(d <= new Date(window.Ledger.todayISO()+"T00:00:00")){ d.setDate(d.getDate() + step); }
-          r.startDate = window.Ledger.todayISOFromDate(d);
-        } else {
-          var d2 = new Date(r.startDate + "T00:00:00");
-          d2.setMonth(d2.getMonth() + 1);
-          r.startDate = window.Ledger.todayISOFromDate(d2);
-        }
+        window.Ledger._advanceRecurring(r);
         window.Ledger.saveData();
         window.Ledger.renderPage();
         window.Ledger.showToast(r.name + " posted to " + (acc?acc.name:"account"));
@@ -686,6 +716,43 @@ document.getElementById("globalSearch") && document.getElementById("globalSearch
 });
 
 /* ============================================================
+   RECURRING — advance + auto-post
+   ============================================================ */
+window.Ledger._advanceRecurring = function(r){
+  if(r.frequency === "weekly" || r.frequency === "biweekly"){
+    var step = r.frequency === "weekly" ? 7 : 14;
+    var d = new Date(r.startDate + "T00:00:00");
+    while(d <= new Date(window.Ledger.todayISO()+"T00:00:00")){ d.setDate(d.getDate() + step); }
+    r.startDate = window.Ledger.todayISOFromDate(d);
+  } else {
+    var d2 = new Date(r.startDate + "T00:00:00");
+    d2.setMonth(d2.getMonth() + 1);
+    r.startDate = window.Ledger.todayISOFromDate(d2);
+  }
+};
+
+window.Ledger.autoPostRecurring = function(){
+  var today = window.Ledger.todayISO();
+  var posted = [];
+  window.Ledger.DB.recurring.forEach(function(r){
+    if(r.postMode !== "auto") return;
+    var due = window.Ledger.nextDueDate(r, today);
+    if(due > today) return;
+    var acc = window.Ledger.findAccount(r.account);
+    window.Ledger.DB.transactions.push({
+      id:window.Ledger.uid(), type:r.type, date:today, amount:r.amount, desc:r.name,
+      notes:"Auto-posted from recurring item", account:r.account, category:r.category||"", subcategory:r.subcategory||"", created:Date.now()
+    });
+    window.Ledger._advanceRecurring(r);
+    posted.push(r.name + " → " + (acc?acc.name:"account"));
+  });
+  if(posted.length > 0){
+    window.Ledger.saveData();
+    window.Ledger.showToast("Auto-posted: " + posted.join(", "));
+  }
+};
+
+/* ============================================================
    INIT
    ============================================================ */
 window.Ledger.__LEDGER_INIT__ = function(){
@@ -705,6 +772,7 @@ window.Ledger.__LEDGER_INIT__ = function(){
   document.getElementById("globalSearchWrap").style.display = (window.Ledger.currentPage === "transactions") ? "flex" : "none";
 
   window.Ledger.renderNav();
+  window.Ledger.autoPostRecurring();
   window.Ledger.renderPage();
 };
 

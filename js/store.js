@@ -72,6 +72,9 @@ window.Ledger.normalizeData = function(parsed) {
       var candidateDay = Math.min(day, new Date(y, m+1, 0).getDate());
       r.startDate = y + "-" + pad2(m+1) + "-" + pad2(candidateDay);
     }
+    if(typeof r.category === "undefined") r.category = "";
+    if(typeof r.subcategory === "undefined") r.subcategory = "";
+    if(typeof r.postMode === "undefined") r.postMode = "review";
     return r;
   });
 
