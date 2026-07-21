@@ -17,7 +17,8 @@ window.Ledger.fmtMoney = function fmtMoney(n, currency){
   if(typeof n !== "number" || isNaN(n)) n = 0;
   var neg = n < 0;
   var abs = Math.abs(n);
-  var str = abs.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  var noDecimals = currency === "JPY";
+  var str = abs.toLocaleString(undefined, {minimumFractionDigits: noDecimals ? 0 : 2, maximumFractionDigits: noDecimals ? 0 : 2});
   var symbols = {USD:"$",CAD:"$",EUR:"\u20AC",GBP:"\u00A3",INR:"\u20B9",AUD:"$",JPY:"\u00A5"};
   var sym = symbols[currency] || (currency + " ");
   return (neg ? "\u2212" : "") + sym + str;
@@ -58,6 +59,7 @@ window.Ledger.entityRef = function entityRef(type, id){
 window.Ledger.accountBalance = function accountBalance(accountId){
   var acc = window.Ledger.findAccount(accountId);
   if(!acc) return 0;
+  var noDecimals = acc.currency === "JPY";
   var bal = acc.openingBalance || 0;
   Ledger.DB.transactions.forEach(function(t){
     var amt = t.amount;
@@ -74,7 +76,7 @@ window.Ledger.accountBalance = function accountBalance(accountId){
       }
     }
   });
-  return Math.round(bal * 100) / 100;
+  return noDecimals ? Math.round(bal) : Math.round(bal * 100) / 100;
 };
 
 window.Ledger.personBalanceByCurrency = function personBalanceByCurrency(personId){
@@ -178,6 +180,7 @@ window.Ledger.needsVerification = function needsVerification(account){
 window.Ledger.accountBreakdown = function accountBreakdown(accountId){
   var acc = window.Ledger.findAccount(accountId);
   if(!acc) return null;
+  var noDecimals = acc.currency === "JPY";
   var opening = acc.openingBalance || 0;
   var income = 0, expense = 0, refund = 0, transferOut = 0, transferIn = 0;
   window.Ledger.DB.transactions.forEach(function(t){
@@ -192,7 +195,7 @@ window.Ledger.accountBreakdown = function accountBreakdown(accountId){
     }
   });
   var computed = opening + income - expense + refund - transferOut + transferIn;
-  return { opening:opening, income:income, expense:expense, refund:refund, transferOut:transferOut, transferIn:transferIn, computed:Math.round(computed*100)/100 };
+  return { opening:opening, income:income, expense:expense, refund:refund, transferOut:transferOut, transferIn:transferIn, computed:noDecimals ? Math.round(computed) : Math.round(computed*100)/100 };
 };
 
 window.Ledger.findDuplicates = function findDuplicates(accountId){

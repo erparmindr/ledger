@@ -135,6 +135,7 @@ window.Ledger.pages.renderTransactionsPage = function(){
   if(showRunning){
     var acc = window.Ledger.findAccount(window.Ledger.registerFilters.account);
     if(acc){
+      var noDecimals = acc.currency === "JPY";
       var chrono = window.Ledger.DB.transactions.filter(function(t){
         return (t.account === acc.id) || (t.fromType==="account"&&t.fromId===acc.id) || (t.toType==="account"&&t.toId===acc.id);
       }).sort(function(a,b){ return (a.date+a.id).localeCompare(b.date+b.id); });
@@ -153,7 +154,7 @@ window.Ledger.pages.renderTransactionsPage = function(){
             if(t.toType==="account" && t.toId===acc.id) running += amt;
           }
         }
-        runBalMap[t.id] = Math.round(running * 100) / 100;
+        runBalMap[t.id] = noDecimals ? Math.round(running) : Math.round(running * 100) / 100;
       });
     }
   }

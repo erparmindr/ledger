@@ -163,10 +163,9 @@ window.Ledger = window.Ledger || {};
       return this.adapter.init().then(function(data){
         self.ready = true;
         if(data){
-          // Hot-swap: IDB data is authoritative
-          window.Ledger.DB = data;
-          // Also sync back to localStorage as backup
-          lsWrite(data);
+          var normalized = window.Ledger.normalizeData(data);
+          window.Ledger.DB = normalized;
+          lsWrite(normalized);
         }
         return data;
       }).catch(function(err){

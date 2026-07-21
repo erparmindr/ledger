@@ -50,50 +50,56 @@ window.Ledger.defaultData = function() {
   };
 };
 
-window.Ledger.loadData = function() {
+window.Ledger.normalizeData = function(parsed) {
   var uid = window.Ledger.uid;
   var pad2 = window.Ledger.pad2;
+  var d = window.Ledger.defaultData();
+  if(!parsed) return d;
+
+  var categories = parsed.categories || d.categories;
+  categories = categories.map(function(c){
+    if(!c.type) c.type = "expense";
+    return c;
+  });
+
+  var recurring = parsed.recurring || [];
+  recurring = recurring.map(function(r){
+    if(!r.frequency){
+      r.frequency = "monthly";
+      var now = new Date();
+      var day = r.day || 1;
+      var y = now.getFullYear(), m = now.getMonth();
+      var candidateDay = Math.min(day, new Date(y, m+1, 0).getDate());
+      r.startDate = y + "-" + pad2(m+1) + "-" + pad2(candidateDay);
+    }
+    return r;
+  });
+
+  var accounts = (parsed.accounts || d.accounts).map(function(ac){
+    if(typeof ac.reconciledBalance === "undefined") ac.reconciledBalance = null;
+    if(typeof ac.reconciledAt === "undefined") ac.reconciledAt = null;
+    if(typeof ac.owner === "undefined") ac.owner = "";
+    return ac;
+  });
+
+  return {
+    accounts: accounts,
+    people: parsed.people || [],
+    transactions: parsed.transactions || [],
+    categories: categories,
+    recurring: recurring,
+    debtItems: parsed.debtItems || [],
+    categoryLearning: parsed.categoryLearning || {},
+    groups: parsed.groups || []
+  };
+};
+
+window.Ledger.loadData = function() {
   try{
     var raw = localStorage.getItem(window.Ledger.STORAGE_KEY);
     if(!raw) return window.Ledger.defaultData();
     var parsed = JSON.parse(raw);
-    var d = window.Ledger.defaultData();
-    var categories = parsed.categories || d.categories;
-    categories = categories.map(function(c){
-      if(!c.type) c.type = "expense";
-      return c;
-    });
-
-    var recurring = parsed.recurring || [];
-    recurring = recurring.map(function(r){
-      if(!r.frequency){
-        r.frequency = "monthly";
-        var now = new Date();
-        var day = r.day || 1;
-        var y = now.getFullYear(), m = now.getMonth();
-        var candidateDay = Math.min(day, new Date(y, m+1, 0).getDate());
-        r.startDate = y + "-" + pad2(m+1) + "-" + pad2(candidateDay);
-      }
-      return r;
-    });
-
-    var accounts = (parsed.accounts || d.accounts).map(function(ac){
-      if(typeof ac.reconciledBalance === "undefined") ac.reconciledBalance = null;
-      if(typeof ac.reconciledAt === "undefined") ac.reconciledAt = null;
-      if(typeof ac.owner === "undefined") ac.owner = "";
-      return ac;
-    });
-
-    return {
-      accounts: accounts,
-      people: parsed.people || [],
-      transactions: parsed.transactions || [],
-      categories: categories,
-      recurring: recurring,
-      debtItems: parsed.debtItems || [],
-      categoryLearning: parsed.categoryLearning || {},
-      groups: parsed.groups || []
-    };
+    return window.Ledger.normalizeData(parsed);
   }catch(e){
     console.error("Load failed, using defaults", e);
     return window.Ledger.defaultData();

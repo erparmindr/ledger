@@ -325,8 +325,10 @@ window.Ledger.normalizeDate = function(raw){
   if(m){
     var a=parseInt(m[1],10), b=parseInt(m[2],10), y=m[3];
     if(y.length===2) y = "20"+y;
-    var mm = a>12 ? b : a;
-    var dd = a>12 ? a : b;
+    var mm, dd;
+    if(a > 12){ mm = b; dd = a; }
+    else if(b > 12){ mm = a; dd = b; }
+    else { mm = b; dd = a; }
     return y + "-" + window.Ledger.pad2(mm) + "-" + window.Ledger.pad2(dd);
   }
   var d = new Date(raw);

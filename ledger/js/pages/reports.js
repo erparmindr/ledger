@@ -52,6 +52,7 @@ window.Ledger.reportFilterTx = function(types){
   var f = window.Ledger.reportState;
   return window.Ledger.DB.transactions.filter(function(t){
     if(types.indexOf(t.type) === -1) return false;
+    if(t.linkId) return false;
     if(f.type !== "all" && t.type !== f.type) return false;
     if(!window.Ledger.reportMatchesDate(t.date)) return false;
     if(f.account !== "all"){
