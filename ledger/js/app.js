@@ -343,19 +343,77 @@ window.Ledger.wirePageEvents = function(){
 
   if(window.Ledger.currentPage === "accounts"){
     el = document.getElementById("addAcctBtn"); if(el) el.addEventListener("click", function(){ window.Ledger.openAccountModal(null); });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-edit-acct]"), function(b){
-      b.addEventListener("click", function(e){ e.stopPropagation(); window.Ledger.openAccountModal(window.Ledger.findAccount(b.getAttribute("data-edit-acct"))); });
+    el = document.getElementById("addGroupBtn"); if(el) el.addEventListener("click", function(){ window.Ledger.openAddGroupModal(); });
+
+    // Card clicks → navigate to transactions
+    Array.prototype.forEach.call(document.querySelectorAll("[data-acct-click]"), function(card){
+      card.addEventListener("click", function(e){
+        if(e.target.closest(".kw")) return;
+        var id = card.getAttribute("data-acct-click");
+        window.Ledger.registerFilters = window.Ledger.registerFilters || {};
+        window.Ledger.registerFilters.account = id;
+        window.Ledger.navigateTo("transactions");
+      });
     });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-archive-acct]"), function(b){
-      b.addEventListener("click", function(e){
+
+    // Kebab toggle
+    Array.prototype.forEach.call(document.querySelectorAll("[data-kebab-toggle]"), function(btn){
+      btn.addEventListener("click", function(e){
         e.stopPropagation();
-        var id = b.getAttribute("data-archive-acct");
-        var a = window.Ledger.findAccount(id);
-        window.Ledger.openConfirmModal("Archive account?", "Archive \"" + (a?a.name:"") + "\"? It will be hidden from active lists but all transactions stay intact. You can unarchive it later from the Archived section.", function(){
-          window.Ledger.archiveAccount(id);
+        var id = btn.getAttribute("data-kebab-toggle");
+        var menu = btn.parentElement.querySelector(".km");
+        // Close any other open menus
+        Array.prototype.forEach.call(document.querySelectorAll(".km.open"), function(m){ if(m !== menu) m.classList.remove("open"); });
+        if(menu) menu.classList.toggle("open");
+      });
+    });
+
+    // Kebab action delegation
+    Array.prototype.forEach.call(document.querySelectorAll("[data-action]"), function(btn){
+      btn.addEventListener("click", function(e){
+        e.stopPropagation();
+        var action = btn.getAttribute("data-action");
+        var id = btn.getAttribute("data-id");
+        // Close menu
+        var menu = btn.closest(".km");
+        if(menu) menu.classList.remove("open");
+        if(action === "edit"){
+          window.Ledger.openAccountModal(window.Ledger.findAccount(id));
+        } else if(action === "update-balance"){
+          window.Ledger.openUpdateBalanceModal(id);
+        } else if(action === "reconcile"){
+          var acct = window.Ledger.findAccount(id);
+          if(acct) window.Ledger.openReconModal(acct);
+        } else if(action === "archive"){
+          var a = window.Ledger.findAccount(id);
+          window.Ledger.openConfirmModal("Archive account?", "Archive \"" + (a?a.name:"") + "\"? It will be hidden from active lists but all transactions stay intact.", function(){
+            window.Ledger.archiveAccount(id);
+          });
+        } else if(action === "delete"){
+          window.Ledger.openDeleteAccountModal(id);
+        }
+      });
+    });
+
+    // Group edit/delete
+    Array.prototype.forEach.call(document.querySelectorAll("[data-edit-group]"), function(el){
+      el.addEventListener("click", function(e){
+        e.stopPropagation();
+        window.Ledger.openEditGroupModal(el.getAttribute("data-edit-group"));
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-del-group]"), function(el){
+      el.addEventListener("click", function(e){
+        e.stopPropagation();
+        var gid = el.getAttribute("data-del-group");
+        var g = (window.Ledger.DB.groups||[]).find(function(g){ return g.id === gid; });
+        window.Ledger.openConfirmModal("Delete group?", "Delete \"" + (g?g.name:"") + "\"? Accounts in this group will become ungrouped.", function(){
+          window.Ledger.deleteGroup(gid);
         });
       });
     });
+
+    // Unarchive
     Array.prototype.forEach.call(document.querySelectorAll("[data-unarchive-acct]"), function(b){
       b.addEventListener("click", function(e){
         e.stopPropagation();
@@ -363,6 +421,16 @@ window.Ledger.wirePageEvents = function(){
         var a = window.Ledger.findAccount(id);
         if(a){ window.Ledger.unarchiveAccount(id); }
       });
+    });
+
+    // Close kebab on outside click / Escape
+    document.addEventListener("click", function closeKebabs(){
+      Array.prototype.forEach.call(document.querySelectorAll(".km.open"), function(m){ m.classList.remove("open"); });
+    });
+    document.addEventListener("keydown", function closeKebabsEsc(e){
+      if(e.key === "Escape"){
+        Array.prototype.forEach.call(document.querySelectorAll(".km.open"), function(m){ m.classList.remove("open"); });
+      }
     });
   }
 

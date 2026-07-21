@@ -663,9 +663,11 @@ window.Ledger.commitLinkedTransferPair = function(linkId, date, fromAmount, toAm
 /* ---------- Account modal ---------- */
 window.Ledger.openAccountModal = function(existing){
   var isEdit = !!existing;
-  var a = existing ? Object.assign({}, existing) : { name:"", type:"checking", currency:"USD", openingBalance:0, archived:false };
+  var a = existing ? Object.assign({}, existing) : { name:"", type:"checking", currency:"USD", owner:"", openingBalance:0, archived:false };
   var typeOpts = window.Ledger.ACCOUNT_TYPES.map(function(t){ return '<option value="'+t.id+'" '+(a.type===t.id?'selected':'')+'>'+t.label+'</option>'; }).join("");
   var curOpts = window.Ledger.CURRENCIES.map(function(c){ return '<option value="'+c+'" '+(a.currency===c?'selected':'')+'>'+c+'</option>'; }).join("");
+  var OWNERS = window.Ledger.ACCOUNT_OWNERS || [];
+  var ownerOpts = '<option value="">None</option>' + OWNERS.map(function(o){ return '<option value="'+o.id+'" '+(a.owner===o.id?'selected':'')+'>'+window.Ledger.escapeHtml(o.label)+'</option>'; }).join("");
   var curBal = isEdit ? window.Ledger.accountBalance(a.id) : 0;
 
   var html = ''
@@ -676,6 +678,7 @@ window.Ledger.openAccountModal = function(existing){
     + '    <div class="field"><label>Type</label><select id="acType">' + typeOpts + '</select></div>'
     + '    <div class="field"><label>Currency</label><select id="acCurrency">' + curOpts + '</select></div>'
     + '  </div>'
+    + '  <div class="field"><label>Owner</label><select id="acOwner">' + ownerOpts + '</select></div>'
     + (isEdit ? '  <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; display:flex; align-items:center; justify-content:space-between;">'
       + '    <div><div style="font-size:11px; font-weight:700; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.05em;">Current balance</div>'
       + '    <div style="font-size:18px; font-weight:800; margin-top:2px; font-family:var(--font-num); font-variant-numeric:tabular-nums;">' + window.Ledger.fmtMoney(curBal, a.currency) + '</div></div>'
@@ -713,6 +716,7 @@ window.Ledger.openAccountModal = function(existing){
         name:name,
         type: document.getElementById("acType").value,
         currency: document.getElementById("acCurrency").value,
+        owner: document.getElementById("acOwner").value,
         openingBalance: ob,
         archived: isEdit ? document.getElementById("acArchived").checked : false,
         reconciledBalance: reb,
@@ -1145,6 +1149,123 @@ window.Ledger.openDuplicatesModal = function(){
           window.Ledger.openDuplicatesModal();
         }
       );
+    });
+  });
+};
+
+/* ---------- Update balance modal ---------- */
+window.Ledger.openUpdateBalanceModal = function(id){
+  var a = window.Ledger.findAccount(id);
+  if(!a) return;
+  var bal = window.Ledger.accountBalance(a.id);
+
+  var html = ''
+    + '<div class="modal-head"><h3>Update: ' + window.Ledger.escapeHtml(a.name) + '</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div class="modal-body">'
+    + '  <div class="recon-current-bal"><span class="recon-current-label">Computed balance</span><span class="recon-current-val num">' + window.Ledger.fmtMoney(bal, a.currency) + '</span></div>'
+    + '  <div class="field"><label>What is the correct balance?</label><input type="number" id="ubSetBalance" step="0.01" placeholder="' + window.Ledger.fmtMoney(bal, a.currency) + '"></div>'
+    + '  <p class="faint" style="font-size:11px; margin:0;">This adjusts the opening balance so the computed balance matches. Use this when the app balance doesn\'t match your bank.</p>'
+    + '</div>'
+    + '<div class="modal-foot">'
+    + '  <button class="btn" id="cancelBtn">Cancel</button>'
+    + '  <button class="btn btn-primary" id="saveUbBtn">Update balance</button>'
+    + '</div>';
+
+  window.Ledger.openModal(html, function(){
+    document.getElementById("closeModalBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("cancelBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("saveUbBtn").addEventListener("click", function(){
+      var setBal = document.getElementById("ubSetBalance").value;
+      if(setBal === "" || isNaN(parseFloat(setBal))){ window.Ledger.showToast("Enter a balance"); return; }
+      var target = parseFloat(setBal);
+      var txSum = bal - (a.openingBalance || 0);
+      var newOpening = target - txSum;
+      var rec = Object.assign({}, a, {
+        openingBalance: Math.round(newOpening * 100) / 100,
+        reconciledBalance: Math.round(target * 100) / 100,
+        reconciledAt: Date.now()
+      });
+      window.Ledger.updateAccount(rec);
+      window.Ledger.closeModal();
+      window.Ledger.showToast("Balance updated for " + a.name);
+    });
+  });
+};
+
+/* ---------- Delete account modal ---------- */
+window.Ledger.openDeleteAccountModal = function(id){
+  var a = window.Ledger.findAccount(id);
+  if(!a) return;
+  var txCount = window.Ledger.DB.transactions.filter(function(t){ return t.account === id || t.toAccount === id; }).length;
+
+  var html = ''
+    + '<div class="modal-head"><h3>Delete account</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div class="modal-body">'
+    + '  <p style="font-size:13px; margin:0;">Are you sure you want to delete <b>' + window.Ledger.escapeHtml(a.name) + '</b>?</p>'
+    + (txCount > 0 ? '<p style="font-size:12px; color:var(--clay); margin:8px 0 0;">This will also delete ' + txCount + ' transaction' + (txCount !== 1 ? 's' : '') + ' linked to this account.</p>' : '')
+    + '</div>'
+    + '<div class="modal-foot">'
+    + '  <button class="btn" id="cancelBtn">Cancel</button>'
+    + '  <button class="btn btn-danger" id="confirmDeleteBtn">Delete account</button>'
+    + '</div>';
+
+  window.Ledger.openModal(html, function(){
+    document.getElementById("closeModalBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("cancelBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("confirmDeleteBtn").addEventListener("click", function(){
+      window.Ledger.deleteAccount(id);
+      window.Ledger.closeModal();
+    });
+  });
+};
+
+/* ---------- Add group modal ---------- */
+window.Ledger.openAddGroupModal = function(){
+  var html = ''
+    + '<div class="modal-head"><h3>Add group</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div class="modal-body">'
+    + '  <div class="field"><label>Group name</label><input type="text" id="groupName" placeholder="e.g. Joint"></div>'
+    + '</div>'
+    + '<div class="modal-foot">'
+    + '  <button class="btn" id="cancelBtn">Cancel</button>'
+    + '  <button class="btn btn-primary" id="saveGroupBtn">Add group</button>'
+    + '</div>';
+
+  window.Ledger.openModal(html, function(){
+    document.getElementById("closeModalBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("cancelBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("saveGroupBtn").addEventListener("click", function(){
+      var name = document.getElementById("groupName").value.trim();
+      if(!name){ window.Ledger.showToast("Enter a group name"); return; }
+      window.Ledger.addGroup({ id: window.Ledger.uid(), name: name, created: Date.now() });
+      window.Ledger.closeModal();
+    });
+  });
+};
+
+/* ---------- Edit group modal ---------- */
+window.Ledger.openEditGroupModal = function(groupId){
+  var g = (window.Ledger.DB.groups || []).find(function(g){ return g.id === groupId; });
+  if(!g) return;
+
+  var html = ''
+    + '<div class="modal-head"><h3>Edit group</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + '<div class="modal-body">'
+    + '  <div class="field"><label>Group name</label><input type="text" id="groupName" value="' + window.Ledger.escapeHtml(g.name) + '"></div>'
+    + '</div>'
+    + '<div class="modal-foot">'
+    + '  <button class="btn" id="cancelBtn">Cancel</button>'
+    + '  <button class="btn btn-primary" id="saveGroupBtn">Save changes</button>'
+    + '</div>';
+
+  window.Ledger.openModal(html, function(){
+    document.getElementById("closeModalBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("cancelBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("saveGroupBtn").addEventListener("click", function(){
+      var name = document.getElementById("groupName").value.trim();
+      if(!name){ window.Ledger.showToast("Enter a group name"); return; }
+      window.Ledger.updateGroup({ id: g.id, name: name, created: g.created });
+      window.Ledger.closeModal();
     });
   });
 };

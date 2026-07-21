@@ -37,15 +37,16 @@ window.Ledger.defaultData = function() {
   var uid = window.Ledger.uid;
   return {
     accounts:[
-      {id:uid(), name:"Checking", type:"checking", currency:"USD", openingBalance:0, archived:false, reconciledBalance:null, reconciledAt:null, created:Date.now()},
-      {id:uid(), name:"Cash", type:"cash", currency:"USD", openingBalance:0, archived:false, reconciledBalance:null, reconciledAt:null, created:Date.now()}
+      {id:uid(), name:"Checking", type:"checking", currency:"USD", owner:"", openingBalance:0, archived:false, reconciledBalance:null, reconciledAt:null, created:Date.now()},
+      {id:uid(), name:"Cash", type:"cash", currency:"USD", owner:"", openingBalance:0, archived:false, reconciledBalance:null, reconciledAt:null, created:Date.now()}
     ],
     people:[],
     transactions:[],
     categories:window.Ledger.defaultCategories(),
     recurring:[],
     debtItems:[],
-    categoryLearning:{}
+    categoryLearning:{},
+    groups:[]
   };
 };
 
@@ -79,6 +80,7 @@ window.Ledger.loadData = function() {
     var accounts = (parsed.accounts || d.accounts).map(function(ac){
       if(typeof ac.reconciledBalance === "undefined") ac.reconciledBalance = null;
       if(typeof ac.reconciledAt === "undefined") ac.reconciledAt = null;
+      if(typeof ac.owner === "undefined") ac.owner = "";
       return ac;
     });
 
@@ -89,7 +91,8 @@ window.Ledger.loadData = function() {
       categories: categories,
       recurring: recurring,
       debtItems: parsed.debtItems || [],
-      categoryLearning: parsed.categoryLearning || {}
+      categoryLearning: parsed.categoryLearning || {},
+      groups: parsed.groups || []
     };
   }catch(e){
     console.error("Load failed, using defaults", e);
@@ -196,6 +199,14 @@ window.Ledger.unarchiveAccount = function(id) {
   window.Ledger.saveData();
   window.Ledger.renderPage();
   window.Ledger.showToast("Account restored");
+};
+
+window.Ledger.deleteAccount = function(id) {
+  window.Ledger.DB.accounts = window.Ledger.DB.accounts.filter(function(a){ return a.id !== id; });
+  window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(t){ return t.account !== id && t.toAccount !== id; });
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+  window.Ledger.showToast("Account deleted");
 };
 
 // ---- Categories ----
@@ -321,6 +332,30 @@ window.Ledger.learnCategory = function(desc, catId) {
   }
 };
 
+// ---- Groups ----
+
+window.Ledger.addGroup = function(group) {
+  window.Ledger.DB.groups.push(group);
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+  window.Ledger.showToast("Group added");
+};
+
+window.Ledger.updateGroup = function(rec) {
+  var idx = window.Ledger.DB.groups.findIndex(function(g){ return g.id === rec.id; });
+  if(idx >= 0) window.Ledger.DB.groups[idx] = rec;
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+};
+
+window.Ledger.deleteGroup = function(id) {
+  window.Ledger.DB.accounts.forEach(function(a){ if(a.owner === id) a.owner = ""; });
+  window.Ledger.DB.groups = window.Ledger.DB.groups.filter(function(g){ return g.id !== id; });
+  window.Ledger.saveData();
+  window.Ledger.renderPage();
+  window.Ledger.showToast("Group deleted");
+};
+
 // ---- Full data replacement (reset, backup import) ----
 
 window.Ledger.replaceAllData = function(data) {
@@ -331,6 +366,7 @@ window.Ledger.replaceAllData = function(data) {
   window.Ledger.DB.recurring = data.recurring || [];
   window.Ledger.DB.debtItems = data.debtItems || [];
   window.Ledger.DB.categoryLearning = data.categoryLearning || {};
+  window.Ledger.DB.groups = data.groups || [];
   window.Ledger.saveData();
   window.Ledger.renderPage();
 };

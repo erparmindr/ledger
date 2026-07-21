@@ -1013,35 +1013,111 @@ select[data-no-cd]:focus-visible{
   .tx-card-with-runbal .mo-body .grp-row .grp-runbal{ display:none; }
 }
 
-/* ---- Account / People cards ---- */
-.acct-card{
-  background:var(--surface);
-  padding:14px 16px; position:relative; overflow:hidden;
-  display:flex; align-items:stretch; justify-content:space-between; gap:16px;
-  cursor:pointer;
-  transition:background var(--transition-fast);
-}
+/* ---- Net worth banner ---- */
+.nw-label{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; color:var(--text-faint); }
+.nw-groups{ display:flex; gap:12px; flex-wrap:wrap; }
+.nw-group-col{ flex:1; min-width:140px; border-radius:var(--radius-md); padding:10px 12px; }
+[data-theme="dark"] .nw-group-col{ border:1px solid var(--border-soft); }
+[data-theme="light"] .nw-group-col{ border:1px solid var(--border); background:var(--surface-2); }
+.nw-group-name{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border-soft); }
+.nw-cur-tag{ font-size:9px; font-weight:700; padding:2px 7px; border-radius:4px; letter-spacing:0.03em; flex-shrink:0; }
+[data-theme="dark"] .nw-cur-tag.USD{ background:rgba(76,175,125,0.12); color:#4caf7d; }
+[data-theme="dark"] .nw-cur-tag.CAD{ background:rgba(100,165,230,0.12); color:#64a5e6; }
+[data-theme="dark"] .nw-cur-tag.INR{ background:rgba(196,148,58,0.12); color:#c4943a; }
+[data-theme="light"] .nw-cur-tag.USD{ background:rgba(76,175,125,0.22); color:#1a7a45; font-weight:800; }
+[data-theme="light"] .nw-cur-tag.CAD{ background:rgba(100,165,230,0.22); color:#2a6bc5; font-weight:800; }
+[data-theme="light"] .nw-cur-tag.INR{ background:rgba(196,148,58,0.22); color:#8a6810; font-weight:800; }
+.nw-cur-val{ font-size:24px; font-weight:800; letter-spacing:-0.02em; line-height:1.3; font-variant-numeric:tabular-nums; }
+.nw-cur-val.pos{ color:var(--sage); } .nw-cur-val.neg{ color:var(--clay); }
+.nw-cur-row{ display:flex; align-items:baseline; gap:6px; margin-bottom:2px; }
+.nw-cur-row:last-child{ margin-bottom:0; }
+
+/* ---- Groups section ---- */
+.groups-section{ margin-bottom:20px; }
+.groups-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.groups-title{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-faint); }
+.groups-list{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.group-chip{ display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:var(--radius-pill); border:1px solid var(--border); background:var(--surface-2); font-size:12px; font-weight:600; color:var(--text-dim); cursor:default; transition:all var(--transition-fast); }
+.group-chip:hover{ border-color:var(--brass); color:var(--text); }
+.group-chip .group-count{ background:var(--border); color:var(--text-faint); font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; }
+.group-chip .group-edit{ cursor:pointer; opacity:0.5; transition:opacity 0.1s; font-size:11px; }
+.group-chip:hover .group-edit{ opacity:1; }
+.group-chip .group-del{ cursor:pointer; opacity:0.3; transition:opacity 0.1s; color:var(--clay); font-size:11px; }
+.group-chip:hover .group-del{ opacity:0.8; }
+.add-group-btn{ display:inline-flex; align-items:center; gap:4px; padding:5px 12px; border-radius:var(--radius-pill); border:1px dashed var(--border); background:none; font-size:12px; font-weight:600; color:var(--text-faint); cursor:pointer; transition:all var(--transition-fast); }
+.add-group-btn:hover{ border-color:var(--brass); color:var(--brass); }
+
+/* ---- Card tile grid ---- */
+#cardGrid{ display:flex; flex-direction:column; gap:24px; }
+.owner-group{ }
+.owner-group .card-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:10px; }
+.owner-header{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; margin-bottom:10px; border-bottom:1px solid var(--border-soft); }
+.owner-left{ display:flex; align-items:center; gap:10px; }
+.owner-avatar{ width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0; background:var(--surface-2); color:var(--text-dim); border:1px solid var(--border); }
+.owner-name{ font-size:13px; font-weight:700; }
+.owner-count{ font-size:10px; font-weight:600; color:var(--text-faint); }
+
+/* ---- Tile card ---- */
+.tile{ border-radius:12px; padding:14px; position:relative; cursor:pointer; transition:transform 0.15s, box-shadow 0.15s; }
+.tile:hover{ transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.2); z-index:10; }
+[data-theme="dark"] .tile{ background:linear-gradient(155deg,#181818,#111); border:1px solid #1a1a1a; }
+[data-theme="light"] .tile{ background:linear-gradient(155deg,#fff,#f0f0f0); border:1px solid #eee; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+.tile.kind-credit[data-theme="dark"]{ background:linear-gradient(150deg,#241418,#160F11); border-color:rgba(226,80,47,0.15); }
+.tile.kind-credit[data-theme="light"]{ background:linear-gradient(150deg,#FCE6E0,#fff 60%); border-color:rgba(226,80,47,0.1); }
+.tile-init{ width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; margin-bottom:10px; }
+.tile-init.checking{ background:rgba(76,175,125,0.1); color:#4caf7d; }
+.tile-init.savings{ background:rgba(100,165,230,0.1); color:#64a5e6; }
+.tile-init.credit_card{ background:rgba(226,80,47,0.1); color:#e2503f; }
+.tile-init.investment{ background:rgba(196,148,58,0.1); color:#c4943a; }
+.tile-init.cash{ background:rgba(150,150,150,0.1); color:#888; }
+.tile-name{ font-size:13px; font-weight:700; margin-bottom:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tile-meta{ font-size:10px; display:flex; align-items:center; gap:5px; margin-bottom:10px; color:var(--text-faint); }
+.tile-bal{ font-size:20px; font-weight:800; letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
+.tile-bal.neg{ color:var(--clay); }
+.tile-kebab{ position:absolute; bottom:14px; right:14px; }
+
+/* ---- Account badge ---- */
+.acct-badge{ font-size:9px; font-weight:700; padding:1px 6px; border-radius:4px; }
+.acct-badge.needs-verify{ background:rgba(240,194,78,0.1); color:var(--brass); }
+.acct-badge.drift{ background:rgba(226,80,47,0.08); color:var(--clay); }
+
+/* ---- Currency tag ---- */
+.cur-tag{ font-size:9px; font-weight:700; padding:1px 6px; border-radius:4px; letter-spacing:0.03em; }
+.cur-tag.USD{ background:rgba(76,175,125,0.12); color:#4caf7d; }
+.cur-tag.CAD{ background:rgba(100,165,230,0.12); color:#64a5e6; }
+.cur-tag.INR{ background:rgba(196,148,58,0.12); color:#c4943a; }
+
+/* ---- Type dot ---- */
+.dot{ width:6px; height:6px; border-radius:50%; display:inline-block; flex-shrink:0; }
+.dot.checking{ background:#4caf7d; }
+.dot.savings{ background:#64a5e6; }
+.dot.credit_card{ background:#e2503f; }
+.dot.investment{ background:#c4943a; }
+.dot.cash{ background:#888; }
+
+/* ---- Kebab menu (account tiles) ---- */
+.kw{ position:relative; }
+.kb{ background:none; border:none; color:var(--text-faint); font-size:16px; cursor:pointer; padding:2px 6px; border-radius:4px; line-height:1; opacity:0; transition:opacity 0.15s; }
+.tile:hover .kb{ opacity:1; }
+.km{ display:none; position:absolute; bottom:100%; right:0; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 8px 24px rgba(0,0,0,0.3); min-width:160px; z-index:100; padding:4px 0; }
+.km.open{ display:block; }
+.ki{ display:flex; align-items:center; gap:8px; width:100%; padding:7px 12px; border:none; background:none; font-size:12px; font-weight:600; color:var(--text); cursor:pointer; text-align:left; transition:background 0.1s; }
+.ki:hover{ background:var(--surface-2); }
+.ki.danger{ color:var(--clay); }
+.ki.danger:hover{ background:rgba(226,80,47,0.08); }
+.ico{ font-size:13px; width:16px; text-align:center; flex-shrink:0; }
+.kd{ height:1px; background:var(--border-soft); margin:4px 0; }
+
+/* ---- Archived account cards (legacy) ---- */
+.acct-card{ background:var(--surface); padding:14px 16px; position:relative; overflow:hidden; display:flex; align-items:stretch; justify-content:space-between; gap:16px; cursor:pointer; transition:background var(--transition-fast); }
 .acct-card:hover{ background:color-mix(in srgb, var(--surface) 96%, var(--text) 4%); }
-.acct-card:active{ transform:scale(0.998); }
 .acct-card-left{ position:relative; z-index:2; flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:3px; }
 .acct-card-right{ position:relative; z-index:2; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between; gap:10px; min-width:0; }
 .acct-card-actions{ display:flex; gap:2px; }
 .acct-card-actions .icon-btn{ min-width:auto; min-height:auto; padding:3px; }
 .acct-card .nm{ font-size:15px; font-weight:700; color:var(--text); line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.acct-card .acct-type-label{ font-size:11.5px; color:var(--text-dim); font-weight:600; letter-spacing:0.02em; }
 .acct-card .bal{ font-family:var(--font-num); font-size:17px; font-weight:800; letter-spacing:-0.02em; line-height:1; white-space:nowrap; font-variant-numeric:tabular-nums; }
 .acct-card.archived{ opacity:.55; }
-.acct-card.kind-credit{ border-left:3px solid var(--clay); }
-.acct-card:not(.kind-credit){ border-left:3px solid var(--sage); }
-.acct-drift{
-  display:inline-flex; align-items:center; gap:4px;
-  margin-top:4px; padding:2px 8px; border-radius:var(--radius-sm);
-  background:rgba(226,80,47,0.08); color:var(--clay);
-  font-size:10.5px; font-weight:700; cursor:pointer;
-  transition:background var(--transition-fast);
-}
-.acct-drift:hover{ background:rgba(226,80,47,0.15); }
-.acct-drift-icon{ font-size:12px; }
 
 /* ---- Mini account cards (overview grid) ---- */
 .acct-grid{ display:flex; gap:var(--sp-3); flex-wrap:wrap; }
@@ -1591,9 +1667,8 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   .empty-state{ padding:28px 16px; }
   .empty-icon{ width:38px; height:38px; }
   .empty-icon svg{ width:18px; height:18px; }
-  .acct-card{ padding:12px 14px; gap:12px; }
-  .acct-card .bal{ font-size:15px; }
-  .acct-card .nm{ font-size:14px; }
+  #cardGrid{ gap:16px; }
+  .owner-group .card-grid{ grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); }
   .reg-summary{ padding:10px 16px; gap:6px; }
   .reg-chip{ padding:4px 10px; font-size:10.5px; }
   .tx-col-header{ padding:8px 14px; font-size:9.5px; }

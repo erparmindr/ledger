@@ -2,6 +2,11 @@ window.Ledger = window.Ledger || {};
 
 window.Ledger.CURRENCIES = ["USD","CAD","EUR","GBP","INR","AUD","JPY"];
 
+window.Ledger.ACCOUNT_OWNERS = [
+  {id:"me", label:"My Accounts", avatar:"M", cls:"avatar-me"},
+  {id:"wife", label:"Wife's Accounts", avatar:"W", cls:"avatar-wife"}
+];
+
 window.Ledger.ACCOUNT_TYPES = [
   {id:"checking", label:"Checking"},
   {id:"savings", label:"Savings"},
