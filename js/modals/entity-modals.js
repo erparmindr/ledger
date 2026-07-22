@@ -665,7 +665,7 @@ window.Ledger.openAccountModal = function(existing){
   var isEdit = !!existing;
   var a = existing ? Object.assign({}, existing) : { name:"", type:"checking", currency:"USD", owner:"", openingBalance:0, archived:false };
   var typeOpts = window.Ledger.ACCOUNT_TYPES.map(function(t){ return '<option value="'+t.id+'" '+(a.type===t.id?'selected':'')+'>'+t.label+'</option>'; }).join("");
-  var curOpts = window.Ledger.CURRENCIES.map(function(c){ return '<option value="'+c+'" '+(a.currency===c?'selected':'')+'>'+c+'</option>'; }).join("");
+  var curSuggestions = window.Ledger.CURRENCIES.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join("");
   var OWNERS = window.Ledger.ACCOUNT_OWNERS || [];
   var ownerOpts = '<option value="">None</option>' + OWNERS.map(function(o){ return '<option value="'+o.id+'" '+(a.owner===o.id?'selected':'')+'>'+window.Ledger.escapeHtml(o.label)+'</option>'; }).join("");
   var curBal = isEdit ? window.Ledger.accountBalance(a.id) : 0;
@@ -676,7 +676,7 @@ window.Ledger.openAccountModal = function(existing){
     + '  <div class="field"><label>Name</label><input type="text" id="acName" value="' + window.Ledger.escapeHtml(a.name) + '" placeholder="e.g. Checking"></div>'
     + '  <div class="form-row">'
     + '    <div class="field"><label>Type</label><select id="acType">' + typeOpts + '</select></div>'
-    + '    <div class="field"><label>Currency</label><select id="acCurrency">' + curOpts + '</select></div>'
+    + '    <div class="field"><label>Currency</label><input type="text" id="acCurrency" list="acCurrencyList" value="' + window.Ledger.escapeHtml(a.currency) + '" placeholder="e.g. USD" style="text-transform:uppercase;" maxlength="10"><datalist id="acCurrencyList">' + curSuggestions + '</datalist></div>'
     + '  </div>'
     + '  <div class="field"><label>Owner</label><select id="acOwner">' + ownerOpts + '</select></div>'
     + (isEdit ? '  <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; display:flex; align-items:center; justify-content:space-between;">'
@@ -715,7 +715,7 @@ window.Ledger.openAccountModal = function(existing){
         id: isEdit ? a.id : window.Ledger.uid(),
         name:name,
         type: document.getElementById("acType").value,
-        currency: document.getElementById("acCurrency").value,
+        currency: (document.getElementById("acCurrency").value || "USD").trim().toUpperCase(),
         owner: document.getElementById("acOwner").value,
         openingBalance: ob,
         archived: isEdit ? document.getElementById("acArchived").checked : false,
