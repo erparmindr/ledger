@@ -11,7 +11,7 @@ A private, offline-first personal finance ledger. No accounts, no cloud, no trac
 ### Core
 - **Transaction tracking** — Log expenses, income, transfers, and refunds with dates, categories, notes, and amounts
 - **Multi-account** — Checking, savings, cash, credit card, and investment accounts with per-account balances
-- **Multi-currency** — Supports USD, CAD, EUR, GBP, INR, AUD, JPY with per-account currency selection (JPY uses whole units, no decimals)
+- **Multi-currency** — Any ISO 4217 currency code supported; common currencies shown as suggestions, type any custom code (JPY uses whole units, no decimals)
 - **Running balance** — See your balance update in real-time on the register with tabular numerals
 - **Transfer system** — 5 default transfer categories, add/rename/delete in Categories page
 - **Pending transfers** — Link transfers to destination later, track unmatched transfers from imports
@@ -70,8 +70,10 @@ A private, offline-first personal finance ledger. No accounts, no cloud, no trac
 - **Installable** — Add to home screen on mobile or desktop
 - **Responsive** — Three breakpoints (880px, 760px, 480px) with collapsible sidebar, stacked layouts, and full-width dropdowns on small screens
 - **Search** — Global search across all transactions
-- **Date filters** — Today, this week, this month, this year, this quarter, or custom range picker
-- **Custom date picker** — Themed date input component with range presets
+- **Date filters** — Today, this week, this month, this year, all time, or custom range
+- **Custom date range picker** — Standalone popover with side-by-side calendars, quick-jump chips (7/30/90 days, YTD), editable text inputs, month grid navigation, range highlighting, and Apply/Cancel
+- **Upcoming scheduled banner** — When date range extends past today, shows count of upcoming recurring transactions with link to Scheduled page
+- **Transaction date limit** — Manual transactions capped at today (no future dates); future dates only via CSV import
 - **Custom dropdowns** — Themed dropdown components replacing native selects across all select elements
 - **FAB button** — Floating "New transaction" button for quick access
 - **Sticky sidebar** — Sidebar stays visible while scrolling on desktop
@@ -95,7 +97,7 @@ A private, offline-first personal finance ledger. No accounts, no cloud, no trac
 - **HTML/CSS/JS** — Vanilla, no frameworks, no build step
 - **PWA** — Service worker for offline caching, web manifest for installability
 - **IndexedDB** — Primary storage with localStorage fallback
-- **Custom components** — Themed dropdowns, date picker, modal system, floating action button
+- **Custom components** — Themed dropdowns, date picker, date range picker, modal system, floating action button
 - **Lucide Icons** — Loaded via CDN
 - **Manrope** — Google Fonts
 
@@ -119,7 +121,8 @@ A private, offline-first personal finance ledger. No accounts, no cloud, no trac
 │   ├── components/
 │   │   ├── transaction-row.js          # Shared transaction row renderer
 │   │   ├── custom-dropdown.js          # Themed dropdown component
-│   │   └── date-picker.js              # Custom date picker with range presets
+│   │   ├── date-picker.js              # Custom date picker (max-date support)
+│   │   └── date-range-picker.js        # Standalone range picker with side-by-side calendars
 │   ├── pages/
 │   │   ├── overview.js                 # Dashboard with balance + reconciliation banner + upcoming bills
 │   │   ├── register.js                 # Transaction log with cascading filters + year/month grouping
