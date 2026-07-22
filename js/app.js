@@ -213,6 +213,10 @@ window.Ledger.wirePageEvents = function(){
     wireClearFilters("clearFiltersBtn");
     wireClearFilters("clearFiltersBtn2");
 
+    /* Upcoming banner "View" link */
+    var upcomingLink = document.querySelector(".upcoming-link");
+    if(upcomingLink) upcomingLink.addEventListener("click", function(e){ e.preventDefault(); window.Ledger.navigateTo("scheduled"); });
+
     /* Hide FAB when transactions is empty (no transactions or no matches) */
     var fab = document.getElementById("newTxBtn");
     var regCard = document.getElementById("txCard");
@@ -506,6 +510,10 @@ window.Ledger.wirePageEvents = function(){
     });
     var exportReportCsv = document.getElementById("exportReportCsv");
     if(exportReportCsv) exportReportCsv.addEventListener("click", window.Ledger.exportCsv);
+
+    /* Upcoming banner "View" link */
+    var upcomingLink = document.querySelector(".upcoming-link");
+    if(upcomingLink) upcomingLink.addEventListener("click", function(e){ e.preventDefault(); window.Ledger.navigateTo("scheduled"); });
   }
 
   if(window.Ledger.currentPage === "scheduled"){

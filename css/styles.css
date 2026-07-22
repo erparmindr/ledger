@@ -1670,6 +1670,35 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   outline-offset:-2px;
 }
 
+/* ---- Upcoming scheduled banner ---- */
+.upcoming-banner{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  background:var(--brass-soft);
+  border:1px solid var(--brass-muted, var(--border));
+  border-radius:var(--radius-md);
+  font-size:12px;
+  font-weight:500;
+  color:var(--text-dim);
+  margin:0 0 4px;
+}
+.upcoming-icon{
+  display:flex;
+  align-items:center;
+  color:var(--brass);
+  flex-shrink:0;
+}
+.upcoming-link{
+  margin-left:auto;
+  color:var(--brass-bright);
+  font-weight:600;
+  text-decoration:none;
+  transition:color var(--transition-fast);
+}
+.upcoming-link:hover{ color:var(--text); }
+
 /* ============================================================
    RESPONSIVE — small phones
    ============================================================ */

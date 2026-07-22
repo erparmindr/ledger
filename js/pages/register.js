@@ -255,11 +255,32 @@ window.Ledger.pages.renderTransactionsPage = function(){
     listHtml = renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunning, runBalMap);
   }
 
+  /* ---- Upcoming scheduled banner ---- */
+  var upcomingHtml = "";
+  var todayISO = window.Ledger.todayISO();
+  var rangeEnd = null;
+  if(f.datePreset === "custom" && f.dateTo) rangeEnd = f.dateTo;
+  else if(f.datePreset === "all") rangeEnd = "9999-12-31";
+  else if(f.datePreset === "year") rangeEnd = new Date().getFullYear() + "-12-31";
+  if(rangeEnd && rangeEnd > todayISO){
+    var upcomingCount = window.Ledger.DB.recurring.filter(function(r){
+      return r.startDate && r.startDate > todayISO && r.startDate <= rangeEnd;
+    }).length;
+    if(upcomingCount > 0){
+      upcomingHtml = '<div class="upcoming-banner">'
+        + '<span class="upcoming-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>'
+        + '<span>' + upcomingCount + ' upcoming scheduled transaction' + (upcomingCount !== 1 ? 's' : '') + ' in this period</span>'
+        + '<a href="#" class="upcoming-link" data-nav-link="scheduled">View</a>'
+        + '</div>';
+    }
+  }
+
   /* ---- Transactions header ---- */
   var cardCls = showRunning ? ' id="txCard" class="tx-card-with-runbal"' : ' id="txCard"';
   return ''
     + '<div' + cardCls + '>'
     + '<div class="reg-section">' + toolbarHtml + '</div>'
+    + (upcomingHtml ? '<div class="reg-section">' + upcomingHtml + '</div>' : '')
     + '<div class="reg-section">' + colHeaders + '</div>'
     + '<div class="reg-section">' + listHtml + '</div>'
     + '</div>';
