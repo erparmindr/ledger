@@ -9,6 +9,7 @@ window.Ledger.initDatePickers = function(){
   Array.prototype.forEach.call(inputs, function(inp){
     inp.classList.add("dp-initialized");
     var value = inp.value || "";
+    var maxAttr = inp.getAttribute("data-max");
     var parentField = inp.closest(".field");
 
     var wrap = document.createElement("div");
@@ -44,7 +45,11 @@ window.Ledger.initDatePickers = function(){
     hidden.className = "dp-hidden";
     if(inp.id) hidden.id = inp.id;
     if(inp.name) hidden.name = inp.name;
+    if(maxAttr) hidden.setAttribute("data-max", maxAttr);
     wrap.appendChild(hidden);
+
+    var maxDate = null;
+    if(maxAttr === "today"){ maxDate = new Date(); maxDate.setHours(0,0,0,0); }
 
     var panel = document.createElement("div");
     panel.className = "dp-panel";
@@ -69,7 +74,7 @@ window.Ledger.initDatePickers = function(){
       var html = '<div class="dp-head">'
         + '<button class="dp-nav dp-prev" type="button">&lsaquo;</button>'
         + '<span class="dp-title">' + monthNames[m] + " " + y + '</span>'
-        + '<button class="dp-nav dp-next" type="button">&rsaquo;</button>'
+        + '<button class="dp-nav dp-next" type="button"' + (maxDate && currentMonth >= new Date(maxDate.getFullYear(), maxDate.getMonth()+1, 1) ? ' disabled' : '') + '>&rsaquo;</button>'
         + '</div>'
         + '<div class="dp-grid">';
       for(var d = 0; d < 7; d++){
@@ -84,6 +89,7 @@ window.Ledger.initDatePickers = function(){
         var cls = "dp-day";
         if(dt.getTime() === today.getTime()) cls += " today";
         if(selected && dt.getTime() === selected.getTime()) cls += " selected";
+        if(maxDate && dt > maxDate) cls += " dp-disabled";
         html += '<button class="' + cls + '" type="button" data-date="' + y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0') + '">' + d + '</button>';
       }
       html += '</div>';
@@ -106,6 +112,7 @@ window.Ledger.initDatePickers = function(){
       Array.prototype.forEach.call(dayBtns, function(btn){
         btn.addEventListener("click", function(e){
           e.stopPropagation();
+          if(btn.classList.contains("dp-disabled")) return;
           var val = btn.getAttribute("data-date");
           hidden.value = val;
           text.textContent = window.Ledger.dpFormatDate(val);
@@ -122,6 +129,9 @@ window.Ledger.initDatePickers = function(){
       } else {
         currentMonth = new Date();
         currentMonth.setDate(1);
+      }
+      if(maxDate && currentMonth > maxDate){
+        currentMonth = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
       }
       render();
       panel.classList.add("open");

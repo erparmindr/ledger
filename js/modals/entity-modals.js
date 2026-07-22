@@ -54,7 +54,7 @@ window.Ledger.openTxModal = function(existing){
     + '  <div class="field"><label>Description <span class="faint">(optional)</span></label><input type="text" id="txDesc" value="' + window.Ledger.escapeHtml(t.desc||"") + '" placeholder="e.g. Groceries at Metro"><div id="catSuggestions" class="cat-suggestions"></div></div>'
     + '  <div class="form-row">'
     + '    <div class="field"><label>Amount</label><input type="number" id="txAmount" step="0.01" min="0.01" value="' + (t.amount||"") + '"></div>'
-    + '    <div class="field"><label>Date</label><input type="date" id="txDate" value="' + t.date + '"></div>'
+    + '    <div class="field"><label>Date</label><input type="date" id="txDate" value="' + t.date + '" data-max="today"></div>'
     + '  </div>'
     + '  <div id="exIncFields" class="tx-section' + (t.type==='transfer'?' tx-hidden':'') + '">'
     + '    <div class="form-row">'

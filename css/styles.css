@@ -523,6 +523,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 }
 .dp-day.selected:hover{ background:var(--brass-bright); }
 .dp-day.dp-empty{ cursor:default; }
+.dp-day.dp-disabled{ opacity:0.3; cursor:not-allowed; pointer-events:none; }
 [data-theme="dark"] .dp-display{
   background:var(--surface-2);
   border-color:var(--border);
