@@ -86,10 +86,17 @@ window.Ledger.getCategoriesForType = function(type){
 };
 
 window.Ledger.getSubsForFilter = function(type, categoryId){
-  if(!categoryId || categoryId === "all") return [];
-  var cat = window.Ledger.findCategory(categoryId);
-  if(!cat || !cat.subs || !cat.subs.length) return [];
-  return cat.subs;
+  if(categoryId && categoryId !== "all"){
+    var cat = window.Ledger.findCategory(categoryId);
+    if(!cat || !cat.subs || !cat.subs.length) return [];
+    return cat.subs;
+  }
+  var allCats = window.Ledger.getCategoriesForType(type);
+  var subs = [];
+  allCats.forEach(function(c){
+    if(c.subs) c.subs.forEach(function(s){ subs.push(s); });
+  });
+  return subs;
 };
 
 /* ---- get all unique month keys in descending order ---- */
