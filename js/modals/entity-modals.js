@@ -120,15 +120,23 @@ window.Ledger.openTxModal = function(existing){
       if(suggestions.length === 0){ sugBox.innerHTML = ""; return; }
       var currentCatId = document.getElementById("txCategory").value;
       sugBox.innerHTML = '<span class="cat-sug-label">Suggested:</span>' + suggestions.map(function(s){
-        return '<button type="button" class="cat-sug-pill' + (s.id === currentCatId ? ' active' : '') + '" data-catid="' + s.id + '">' + window.Ledger.escapeHtml(s.name) + '</button>';
+        return '<button type="button" class="cat-sug-pill' + (s.id === currentCatId ? ' active' : '') + '" data-catid="' + s.id + '" data-subid="' + (s.subcategoryId || "") + '">' + window.Ledger.escapeHtml(s.name) + '</button>';
       }).join("");
       Array.prototype.forEach.call(sugBox.querySelectorAll(".cat-sug-pill"), function(pill){
         pill.addEventListener("click", function(){
           var catId = pill.getAttribute("data-catid");
+          var subId = pill.getAttribute("data-subid") || "";
           var catSel = document.getElementById("txCategory");
           catSel.value = catId;
           window.Ledger.refreshCustomDropdown(catSel);
           refreshSubcatOptions();
+          if(subId){
+            var subSel = document.getElementById("txSubcategory");
+            if(subSel){
+              subSel.value = subId;
+              window.Ledger.refreshCustomDropdown(subSel);
+            }
+          }
           renderCatSuggestions();
         });
       });
@@ -515,6 +523,10 @@ window.Ledger.openTxModal = function(existing){
           } else {
             window.Ledger.commitLinkedTransferPair(window.Ledger.uid(), date, amount, convertedAmount, desc, notes, fromType, fromId, toType, toId, Date.now(), txCat, txSub);
           }
+          if(!isEdit && desc && txCat){
+            window.Ledger.learnCategory(desc, txCat);
+            if(txSub) window.Ledger.learnSubcategory(desc, txCat, txSub);
+          }
           window.Ledger.closeModal();
           window.Ledger.showToast("Cross-currency transfer saved");
           return;
@@ -533,6 +545,10 @@ window.Ledger.openTxModal = function(existing){
           created: isEdit ? t.created : Date.now()
         };
         if(isEdit && t.linkId){ window.Ledger.deleteTransactionsByLink(t.linkId); }
+        if(!isEdit && desc && txCat){
+          window.Ledger.learnCategory(desc, txCat);
+          if(txSub) window.Ledger.learnSubcategory(desc, txCat, txSub);
+        }
         window.Ledger.commitTransaction(rec, isEdit);
         window.Ledger.closeModal();
         window.Ledger.showToast(isEdit ? "Transaction updated" : "Transaction added");
@@ -561,6 +577,8 @@ window.Ledger.openTxModal = function(existing){
             window.Ledger.replaceDebtItemsForTransaction(mainId, [], true);
           } else {
             window.Ledger.addTransaction(mainRec);
+            window.Ledger.learnCategory(yourDesc, fCategory);
+            if(fSub) window.Ledger.learnSubcategory(yourDesc, fCategory, fSub);
           }
           friendSplit.shares.forEach(function(share){
             window.Ledger.DB.debtItems.push({
@@ -610,6 +628,10 @@ window.Ledger.openTxModal = function(existing){
           created: isEdit ? t.created : Date.now()
         };
         if(currentType === "refund" && refundOf) rec2.refundOf = refundOf;
+        if(!isEdit && desc && category){
+          window.Ledger.learnCategory(desc, category);
+          if(subcategory) window.Ledger.learnSubcategory(desc, category, subcategory);
+        }
         window.Ledger.commitTransaction(rec2, isEdit);
         window.Ledger.closeModal();
         window.Ledger.showToast(isEdit ? "Transaction updated" : "Transaction added");

@@ -134,7 +134,9 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     if(r.suggestedCategoryId === undefined){
       if(!r.type && REFUND_KW.test(r.desc)) r.type = "refund";
       var forType = r.type || (r.amount < 0 ? "expense" : "income");
-      r.suggestedCategoryId = window.Ledger.suggestCategoryForDescription(r.desc, forType, window.Ledger.DB, window.Ledger.findCategory) || "";
+      var sug = window.Ledger.suggestCategoryForDescription(r.desc, forType, window.Ledger.DB, window.Ledger.findCategory);
+      r.suggestedCategoryId = sug ? sug.categoryId : "";
+      r.suggestedSubcategoryId = sug ? (sug.subcategoryId || "") : "";
     }
   });
 
@@ -274,7 +276,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
           var txObj = {
             id: newId, type: "transfer", date: r.date, amount: Math.abs(r.amount),
             desc: chosenDesc, notes: "Imported from " + (source||"import"),
-            account: account, category: chosenCategory, subcategory: "", created: Date.now(),
+            account: account, category: chosenCategory, subcategory: (r.suggestedSubcategoryId || ""), created: Date.now(),
             fromType: "account", fromId: account, pending: isPending
           };
           if(toAccountId){
@@ -288,10 +290,13 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
           txArray.push({
             id: newId2, type: chosenType, date: r.date, amount: Math.abs(r.amount),
             desc: chosenDesc, notes: "Imported from " + (source||"import"),
-            account: account, category: chosenCategory, subcategory: "", created: Date.now()
+            account: account, category: chosenCategory, subcategory: (r.suggestedSubcategoryId || ""), created: Date.now()
           });
           importedIds.push(newId2);
           window.Ledger.learnCategory(chosenDesc, chosenCategory);
+          if(r.suggestedSubcategoryId){
+            window.Ledger.learnSubcategory(chosenDesc, chosenCategory, r.suggestedSubcategoryId);
+          }
         }
         imported++;
       });

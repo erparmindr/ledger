@@ -46,6 +46,7 @@ window.Ledger.defaultData = function() {
     recurring:[],
     debtItems:[],
     categoryLearning:{},
+    subcategoryLearning:{},
     groups:[]
   };
 };
@@ -93,6 +94,7 @@ window.Ledger.normalizeData = function(parsed) {
     recurring: recurring,
     debtItems: parsed.debtItems || [],
     categoryLearning: parsed.categoryLearning || {},
+    subcategoryLearning: parsed.subcategoryLearning || {},
     groups: parsed.groups || []
   };
 };
@@ -138,13 +140,18 @@ window.Ledger.addTransaction = function(tx, skipSave) {
   }
 };
 
-window.Ledger.addTransactionBatch = function(txArray, categoryLearning) {
+window.Ledger.addTransactionBatch = function(txArray, categoryLearning, subcategoryLearning) {
   for(var i = 0; i < txArray.length; i++){
     window.Ledger.DB.transactions.push(txArray[i]);
   }
   if(categoryLearning){
     for(var k in categoryLearning){
       if(categoryLearning.hasOwnProperty(k)) window.Ledger.DB.categoryLearning[k] = categoryLearning[k];
+    }
+  }
+  if(subcategoryLearning){
+    for(var k in subcategoryLearning){
+      if(subcategoryLearning.hasOwnProperty(k)) window.Ledger.DB.subcategoryLearning[k] = subcategoryLearning[k];
     }
   }
   window.Ledger.saveData();
@@ -340,6 +347,16 @@ window.Ledger.learnCategory = function(desc, catId) {
   var firstToken = key.split(" ")[0] || "";
   if(firstToken.length >= 4){
     window.Ledger.DB.categoryLearning[firstToken] = catId;
+  }
+};
+
+window.Ledger.learnSubcategory = function(desc, catId, subId) {
+  if(!desc || !catId || !subId) return;
+  if(!window.Ledger.DB.subcategoryLearning) window.Ledger.DB.subcategoryLearning = {};
+  var key = window.Ledger.learnedCategoryKey(desc);
+  var firstToken = key.split(" ")[0] || "";
+  if(firstToken.length >= 4){
+    window.Ledger.DB.subcategoryLearning[firstToken] = { catId: catId, subId: subId };
   }
 };
 
