@@ -9,6 +9,7 @@ window.Ledger.registerFilters = { account:"all", currency:"all", category:"all",
 window.Ledger.registerMonthsVisible = 2;
 window.Ledger.registerCollapsedYears = {};
 window.Ledger.registerCollapsedMonths = {};
+window.Ledger.registerSelectedTx = {};
 
 var INITIAL_MONTHS = 2;
 var LOAD_MORE_MONTHS = 2;
@@ -242,7 +243,11 @@ window.Ledger.pages.renderTransactionsPage = function(){
   /* ---- Column headers ---- */
   var colHdrCls = 'grp-col-header';
   if(showRunning) colHdrCls += ' show-runbal';
+  var visibleTxCount = sorted.length;
+  var selectedCount = sorted.filter(function(t){ return window.Ledger.registerSelectedTx[t.id]; }).length;
+  var allChecked = visibleTxCount > 0 && selectedCount === visibleTxCount;
   var colHeaders = '<div class="' + colHdrCls + '">'
+    + '<span class="grp-check-cell"><input type="checkbox" id="selectAllTx" class="grp-check" ' + (allChecked ? 'checked' : '') + '></span>'
     + '<span>Date</span>'
     + '<span>Description</span>'
     + '<span>Type</span>'
@@ -305,12 +310,28 @@ window.Ledger.pages.renderTransactionsPage = function(){
     }
   }
 
+  /* ---- Bulk action bar ---- */
+  var bulkBarHtml = "";
+  if(selectedCount > 0){
+    var bulkCatOpts = '<option value="">No change</option>' + '<option value="__clear__">Remove category</option>' + window.Ledger.DB.categories.map(function(c){
+      return '<option value="'+c.id+'">'+window.Ledger.escapeHtml(c.name)+'</option>';
+    }).join("");
+    bulkBarHtml = '<div class="bulk-bar" id="bulkBar">'
+      + '<span class="bulk-count">' + selectedCount + ' selected</span>'
+      + '<select id="bulkCat" class="bulk-select">' + bulkCatOpts + '</select>'
+      + '<select id="bulkSub" class="bulk-select" style="display:none"><option value="">No change</option><option value="__clear__">Remove subcategory</option></select>'
+      + '<button class="btn btn-sm btn-primary" id="bulkApplyBtn">Apply</button>'
+      + '<button class="btn btn-sm" id="bulkClearBtn">Clear selection</button>'
+      + '</div>';
+  }
+
   /* ---- Transactions header ---- */
   var cardCls = showRunning ? ' id="txCard" class="tx-card-with-runbal"' : ' id="txCard"';
   return ''
     + '<div' + cardCls + '>'
     + '<div class="reg-section">' + toolbarHtml + '</div>'
     + (upcomingHtml ? '<div class="reg-section">' + upcomingHtml + '</div>' : '')
+    + (bulkBarHtml ? '<div class="reg-section">' + bulkBarHtml + '</div>' : '')
     + '<div class="reg-section">' + colHeaders + '</div>'
     + '<div class="reg-section">' + listHtml + '</div>'
     + '</div>';
@@ -455,8 +476,10 @@ function renderGroupedTxRow(t, showRunning, runBalMap){
 
   var notesIcon = t.notes ? '<span class="grp-notes" title="' + window.Ledger.escapeHtml(t.notes) + '">📝</span>' : '';
   var runbalCls = showRunning ? ' show-runbal' : '';
+  var isChecked = window.Ledger.registerSelectedTx[t.id] ? ' checked' : '';
 
-  return '<div class="grp-row" data-tx="' + t.id + '">'
+  return '<div class="grp-row' + (isChecked ? ' grp-row-selected' : '') + '" data-tx="' + t.id + '">'
+    + '<span class="grp-check-cell"><input type="checkbox" class="grp-check" data-tx-check="' + t.id + '"' + isChecked + '></span>'
     + '<span class="grp-date">' + dateDisp + '</span>'
     + '<span class="grp-desc">' + window.Ledger.escapeHtml(descLabel) + notesIcon + '</span>'
     + '<span class="grp-type"><span class="grp-type-dot" style="background:' + typeColor + ';"></span>' + typeLabel + '</span>'

@@ -237,6 +237,76 @@ window.Ledger.wirePageEvents = function(){
       window.Ledger.openAutoCategorizeModal(uncatTx);
     });
 
+    /* ---- Bulk selection checkboxes ---- */
+    var selectAllCb = document.getElementById("selectAllTx");
+    if(selectAllCb) selectAllCb.addEventListener("change", function(){
+      var visible = window.Ledger.filteredTransactions();
+      visible.forEach(function(t){
+        if(selectAllCb.checked) window.Ledger.registerSelectedTx[t.id] = true;
+        else delete window.Ledger.registerSelectedTx[t.id];
+      });
+      window.Ledger.renderPage();
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-tx-check]"), function(cb){
+      cb.addEventListener("change", function(){
+        var txId = cb.getAttribute("data-tx-check");
+        if(cb.checked) window.Ledger.registerSelectedTx[txId] = true;
+        else delete window.Ledger.registerSelectedTx[txId];
+        window.Ledger.renderPage();
+      });
+    });
+
+    /* ---- Bulk action bar ---- */
+    var bulkCatSel = document.getElementById("bulkCat");
+    var bulkSubSel = document.getElementById("bulkSub");
+    if(bulkCatSel){
+      bulkCatSel.addEventListener("change", function(){
+        var catId = bulkCatSel.value;
+        if(catId && catId !== "__clear__" && window.Ledger.categoryHasSubs(catId)){
+          var cat = window.Ledger.findCategory(catId);
+          bulkSubSel.innerHTML = '<option value="">No change</option><option value="__clear__">Remove subcategory</option>'
+            + (cat ? cat.subs.map(function(s){ return '<option value="'+s.id+'">'+window.Ledger.escapeHtml(s.name)+'</option>'; }).join("") : "");
+          bulkSubSel.style.display = "";
+        } else {
+          bulkSubSel.innerHTML = '<option value="">No change</option>';
+          bulkSubSel.style.display = "none";
+        }
+      });
+    }
+    var bulkApplyBtn = document.getElementById("bulkApplyBtn");
+    if(bulkApplyBtn) bulkApplyBtn.addEventListener("click", function(){
+      var catVal = bulkCatSel ? bulkCatSel.value : "";
+      var subVal = bulkSubSel ? bulkSubSel.value : "";
+      if(!catVal && !subVal) return;
+      var selectedIds = Object.keys(window.Ledger.registerSelectedTx);
+      if(!selectedIds.length) return;
+      var visible = window.Ledger.filteredTransactions();
+      var visibleMap = {};
+      visible.forEach(function(t){ visibleMap[t.id] = true; });
+      var updated = 0;
+      selectedIds.forEach(function(txId){
+        if(!visibleMap[txId]) return;
+        var tx = window.Ledger.DB.transactions.find(function(t){ return t.id === txId; });
+        if(!tx || tx.type === "transfer") return;
+        var changes = {};
+        if(catVal){
+          changes.category = catVal === "__clear__" ? "" : catVal;
+          if(catVal === "__clear__") changes.subcategory = "";
+        }
+        if(subVal) changes.subcategory = subVal === "__clear__" ? "" : subVal;
+        window.Ledger.updateTransaction(txId, changes);
+        updated++;
+      });
+      window.Ledger.registerSelectedTx = {};
+      window.Ledger.renderPage();
+      window.Ledger.showToast(updated + " transaction" + (updated !== 1 ? "s" : "") + " updated");
+    });
+    var bulkClearBtn = document.getElementById("bulkClearBtn");
+    if(bulkClearBtn) bulkClearBtn.addEventListener("click", function(){
+      window.Ledger.registerSelectedTx = {};
+      window.Ledger.renderPage();
+    });
+
     /* Upcoming banner "View" link */
     var upcomingLink = document.querySelector(".upcoming-link");
     if(upcomingLink) upcomingLink.addEventListener("click", function(e){ e.preventDefault(); window.Ledger.navigateTo("scheduled"); });
