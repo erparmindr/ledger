@@ -170,6 +170,7 @@ window.Ledger.wirePageEvents = function(){
         if(prevType !== window.Ledger.registerFilters.type){
           window.Ledger.registerFilters.category = "all";
           window.Ledger.registerFilters.subcategory = "all";
+          window.Ledger.registerFilters.uncategorized = false;
         }
         if(window.Ledger.registerFilters.datePreset !== "custom"){
           window.Ledger.renderPage();
@@ -183,6 +184,7 @@ window.Ledger.wirePageEvents = function(){
         if(id === "fCategory"){
           window.Ledger.registerFilters.category = document.getElementById("fCategory").value;
           window.Ledger.registerFilters.subcategory = "all";
+          if(window.Ledger.registerFilters.category !== "all") window.Ledger.registerFilters.uncategorized = false;
         } else {
           window.Ledger.registerFilters.subcategory = document.getElementById("fSubcategory").value;
         }
@@ -205,13 +207,35 @@ window.Ledger.wirePageEvents = function(){
     function wireClearFilters(btnId){
       var btn = document.getElementById(btnId);
       if(btn) btn.addEventListener("click", function(){
-        window.Ledger.registerFilters = { account:"all", currency:"all", category:"all", subcategory:"all", type:"all", datePreset:"all", dateFrom:"", dateTo:"", search:"" };
+        window.Ledger.registerFilters = { account:"all", currency:"all", category:"all", subcategory:"all", type:"all", datePreset:"all", dateFrom:"", dateTo:"", search:"", uncategorized:false };
         var gs = document.getElementById("globalSearch"); if(gs) gs.value = "";
         window.Ledger.renderPage();
       });
     }
     wireClearFilters("clearFiltersBtn");
     wireClearFilters("clearFiltersBtn2");
+
+    /* Uncategorized filter toggle */
+    var uncatBtn = document.getElementById("uncatFilterBtn");
+    if(uncatBtn) uncatBtn.addEventListener("click", function(){
+      window.Ledger.registerFilters.uncategorized = !window.Ledger.registerFilters.uncategorized;
+      if(window.Ledger.registerFilters.uncategorized){
+        window.Ledger.registerFilters.category = "all";
+        window.Ledger.registerFilters.subcategory = "all";
+      }
+      window.Ledger.renderPage();
+    });
+
+    /* Auto-categorize button */
+    var autoCatBtn = document.getElementById("autoCategorizeBtn");
+    if(autoCatBtn) autoCatBtn.addEventListener("click", function(){
+      var uncatTx = window.Ledger.DB.transactions.filter(function(t){
+        if(t.type === "transfer" || (t.categorySplits && t.categorySplits.length) || t.category) return false;
+        return true;
+      });
+      if(!uncatTx.length) return;
+      window.Ledger.openAutoCategorizeModal(uncatTx);
+    });
 
     /* Upcoming banner "View" link */
     var upcomingLink = document.querySelector(".upcoming-link");

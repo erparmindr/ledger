@@ -1291,3 +1291,66 @@ window.Ledger.openEditGroupModal = function(groupId){
     });
   });
 };
+
+/* ============================================================
+   AUTO-CATEGORIZE MODAL
+   ============================================================ */
+window.Ledger.openAutoCategorizeModal = function(uncatTx){
+  var DB = window.Ledger.DB;
+  var findCategory = window.Ledger.findCategory;
+
+  var suggestions = uncatTx.map(function(t){
+    var sug = window.Ledger.rankCategorySuggestions(t.desc, t.type === "refund" ? "expense" : t.type, DB, findCategory);
+    var best = sug.length ? sug[0] : null;
+    return { tx: t, suggestion: best };
+  });
+
+  var willCategorize = suggestions.filter(function(s){ return s.suggestion; }).length;
+  var noMatch = suggestions.length - willCategorize;
+
+  var listHtml = suggestions.slice(0, 30).map(function(s){
+    var desc = s.tx.desc || "(no description)";
+    var catName = s.suggestion ? s.suggestion.name : "\u2014";
+    var cls = s.suggestion ? "auto-cat-match" : "auto-cat-nomatch";
+    return '<div class="auto-cat-row ' + cls + '">'
+      + '<span class="auto-cat-desc">' + window.Ledger.escapeHtml(desc) + '</span>'
+      + '<span class="auto-cat-arrow">\u2192</span>'
+      + '<span class="auto-cat-cat">' + window.Ledger.escapeHtml(catName) + '</span>'
+      + '</div>';
+  }).join("");
+  if(suggestions.length > 30){
+    listHtml += '<div class="auto-cat-row auto-cat-more">...and ' + (suggestions.length - 30) + ' more</div>';
+  }
+
+  var html = '<div class="modal-header">'
+    + '<h3>Auto-categorize</h3>'
+    + '<button class="modal-close" id="closeModalBtn">&times;</button>'
+    + '</div>'
+    + '<div class="modal-body">'
+    + '<p style="margin:0 0 12px">Found <strong>' + uncatTx.length + '</strong> uncategorized transaction' + (uncatTx.length !== 1 ? 's' : '') + '.</p>'
+    + '<p style="margin:0 0 12px"><strong>' + willCategorize + '</strong> will be categorized'
+    + (noMatch > 0 ? ', <strong>' + noMatch + '</strong> have no match' : '') + '.</p>'
+    + '<div class="auto-cat-list">' + listHtml + '</div>'
+    + '</div>'
+    + '<div class="modal-footer">'
+    + '<button class="btn" id="cancelBtn">Cancel</button>'
+    + '<button class="btn btn-primary" id="confirmAutoCatBtn"' + (!willCategorize ? ' disabled' : '') + '>Categorize ' + willCategorize + ' transaction' + (willCategorize !== 1 ? 's' : '') + '</button>'
+    + '</div>';
+
+  window.Ledger.openModal(html, function(){
+    document.getElementById("closeModalBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("cancelBtn").addEventListener("click", window.Ledger.closeModal);
+    document.getElementById("confirmAutoCatBtn").addEventListener("click", function(){
+      var updated = 0;
+      suggestions.forEach(function(s){
+        if(!s.suggestion) return;
+        var changes = { category: s.suggestion.id };
+        if(s.suggestion.subcategoryId) changes.subcategory = s.suggestion.subcategoryId;
+        window.Ledger.updateTransaction(s.tx.id, changes);
+        updated++;
+      });
+      window.Ledger.closeModal();
+      window.Ledger.showToast(updated + " transaction" + (updated !== 1 ? "s" : "") + " categorized");
+    });
+  });
+};

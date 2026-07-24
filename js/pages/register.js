@@ -5,7 +5,7 @@ window.Ledger = window.Ledger || {};
 window.Ledger.pages = window.Ledger.pages || {};
 
 /* ---- state ---- */
-window.Ledger.registerFilters = { account:"all", currency:"all", category:"all", subcategory:"all", type:"all", datePreset:"all", dateFrom:"", dateTo:"", search:"" };
+window.Ledger.registerFilters = { account:"all", currency:"all", category:"all", subcategory:"all", type:"all", datePreset:"all", dateFrom:"", dateTo:"", search:"", uncategorized:false };
 window.Ledger.registerMonthsVisible = 2;
 window.Ledger.registerCollapsedYears = {};
 window.Ledger.registerCollapsedMonths = {};
@@ -66,6 +66,11 @@ window.Ledger.filteredTransactions = function(){
       if(t.categorySplits && t.categorySplits.length){
         if(!t.categorySplits.some(function(s){ return s.subcategoryId === f.subcategory; })) return false;
       } else if(t.subcategory !== f.subcategory) return false;
+    }
+    if(f.uncategorized){
+      if(t.type === "transfer") return false;
+      if(t.categorySplits && t.categorySplits.length) return false;
+      if(t.category) return false;
     }
     if(!window.Ledger.matchesDatePreset(t.date, f.datePreset, f.dateFrom, f.dateTo)) return false;
     if(f.search && f.search.trim()){
@@ -168,11 +173,27 @@ window.Ledger.pages.renderTransactionsPage = function(){
 
   /* ---- Active filter detection ---- */
   var f = window.Ledger.registerFilters;
-  var hasActiveFilters = (f.account!=="all" || f.currency!=="all" || f.category!=="all" || f.subcategory!=="all" || f.type!=="all" || f.datePreset!=="all" || f.search.trim()!=="");
+  var hasActiveFilters = (f.account!=="all" || f.currency!=="all" || f.category!=="all" || f.subcategory!=="all" || f.type!=="all" || f.datePreset!=="all" || f.search.trim()!=="" || f.uncategorized);
   var clearBtnHtml = hasActiveFilters
     ? '<button class="clear-filters" id="clearFiltersBtn">Clear filters</button>'
     : '';
   function filteredCls(val){ return val !== "all" ? ' is-filtered' : ''; }
+
+  /* ---- Uncategorized count ---- */
+  var uncatCount = 0;
+  if(hasAnyTx){
+    uncatCount = window.Ledger.DB.transactions.filter(function(t){
+      if(t.type === "transfer" || (t.categorySplits && t.categorySplits.length) || t.category) return false;
+      return true;
+    }).length;
+  }
+  var uncatCls = f.uncategorized ? ' btn is-filtered' : ' btn';
+  var uncatBtnHtml = hasAnyTx
+    ? '<button class="' + uncatCls + '" id="uncatFilterBtn">Uncategorized' + (uncatCount > 0 ? ' (' + uncatCount + ')' : '') + '</button>'
+    : '';
+  var autoCatBtnHtml = (f.uncategorized && uncatCount > 0)
+    ? '<button class="btn btn-primary btn-sm" id="autoCategorizeBtn">Auto-categorize</button>'
+    : '';
 
   /* ---- Type-aware filter options ---- */
   var typeVal = f.type;
@@ -212,6 +233,8 @@ window.Ledger.pages.renderTransactionsPage = function(){
       return '<option value="'+p.id+'" '+(f.datePreset===p.id?"selected":"")+'>'+p.label+'</option>';
     }).join("") + '</select>'
     + clearBtnHtml
+    + uncatBtnHtml
+    + autoCatBtnHtml
     + '<button class="btn btn-sm" id="checkDupesBtn"' + (!hasAnyTx ? ' disabled' : '') + '>Check duplicates</button>'
     + '<button class="btn btn-sm" id="exportCsvBtn"' + (!hasAnyTx ? ' disabled title="Add transactions before exporting"' : '') + '>Export CSV</button>'
     + '</div>';
