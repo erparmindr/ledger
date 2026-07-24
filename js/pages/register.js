@@ -367,7 +367,8 @@ function renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunn
       months[mk].forEach(function(t){
         yearCount++;
         if(t.type === "income") yearInc += t.amount;
-        else yearExp += t.amount;
+        else if(t.type === "expense") yearExp += t.amount;
+        else if(t.type === "refund") yearExp -= t.amount;
       });
     });
 
@@ -386,7 +387,8 @@ function renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunn
       var inc = 0, exp = 0;
       txs.forEach(function(t){
         if(t.type === "income") inc += t.amount;
-        else exp += t.amount;
+        else if(t.type === "expense") exp += t.amount;
+        else if(t.type === "refund") exp -= t.amount;
       });
 
       var isMonthCollapsed = cm[mk];

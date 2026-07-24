@@ -114,6 +114,7 @@ window.Ledger.initDatePickers = function(){
           e.stopPropagation();
           if(btn.classList.contains("dp-disabled")) return;
           var val = btn.getAttribute("data-date");
+          value = val;
           hidden.value = val;
           text.textContent = window.Ledger.dpFormatDate(val);
           text.classList.remove("placeholder");

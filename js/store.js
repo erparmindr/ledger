@@ -394,6 +394,7 @@ window.Ledger.replaceAllData = function(data) {
   window.Ledger.DB.recurring = data.recurring || [];
   window.Ledger.DB.debtItems = data.debtItems || [];
   window.Ledger.DB.categoryLearning = data.categoryLearning || {};
+  window.Ledger.DB.subcategoryLearning = data.subcategoryLearning || {};
   window.Ledger.DB.groups = data.groups || [];
   window.Ledger.saveData();
   window.Ledger.renderPage();

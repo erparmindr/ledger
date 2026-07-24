@@ -823,8 +823,6 @@ window.Ledger.__LEDGER_INIT__ = function(){
   document.getElementById("globalSearchWrap").style.display = (window.Ledger.currentPage === "transactions") ? "flex" : "none";
 
   window.Ledger.renderNav();
-  window.Ledger.autoPostRecurring();
-  window.Ledger.renderPage();
 };
 
 window.Ledger.applyTheme = function(t){
@@ -852,10 +850,18 @@ document.addEventListener("DOMContentLoaded", function(){
   // Init storage layer (async: migrates localStorage → IDB if needed)
   // DB is already populated from localStorage by store.js, so UI renders immediately.
   // If IDB returns different data, we hot-swap and re-render.
+  // autoPostRecurring runs ONLY after Storage.init resolves, to avoid the stale IDB
+  // snapshot overwriting auto-posted transactions (race condition fix).
+  function afterStorageReady(){
+    window.Ledger.autoPostRecurring();
+    window.Ledger.renderPage();
+  }
   if(window.Ledger.Storage){
     window.Ledger.Storage.init().then(function(){
-      window.Ledger.renderPage();
+      afterStorageReady();
     });
+  } else {
+    afterStorageReady();
   }
 
   window.Ledger.__LEDGER_INIT__();
