@@ -256,7 +256,6 @@ window.Ledger.pages.renderTransactionsPage = function(){
     + '<span>Account</span>'
     + '<span>Amount</span>'
     + (showRunning ? '<span class="grp-runbal">Balance</span>' : '')
-    + '<span class="grp-kebab">&#8942;</span>'
     + '</div>';
 
   /* ---- Transaction list or empty state ---- */
