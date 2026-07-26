@@ -106,27 +106,13 @@ window.Ledger.openStatementPasteModal = function(){
 };
 
 /* ============================================================
-   UNIFIED IMPORT PREVIEW SYSTEM
+   UNIFIED IMPORT PREVIEW SYSTEM — grouped by description
    ============================================================ */
 
 window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, source, onBack){
   var accOpts = window.Ledger.DB.accounts.filter(function(a){ return !a.archived; }).map(function(a){
     return '<option value="'+a.id+'" '+(a.id===preselectedAccount?'selected':'')+'>'+window.Ledger.escapeHtml(a.name)+'</option>';
   }).join("");
-  var toAccOpts = '<option value="">Choose account&hellip;</option>' + window.Ledger.DB.accounts.filter(function(a){ return !a.archived; }).map(function(a){
-    return '<option value="'+a.id+'">'+window.Ledger.escapeHtml(a.name)+'</option>';
-  }).join("");
-
-  var thStyle = 'text-align:left; padding:7px 10px; font-size:10.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid var(--border); background:var(--surface-2); white-space:nowrap;';
-  var tdStyle = 'padding:6px 8px; border-bottom:1px solid var(--border-soft); vertical-align:middle;';
-
-  function catOptsFor(forType, selectedId){
-    var catType = forType === "refund" ? "expense" : forType;
-    var relevant = window.Ledger.DB.categories.filter(function(c){ return c.type === catType; });
-    return '<option value="">Choose category&hellip;</option>' + relevant.map(function(c){
-      return '<option value="'+c.id+'" '+(c.id===selectedId?'selected':'')+'>'+window.Ledger.escapeHtml(c.name)+'</option>';
-    }).join("");
-  }
 
   var REFUND_KW = /\b(refund|return|reversal|chargeback|credit\s*refund)\b/i;
 
@@ -138,70 +124,99 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       r.suggestedCategoryId = sug ? sug.categoryId : "";
       r.suggestedSubcategoryId = sug ? (sug.subcategoryId || "") : "";
     }
+    r._type = r.type || (r.amount < 0 ? "expense" : "income");
   });
 
-  var rowsHtml = parsedRows.map(function(r, i){
-    var preType = r.type || (r.amount < 0 ? "expense" : "income");
-    return '<tr id="prev-row-'+i+'">'
-      + '<td style="'+tdStyle+' text-align:center; width:32px;">'
-      + '  <input type="checkbox" class="prev-chk" data-idx="'+i+'" checked style="width:15px;height:15px;cursor:pointer;">'
-      + '</td>'
-      + '<td style="'+tdStyle+' white-space:nowrap; font-size:12px;">'+r.date+'</td>'
-      + '<td style="'+tdStyle+'">'
-      + '  <input type="text" class="prev-desc" data-idx="'+i+'" value="'+window.Ledger.escapeHtml(r.desc)+'" style="width:100%; min-width:150px; background:transparent; border:none; border-bottom:1px solid var(--border-soft); padding:3px 4px; font-size:12.5px; color:var(--text);" title="Click to edit">'
-      + '</td>'
-      + '<td style="'+tdStyle+' text-align:right; font-weight:700; font-size:13px; white-space:nowrap; font-variant-numeric:tabular-nums;">'
-      + window.Ledger.fmtMoney(Math.abs(r.amount))
-      + '</td>'
-      + '<td style="'+tdStyle+'">'
-      + '  <select class="prev-type" data-no-cd data-idx="'+i+'">'
-      + '    <option value="expense" '+(preType==="expense"?"selected":"")+'>Expense</option>'
-      + '    <option value="income" '+(preType==="income"?"selected":"")+'>Income</option>'
-      + '    <option value="transfer" '+(preType==="transfer"?"selected":"")+'>Transfer</option>'
-      + '    <option value="refund" '+(preType==="refund"?"selected":"")+'>Refund</option>'
-      + '  </select>'
-      + '</td>'
-      + '<td style="'+tdStyle+'">'
-      + '  <select class="prev-category' + (r.suggestedCategoryId ? ' border-sage' : ' border-clay') + '" data-no-cd data-idx="'+i+'">'
-      + catOptsFor(preType, r.suggestedCategoryId)
-      + '  </select>'
-      + '</td>'
-      + '<td style="'+tdStyle+' display:'+(preType==='transfer'?'':'none')+';">'
-      + '  <select class="prev-toacc border-clay" data-no-cd data-idx="'+i+'">'
-      + toAccOpts
-      + '  </select>'
-      + '</td>'
-      + '</tr>';
+  var groups = [];
+  var groupMap = {};
+  parsedRows.forEach(function(r, idx){
+    var raw = (r.desc || "").toLowerCase().replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+    var norm = window.Ledger.normalizeMerchant ? window.Ledger.normalizeMerchant(r.desc) : raw;
+    var key = norm || raw || "__empty__";
+    if(!groupMap[key]){
+      groupMap[key] = { key:key, desc:r.desc, rows:[], categoryId:r.suggestedCategoryId||"", subcategoryId:r.suggestedSubcategoryId||"" };
+      groups.push(groupMap[key]);
+    }
+    groupMap[key].rows.push({ parsedRow:r, idx:idx });
+    if(r.suggestedCategoryId && !groupMap[key].categoryId){
+      groupMap[key].categoryId = r.suggestedCategoryId;
+      groupMap[key].subcategoryId = r.suggestedSubcategoryId || "";
+    }
+  });
+
+  groups.sort(function(a,b){
+    if(!a.categoryId && b.categoryId) return -1;
+    if(a.categoryId && !b.categoryId) return 1;
+    return b.rows.length - a.rows.length;
+  });
+
+  function catOptsAll(selectedId){
+    return '<option value="">Choose category\u2026</option>' + window.Ledger.DB.categories.map(function(c){
+      return '<option value="'+c.id+'" '+(c.id===selectedId?'selected':'')+'>'+window.Ledger.escapeHtml(c.name)+(c.type!=="expense"?" ("+c.type+")":"")+'</option>';
+    }).join("");
+  }
+
+  function subOptsFor(catId, selectedId){
+    if(!catId) return '';
+    var cat = window.Ledger.findCategory(catId);
+    if(!cat || !cat.subs || !cat.subs.length) return '';
+    return '<option value="">None</option>' + cat.subs.map(function(s){
+      return '<option value="'+s.id+'" '+(s.id===selectedId?'selected':'')+'>'+window.Ledger.escapeHtml(s.name)+'</option>';
+    }).join("");
+  }
+
+  var totalRows = parsedRows.length;
+  var catCount = 0, uncatCount = 0;
+  groups.forEach(function(g){ if(g.categoryId) catCount += g.rows.length; else uncatCount += g.rows.length; });
+
+  var summaryHtml = '<div class="prev-summary">'
+    + '<span>'+groups.length+' unique description'+(groups.length!==1?'s':'')+' \u00B7 '+totalRows+' transaction'+(totalRows!==1?'s':'')+'</span>'
+    + '<span style="display:flex; gap:14px;">'
+    + '<span class="prev-summary-stat"><span class="prev-summary-dot ok"></span> '+catCount+' categorized</span>'
+    + (uncatCount > 0 ? '<span class="prev-summary-stat"><span class="prev-summary-dot warn"></span> '+uncatCount+' uncategorized</span>' : '')
+    + '</span></div>';
+
+  var groupsHtml = groups.map(function(g, gi){
+    var isUncat = !g.categoryId;
+    var groupTotal = g.rows.reduce(function(s,item){ return s + Math.abs(item.parsedRow.amount); }, 0);
+    var amtDisplay = window.Ledger.fmtMoneyShort ? window.Ledger.fmtMoneyShort(groupTotal) : window.Ledger.fmtMoney(groupTotal);
+
+    var subHtml = subOptsFor(g.categoryId, g.subcategoryId);
+    var catBorder = g.categoryId ? 'border-sage' : 'border-clay';
+
+    var rowsDetail = g.rows.map(function(item){
+      var r = item.parsedRow;
+      var sign = r._type==="income"||r._type==="refund" ? "+" : "\u2212";
+      var amtCls = (r._type==="income"||r._type==="refund") ? ' style="color:var(--sage)"' : (r._type==="transfer" ? '' : ' style="color:var(--clay)"');
+      return '<div class="prev-sub-row" data-row-idx="'+item.idx+'">'
+        + '<span class="prev-sub-date">'+r.date+'</span>'
+        + '<span class="prev-sub-desc" title="'+window.Ledger.escapeHtml(r.desc)+'">'+window.Ledger.escapeHtml(r.desc)+'</span>'
+        + '<span class="prev-sub-amt"'+amtCls+'>'+sign+window.Ledger.fmtMoney(Math.abs(r.amount))+'</span>'
+        + '</div>';
+    }).join("");
+
+    return '<div class="prev-group'+(isUncat?' prev-group-uncat':'')+'" data-gi="'+gi+'">'
+      + '<div class="prev-group-row" data-gi="'+gi+'">'
+      + '<input type="checkbox" class="prev-group-check" data-gi="'+gi+'" checked>'
+      + '<span class="prev-group-toggle" data-gi="'+gi+'">&#9654;</span>'
+      + '<span class="prev-group-desc" title="'+window.Ledger.escapeHtml(g.desc)+'">'+window.Ledger.escapeHtml(g.desc)+'</span>'
+      + '<span class="prev-group-count">'+g.rows.length+' &times; '+amtDisplay+'</span>'
+      + '<select class="prev-group-cat prev-category '+catBorder+'" data-no-cd data-gi="'+gi+'">'+catOptsAll(g.categoryId)+'</select>'
+      + (subHtml ? '<select class="prev-group-sub" data-no-cd data-gi="'+gi+'">'+subHtml+'</select>' : '')
+      + '</div>'
+      + '<div class="prev-group-rows" data-gi="'+gi+'">'+rowsDetail+'</div>'
+      + '</div>';
   }).join("");
 
   var html = ''
     + '<div class="modal-head">'
-    + '  <h3>Review '+parsedRows.length+' transaction'+(parsedRows.length===1?"":"s")+' <span class="faint" style="font-size:12px; font-weight:500;">from '+window.Ledger.escapeHtml(source||"import")+'</span></h3>'
+    + '  <h3>Review import <span class="faint" style="font-size:12px; font-weight:500;">from '+window.Ledger.escapeHtml(source||"import")+'</span></h3>'
     + '  <button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
     + '</div>'
     + '<div class="modal-body">'
-    + '  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">'
-    + '    <p class="faint" style="font-size:11.5px; margin:0;">Edit descriptions, flip types, uncheck rows to skip. Categories are auto-suggested but optional &mdash; you can assign them later.</p>'
-    + '    <div style="display:flex; gap:8px;">'
-    + '      <button class="btn btn-sm" id="selectAllBtn">Check all</button>'
-    + '      <button class="btn btn-sm" id="deselectAllBtn">Uncheck all</button>'
-    + '      <button class="btn btn-sm" id="flipSignsBtn" style="color:var(--clay);">Flip Expense&harr;Income</button>'
-    + '    </div>'
-    + '  </div>'
-    + '  <div style="overflow:auto; max-height:360px; border:1px solid var(--border); border-radius:var(--radius);">'
-    + '    <table style="width:100%; border-collapse:collapse;">'
-    + '      <tr>'
-    + '        <th style="'+thStyle+'"></th>'
-    + '        <th style="'+thStyle+'">Date</th>'
-    + '        <th style="'+thStyle+'">Description</th>'
-    + '        <th style="'+thStyle+' text-align:right;">Amount</th>'
-      + '        <th style="'+thStyle+'">Type</th>'
-      + '        <th style="'+thStyle+'">Category</th>'
-      + '      </tr>'
-    + rowsHtml
-    + '    </table>'
-    + '  </div>'
-    + '  <div class="field"><label>Import into account</label><select id="prevAccount">'+accOpts+'</select></div>'
+    + summaryHtml
+    + '<div class="prev-groups">'+groupsHtml+'</div>'
+    + '<div class="field"><label>Import into account</label><select id="prevAccount">'+accOpts+'</select></div>'
     + '</div>'
     + '<div class="modal-foot">'
     + (onBack ? '<button class="btn" id="backBtn">Back</button>' : '<button class="btn" id="cancelImportBtn">Cancel</button>')
@@ -214,92 +229,110 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     if(cancelBtn) cancelBtn.addEventListener("click", window.Ledger.closeModal);
     var backBtn = document.getElementById("backBtn");
     if(backBtn) backBtn.addEventListener("click", function(){ window.Ledger.closeModal(); if(onBack) onBack(); });
-    document.getElementById("selectAllBtn").addEventListener("click", function(){
-      Array.prototype.forEach.call(document.querySelectorAll(".prev-chk"), function(c){ c.checked = true; });
+
+    function toggleGroup(gi){
+      var rows = document.querySelector('.prev-group-rows[data-gi="'+gi+'"]');
+      var toggle = document.querySelector('.prev-group-toggle[data-gi="'+gi+'"]');
+      if(rows){ rows.classList.toggle("open"); }
+      if(toggle){ toggle.classList.toggle("open"); }
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll(".prev-group-toggle"), function(el){
+      el.addEventListener("click", function(e){ e.stopPropagation(); toggleGroup(el.getAttribute("data-gi")); });
     });
-    document.getElementById("deselectAllBtn").addEventListener("click", function(){
-      Array.prototype.forEach.call(document.querySelectorAll(".prev-chk"), function(c){ c.checked = false; });
-    });
-    document.getElementById("flipSignsBtn").addEventListener("click", function(){
-      Array.prototype.forEach.call(document.querySelectorAll(".prev-type"), function(sel){
-        if(sel.value === "expense") sel.value = "income";
-        else if(sel.value === "income") sel.value = "expense";
-        sel.dispatchEvent(new Event("change"));
+
+    Array.prototype.forEach.call(document.querySelectorAll(".prev-group-row"), function(row){
+      row.addEventListener("click", function(e){
+        if(e.target.tagName === "SELECT" || e.target.tagName === "INPUT") return;
+        toggleGroup(row.getAttribute("data-gi"));
       });
     });
 
-    Array.prototype.forEach.call(document.querySelectorAll(".prev-type"), function(sel){
+    Array.prototype.forEach.call(document.querySelectorAll(".prev-group-cat"), function(sel){
       sel.addEventListener("change", function(){
-        var idx = parseInt(sel.getAttribute("data-idx"), 10);
-        var catSel = document.querySelector('.prev-category[data-idx="'+idx+'"]');
-        var toAccTd = document.querySelector('.prev-toacc[data-idx="'+idx+'"]');
-        if(toAccTd && toAccTd.parentElement) toAccTd.parentElement.style.display = sel.value === "transfer" ? "" : "none";
-        if(catSel){
-          var suggestion = window.Ledger.suggestCategoryForDescription(parsedRows[idx].desc, sel.value, window.Ledger.DB, window.Ledger.findCategory) || "";
-          catSel.innerHTML = catOptsFor(sel.value, suggestion);
-          catSel.style.borderColor = suggestion ? "var(--sage)" : "var(--clay)";
+        var gi = parseInt(sel.getAttribute("data-gi"), 10);
+        groups[gi].categoryId = sel.value;
+        groups[gi].subcategoryId = "";
+        sel.className = "prev-group-cat prev-category " + (sel.value ? "border-sage" : "border-clay");
+        var subSel = document.querySelector('.prev-group-sub[data-gi="'+gi+'"]');
+        if(sel.value && window.Ledger.categoryHasSubs && window.Ledger.categoryHasSubs(sel.value)){
+          var cat = window.Ledger.findCategory(sel.value);
+          if(cat && cat.subs && cat.subs.length){
+            if(!subSel){
+              subSel = document.createElement("select");
+              subSel.className = "prev-group-sub";
+              subSel.setAttribute("data-no-cd","");
+              subSel.setAttribute("data-gi", gi);
+              sel.parentElement.insertBefore(subSel, sel.nextSibling);
+              if(window.Ledger.initCustomDropdowns) window.Ledger.initCustomDropdowns();
+            }
+            subSel.innerHTML = '<option value="">None</option>' + cat.subs.map(function(s){
+              return '<option value="'+s.id+'">'+window.Ledger.escapeHtml(s.name)+'</option>';
+            }).join("");
+            return;
+          }
         }
+        if(subSel) subSel.innerHTML = '<option value="">None</option>';
       });
     });
-    Array.prototype.forEach.call(document.querySelectorAll(".prev-category"), function(sel){
+
+    Array.prototype.forEach.call(document.querySelectorAll(".prev-group-sub"), function(sel){
       sel.addEventListener("change", function(){
-        sel.style.borderColor = sel.value ? "var(--sage)" : "var(--clay)";
+        var gi = parseInt(sel.getAttribute("data-gi"), 10);
+        groups[gi].subcategoryId = sel.value;
+      });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll(".prev-group-check"), function(chk){
+      chk.addEventListener("change", function(){
+        groups[parseInt(chk.getAttribute("data-gi"), 10)]._unchecked = !chk.checked;
       });
     });
 
     document.getElementById("confirmImportBtn").addEventListener("click", function(){
       var account = document.getElementById("prevAccount").value;
       if(!account){ window.Ledger.showToast("Choose an account"); return; }
-      var checks = document.querySelectorAll(".prev-chk");
-      var descs  = document.querySelectorAll(".prev-desc");
-      var types  = document.querySelectorAll(".prev-type");
-      var cats   = document.querySelectorAll(".prev-category");
-      var toAccs = document.querySelectorAll(".prev-toacc");
-
-      /* category no longer required during import — rows without a category are saved empty */
 
       var imported = 0;
       var importedIds = [];
       var txArray = [];
-      var learnMap = {};
-      Array.prototype.forEach.call(checks, function(chk, i){
-        if(!chk.checked) return;
-        var r = parsedRows[i];
-        var chosenType = types[i].value;
-        var chosenDesc = descs[i].value.trim() || r.desc || "Imported transaction";
-        var chosenCategory = cats[i].value;
 
-        if(chosenType === "transfer"){
-          var toAccountId = toAccs[i].value;
-          var isPending = !toAccountId;
-          var newId = window.Ledger.uid();
-          var txObj = {
-            id: newId, type: "transfer", date: r.date, amount: Math.abs(r.amount),
-            desc: chosenDesc, notes: "Imported from " + (source||"import"),
-            account: account, category: chosenCategory, subcategory: (r.suggestedSubcategoryId || ""), created: Date.now(),
-            fromType: "account", fromId: account, pending: isPending
-          };
-          if(toAccountId){
-            txObj.toType = "account";
-            txObj.toId = toAccountId;
+      groups.forEach(function(g){
+        if(g._unchecked) return;
+        g.rows.forEach(function(item){
+          var r = item.parsedRow;
+          var chosenType = r._type;
+          var chosenDesc = r.desc || "Imported transaction";
+          var chosenCategory = g.categoryId || "";
+          var chosenSubcategory = g.subcategoryId || "";
+
+          if(chosenType === "transfer"){
+            var newId = window.Ledger.uid();
+            txArray.push({
+              id: newId, type: "transfer", date: r.date, amount: Math.abs(r.amount),
+              desc: chosenDesc, notes: "Imported from " + (source||"import"),
+              account: account, category: chosenCategory, subcategory: chosenSubcategory, created: Date.now(),
+              fromType: "account", fromId: account, pending: true
+            });
+            importedIds.push(newId);
+          } else {
+            var newId2 = window.Ledger.uid();
+            txArray.push({
+              id: newId2, type: chosenType, date: r.date, amount: Math.abs(r.amount),
+              desc: chosenDesc, notes: "Imported from " + (source||"import"),
+              account: account, category: chosenCategory, subcategory: chosenSubcategory, created: Date.now()
+            });
+            importedIds.push(newId2);
+            if(chosenCategory){
+              window.Ledger.learnCategory(chosenDesc, chosenCategory);
+              if(chosenSubcategory) window.Ledger.learnSubcategory(chosenDesc, chosenCategory, chosenSubcategory);
+            }
           }
-          txArray.push(txObj);
-          importedIds.push(newId);
-        } else {
-          var newId2 = window.Ledger.uid();
-          txArray.push({
-            id: newId2, type: chosenType, date: r.date, amount: Math.abs(r.amount),
-            desc: chosenDesc, notes: "Imported from " + (source||"import"),
-            account: account, category: chosenCategory, subcategory: (r.suggestedSubcategoryId || ""), created: Date.now()
-          });
-          importedIds.push(newId2);
-          window.Ledger.learnCategory(chosenDesc, chosenCategory);
-          if(r.suggestedSubcategoryId){
-            window.Ledger.learnSubcategory(chosenDesc, chosenCategory, r.suggestedSubcategoryId);
-          }
-        }
-        imported++;
+          imported++;
+        });
       });
+
+      if(imported === 0){ window.Ledger.showToast("No rows checked"); return; }
       window.Ledger.addTransactionBatch(txArray);
       window.Ledger.closeModal();
       window.Ledger.showToast(imported + " transaction"+(imported===1?"":"s")+" imported");
@@ -324,7 +357,7 @@ window.Ledger.promptLinkTransfers = function(importedAccountId, importedIds){
       if(t.type !== "transfer") return false;
       var sameAmount = Math.abs(t.amount) === Math.abs(newTx.amount);
       if(!sameAmount) return false;
-      var d1 = new Date(t.date), d2 = new Date(newTx.date);
+      var d1 = new Date(t.date + "T00:00:00"), d2 = new Date(newTx.date + "T00:00:00");
       var diffDays = Math.abs((d1 - d2) / 86400000);
       if(diffDays > 2) return false;
       var touchesImported = (t.fromId === importedAccountId || t.toId === importedAccountId);
