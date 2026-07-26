@@ -1097,22 +1097,22 @@ select[data-no-cd]:focus-visible{
   border-radius:var(--radius-sm); background:var(--surface); color:var(--text);
 }
 
-/* Responsive: hide type, cat, account, checkbox on small screens */
+/* Responsive: hide type, cat, account, checkbox on small screens; keep date, desc, amount, kebab */
 @media(max-width:880px){
-  .grp-row{ grid-template-columns:80px 1fr 32px; }
+  .grp-row{ grid-template-columns:80px 1fr 100px 32px; }
   .grp-row .grp-type,
   .grp-row .grp-cat,
   .grp-row .grp-acct,
   .grp-row .grp-runbal,
   .grp-row .grp-check-cell{ display:none; }
-  .grp-col-header{ grid-template-columns:80px 1fr 32px; }
+  .grp-col-header{ grid-template-columns:80px 1fr 100px 32px; }
   .grp-col-header span:nth-child(1),
   .grp-col-header span:nth-child(4),
   .grp-col-header span:nth-child(5),
   .grp-col-header span:nth-child(6),
   .grp-col-header span:nth-child(8){ display:none; }
   .tx-card-with-runbal .yr-body .grp-row,
-  .tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:80px 1fr 32px; }
+  .tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:80px 1fr 100px 32px; }
   .tx-card-with-runbal .yr-body .grp-row .grp-runbal,
   .tx-card-with-runbal .mo-body .grp-row .grp-runbal{ display:none; }
 }
