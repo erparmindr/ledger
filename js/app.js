@@ -787,15 +787,19 @@ window.Ledger.autoPostRecurring = function(){
   var posted = [];
   window.Ledger.DB.recurring.forEach(function(r){
     if(r.postMode !== "auto") return;
-    var due = window.Ledger.nextDueDate(r, today);
-    if(due > today) return;
-    var acc = window.Ledger.findAccount(r.account);
-    window.Ledger.DB.transactions.push({
-      id:window.Ledger.uid(), type:r.type, date:today, amount:r.amount, desc:r.name,
-      notes:"Auto-posted from recurring item", account:r.account, category:r.category||"", subcategory:r.subcategory||"", created:Date.now()
-    });
-    window.Ledger._advanceRecurring(r);
-    posted.push(r.name + " → " + (acc?acc.name:"account"));
+    var safety = 0;
+    while(safety < 100){
+      var due = window.Ledger.nextDueDate(r, today);
+      if(due > today) break;
+      var acc = window.Ledger.findAccount(r.account);
+      window.Ledger.DB.transactions.push({
+        id:window.Ledger.uid(), type:r.type, date:due, amount:r.amount, desc:r.name,
+        notes:"Auto-posted from recurring item", account:r.account, category:r.category||"", subcategory:r.subcategory||"", created:Date.now()
+      });
+      window.Ledger._advanceRecurring(r);
+      safety++;
+    }
+    if(safety > 0) posted.push(r.name + " (" + safety + "x) \u2192 " + (acc?acc.name:"account"));
   });
   if(posted.length > 0){
     window.Ledger.saveData();

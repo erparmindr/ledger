@@ -369,7 +369,7 @@ window.Ledger.openTxModal = function(existing){
             if(rWords.length > 0) s += Math.round((overlap / rWords.length) * 50);
           }
           // Recency bonus (up to 10 pts for this month)
-          var d = new Date(tx.date);
+          var d = new Date(tx.date + "T00:00:00");
           var now = new Date();
           var monthsAgo = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
           if(monthsAgo <= 1) s += 10; else if(monthsAgo <= 3) s += 5;

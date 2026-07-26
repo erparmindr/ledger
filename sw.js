@@ -19,6 +19,7 @@ const APP_SHELL = [
   "./js/components/transaction-row.js",
   "./js/components/custom-dropdown.js",
   "./js/components/date-picker.js",
+  "./js/components/date-range-picker.js",
   "./js/pages/overview.js",
   "./js/pages/register.js",
   "./js/pages/accounts.js",

@@ -208,7 +208,7 @@ window.Ledger.openCsvImportModal = function(file){
             var isParenNeg = /^\(.*\)$/.test(rawAmt);
             var cleaned = rawAmt.replace(/[^0-9.\-]/g,"");
             amt = parseFloat(cleaned);
-            if(isNaN(amt) || amt === 0) return null;
+            if(isNaN(amt)) return null;
             if(isParenNeg) amt = -amt;
             if(invertChecked) amt = -amt;
             type = amt < 0 ? "expense" : "income";
@@ -276,7 +276,7 @@ window.Ledger.openCsvImportModal = function(file){
             var isParenNeg = /^\(.*\)$/.test(rawAmt);
             var cleaned = rawAmt.replace(/[^0-9.\-]/g,"");
             amt = parseFloat(cleaned);
-            if(isNaN(amt) || amt === 0) return;
+            if(isNaN(amt)) return;
             if(isParenNeg) amt = -amt;
             // Invert sign toggle: positive = expense
             if(document.getElementById("invertSign") && document.getElementById("invertSign").checked) amt = -amt;

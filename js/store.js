@@ -387,15 +387,16 @@ window.Ledger.deleteGroup = function(id) {
 // ---- Full data replacement (reset, backup import) ----
 
 window.Ledger.replaceAllData = function(data) {
-  window.Ledger.DB.accounts = data.accounts || [];
-  window.Ledger.DB.people = data.people || [];
-  window.Ledger.DB.transactions = data.transactions || [];
-  window.Ledger.DB.categories = data.categories || window.Ledger.defaultCategories();
-  window.Ledger.DB.recurring = data.recurring || [];
-  window.Ledger.DB.debtItems = data.debtItems || [];
-  window.Ledger.DB.categoryLearning = data.categoryLearning || {};
-  window.Ledger.DB.subcategoryLearning = data.subcategoryLearning || {};
-  window.Ledger.DB.groups = data.groups || [];
+  var normalized = window.Ledger.normalizeData(data);
+  window.Ledger.DB.accounts = normalized.accounts;
+  window.Ledger.DB.people = normalized.people;
+  window.Ledger.DB.transactions = normalized.transactions;
+  window.Ledger.DB.categories = normalized.categories;
+  window.Ledger.DB.recurring = normalized.recurring;
+  window.Ledger.DB.debtItems = normalized.debtItems;
+  window.Ledger.DB.categoryLearning = normalized.categoryLearning;
+  window.Ledger.DB.subcategoryLearning = normalized.subcategoryLearning;
+  window.Ledger.DB.groups = normalized.groups;
   window.Ledger.saveData();
   window.Ledger.renderPage();
 };
