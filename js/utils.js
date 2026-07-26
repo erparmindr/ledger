@@ -198,47 +198,40 @@ window.Ledger.accountBreakdown = function accountBreakdown(accountId){
   return { opening:opening, income:income, expense:expense, refund:refund, transferOut:transferOut, transferIn:transferIn, computed:noDecimals ? Math.round(computed) : Math.round(computed*100)/100 };
 };
 
+window.Ledger._dupeKey = function _dupeKey(tx){
+  var normDesc = (tx.desc || tx.description || "").toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," ").trim();
+  return (tx.date||"") + "|" + (tx.type||"") + "|" + (tx.account||"") + "|" + String(tx.amount) + "|" + normDesc;
+};
+
 window.Ledger.findDuplicates = function findDuplicates(accountId){
   var txs = window.Ledger.DB.transactions.filter(function(t){
     return t.account === accountId || (t.fromType === "account" && t.fromId === accountId) || (t.toType === "account" && t.toId === accountId);
   });
+  var map = {};
+  txs.forEach(function(t){
+    var k = window.Ledger._dupeKey(t);
+    if(!map[k]) map[k] = [];
+    map[k].push(t);
+  });
   var dupes = [];
-  for(var i = 0; i < txs.length; i++){
-    for(var j = i+1; j < txs.length; j++){
-      if(txs[i].amount === txs[j].amount && txs[i].date === txs[j].date && txs[i].description === txs[j].description && txs[i].id !== txs[j].id){
-        dupes.push(txs[i]);
-        break;
-      }
-    }
-  }
+  Object.keys(map).forEach(function(k){
+    if(map[k].length > 1) dupes.push(map[k][0]);
+  });
   return dupes;
 };
 
 window.Ledger.findAllDuplicates = function findAllDuplicates(){
   var txs = window.Ledger.DB.transactions;
+  var map = {};
+  txs.forEach(function(t){
+    var k = window.Ledger._dupeKey(t);
+    if(!map[k]) map[k] = [];
+    map[k].push(t);
+  });
   var groups = [];
-  var used = {};
-  for(var i = 0; i < txs.length; i++){
-    if(used[txs[i].id]) continue;
-    var group = [txs[i]];
-    for(var j = i+1; j < txs.length; j++){
-      if(used[txs[j].id]) continue;
-      var a = txs[i], b = txs[j];
-      var sameAmount = a.amount === b.amount;
-      var sameDate = a.date === b.date;
-      var sameDesc = (a.description||"").toLowerCase() === (b.description||"").toLowerCase();
-      var sameType = a.type === b.type;
-      var sameAccount = a.account === b.account;
-      if(sameAmount && sameDate && sameDesc && sameType && sameAccount){
-        group.push(txs[j]);
-        used[txs[j].id] = true;
-      }
-    }
-    if(group.length > 1){
-      used[txs[i].id] = true;
-      groups.push(group);
-    }
-  }
+  Object.keys(map).forEach(function(k){
+    if(map[k].length > 1) groups.push(map[k]);
+  });
   return groups;
 };
 

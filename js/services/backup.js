@@ -13,16 +13,67 @@ window.Ledger.exportBackup = function(){
   window.Ledger.showToast("Backup downloaded");
 };
 
+window.Ledger.validateBackup = function validateBackup(data){
+  var warnings = [];
+  var stats = { accounts:0, transactions:0, categories:0 };
+
+  if(!data || typeof data !== "object") return { valid:false, warnings:["File is not a valid JSON object"], stats:stats };
+
+  ["accounts","transactions","categories"].forEach(function(key){
+    if(!Array.isArray(data[key])) warnings.push("Missing or invalid '" + key + "' array");
+  });
+  if(!Array.isArray(data.accounts)) return { valid:false, warnings:warnings, stats:stats };
+
+  var seenIds = {};
+
+  data.accounts.forEach(function(a, i){
+    if(!a.id || !a.name || !a.type) warnings.push("Account #" + (i+1) + " is missing id, name, or type");
+    if(a.currency && typeof a.currency !== "string") warnings.push("Account '" + (a.name||"") + "' has invalid currency");
+    if(a.id) seenIds["a:" + a.id] = true;
+    stats.accounts++;
+  });
+
+  (data.categories || []).forEach(function(c, i){
+    if(!c.id || !c.name) warnings.push("Category #" + (i+1) + " is missing id or name");
+    stats.categories++;
+  });
+
+  (data.transactions || []).forEach(function(t, i){
+    if(!t.id || !t.type || !t.date || typeof t.amount !== "number") warnings.push("Transaction #" + (i+1) + " is missing id, type, date, or amount");
+    else if(isNaN(t.amount) || !isFinite(t.amount)) warnings.push("Transaction '" + (t.desc||t.id) + "' has invalid amount");
+    else if(!/^\d{4}-\d{2}-\d{2}$/.test(t.date)) warnings.push("Transaction '" + (t.desc||t.id) + "' has non-ISO date: " + t.date);
+    if(seenIds["t:" + t.id]) warnings.push("Duplicate transaction ID: " + t.id);
+    if(t.id) seenIds["t:" + t.id] = true;
+    stats.transactions++;
+  });
+
+  return { valid: warnings.length === 0, warnings: warnings, stats: stats };
+};
+
 window.Ledger.importBackupFile = function(file){
   var reader = new FileReader();
   reader.onload = function(e){
     try{
       var parsed = JSON.parse(e.target.result);
-      if(!parsed.accounts || !parsed.transactions){ window.Ledger.showToast("That doesn't look like a valid backup file"); return; }
-      window.Ledger.openConfirmModal("Restore backup?", "This will replace all current data in this browser with the contents of the backup file. This can't be undone. Continue?", function(){
-        window.Ledger.replaceAllData(parsed);
-        window.Ledger.showToast("Backup restored");
-      });
+      var result = window.Ledger.validateBackup(parsed);
+      if(!result.stats.accounts && !result.stats.transactions){
+        window.Ledger.showToast("That doesn't look like a valid backup file");
+        return;
+      }
+      var statsLine = result.stats.accounts + " accounts, " + result.stats.transactions + " transactions, " + result.stats.categories + " categories";
+      if(result.warnings.length === 0){
+        window.Ledger.openConfirmModal("Restore backup?", statsLine + "\n\nThis will replace all current data. This can't be undone. Continue?", function(){
+          window.Ledger.replaceAllData(parsed);
+          window.Ledger.showToast("Backup restored");
+        });
+      } else {
+        var warnText = result.warnings.slice(0, 8).join("\n");
+        if(result.warnings.length > 8) warnText += "\n... and " + (result.warnings.length - 8) + " more";
+        window.Ledger.openConfirmModal("Restore backup?", statsLine + "\n\nWarnings:\n" + warnText + "\n\nThis will replace all current data. Restore anyway?", function(){
+          window.Ledger.replaceAllData(parsed);
+          window.Ledger.showToast("Backup restored (" + result.warnings.length + " warnings)");
+        });
+      }
     }catch(err){
       window.Ledger.showToast("Couldn't read that file — is it a valid backup?");
     }

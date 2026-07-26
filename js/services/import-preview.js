@@ -127,6 +127,20 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     r._type = r.type || (r.amount < 0 ? "expense" : "income");
   });
 
+  var existingSet = {};
+  (window.Ledger.DB.transactions || []).forEach(function(t){
+    var normDesc = (t.desc || t.description || "").toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," ").trim();
+    var k = (t.date||"") + "|" + String(t.amount) + "|" + normDesc;
+    existingSet[k] = true;
+  });
+  var dupeCount = 0;
+  parsedRows.forEach(function(r){
+    var normDesc = (r.desc || "").toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," ").trim();
+    var k = (r.date||"") + "|" + String(r.amount) + "|" + normDesc;
+    r._potentialDupe = !!existingSet[k];
+    if(r._potentialDupe) dupeCount++;
+  });
+
   var groups = [];
   var groupMap = {};
   parsedRows.forEach(function(r, idx){
@@ -174,6 +188,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     + '<span style="display:flex; gap:14px;">'
     + '<span class="prev-summary-stat"><span class="prev-summary-dot ok"></span> '+catCount+' categorized</span>'
     + (uncatCount > 0 ? '<span class="prev-summary-stat"><span class="prev-summary-dot warn"></span> '+uncatCount+' uncategorized</span>' : '')
+    + (dupeCount > 0 ? '<span class="prev-summary-stat"><span class="prev-summary-dot dupe"></span> '+dupeCount+' may be duplicates</span>' : '')
     + '</span></div>';
 
   var groupsHtml = groups.map(function(g, gi){
@@ -184,18 +199,20 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     var subHtml = subOptsFor(g.categoryId, g.subcategoryId);
     var catBorder = g.categoryId ? 'border-sage' : 'border-clay';
 
+    var hasDupes = g.rows.some(function(item){ return item.parsedRow._potentialDupe; });
     var rowsDetail = g.rows.map(function(item){
       var r = item.parsedRow;
       var sign = r._type==="income"||r._type==="refund" ? "+" : "\u2212";
       var amtCls = (r._type==="income"||r._type==="refund") ? ' style="color:var(--sage)"' : (r._type==="transfer" ? '' : ' style="color:var(--clay)"');
-      return '<div class="prev-sub-row" data-row-idx="'+item.idx+'">'
-        + '<span class="prev-sub-date">'+r.date+'</span>'
+      var dupeCls = r._potentialDupe ? " is-dupe" : "";
+      return '<div class="prev-sub-row'+dupeCls+'" data-row-idx="'+item.idx+'">'
+        + '<span class="prev-sub-date">'+r.date+(r._potentialDupe?' \u26A0':'')+'</span>'
         + '<span class="prev-sub-desc" title="'+window.Ledger.escapeHtml(r.desc)+'">'+window.Ledger.escapeHtml(r.desc)+'</span>'
         + '<span class="prev-sub-amt"'+amtCls+'>'+sign+window.Ledger.fmtMoney(Math.abs(r.amount))+'</span>'
         + '</div>';
     }).join("");
 
-    return '<div class="prev-group'+(isUncat?' prev-group-uncat':'')+'" data-gi="'+gi+'">'
+    return '<div class="prev-group'+(isUncat?' prev-group-uncat':'')+(hasDupes?' has-dupes':'')+'" data-gi="'+gi+'">'
       + '<div class="prev-group-row" data-gi="'+gi+'">'
       + '<input type="checkbox" class="prev-group-check" data-gi="'+gi+'" checked>'
       + '<span class="prev-group-toggle" data-gi="'+gi+'">&#9654;</span>'

@@ -1510,6 +1510,9 @@ select[data-no-cd]:focus-visible{
 .prev-summary-dot{ width:7px; height:7px; border-radius:50%; display:inline-block; }
 .prev-summary-dot.ok{ background:var(--sage); }
 .prev-summary-dot.warn{ background:var(--clay); }
+.prev-summary-dot.dupe{ background:var(--brass); }
+.prev-sub-row.is-dupe{ background:var(--clay-soft); border-radius:var(--radius-sm); padding:4px 6px; margin:2px 0; }
+.prev-group.has-dupes .prev-group-desc::after{ content:" \u26A0"; font-size:11px; color:var(--brass); }
 .prev-groups{ display:flex; flex-direction:column; gap:2px; max-height:55vh; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius-md); }
 .prev-group{ border-bottom:1px solid var(--border-soft); }
 .prev-group:last-child{ border-bottom:none; }
