@@ -1099,21 +1099,34 @@ select[data-no-cd]:focus-visible{
 
 /* Responsive: hide type + checkbox on small screens; keep date, desc, cat, acct, amount, kebab */
 @media(max-width:880px){
-  .grp-row{ grid-template-columns:72px 1fr 100px 80px 90px 28px; padding:9px 12px; gap:8px; }
+  .grp-row{ grid-template-columns:minmax(60px,auto) 1fr minmax(80px,120px) minmax(70px,100px) minmax(80px,110px) 28px; padding:9px 12px; gap:8px; }
   .grp-row .grp-type,
   .grp-row .grp-runbal,
   .grp-row .grp-check-cell{ display:none; }
-  .grp-col-header{ grid-template-columns:72px 1fr 100px 80px 90px 28px; padding:6px 12px; gap:8px; }
+  .grp-col-header{ grid-template-columns:minmax(60px,auto) 1fr minmax(80px,120px) minmax(70px,100px) minmax(80px,110px) 28px; padding:6px 12px; gap:8px; }
   .grp-col-header span:nth-child(1),
   .grp-col-header span:nth-child(4){ display:none; }
   .grp-col-header .grp-runbal{ display:none; }
   .tx-card-with-runbal .yr-body .grp-row,
-  .tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:72px 1fr 100px 80px 90px 28px; }
+  .tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:minmax(60px,auto) 1fr minmax(80px,120px) minmax(70px,100px) minmax(80px,110px) 28px; }
   .tx-card-with-runbal .yr-body .grp-row .grp-runbal,
   .tx-card-with-runbal .mo-body .grp-row .grp-runbal{ display:none; }
   .grp-date{ font-size:11px; }
-  .grp-cat, .grp-acct{ font-size:11px; }
+  .grp-cat, .grp-acct{ font-size:11px; overflow:hidden; text-overflow:ellipsis; }
   .grp-amt{ font-size:13px; }
+  .grp-desc{ min-width:0; }
+}
+
+/* Tiny screens: drop category + account, show Date Desc Amount ⋯ */
+@media(max-width:480px){
+  .grp-row{ grid-template-columns:minmax(56px,auto) 1fr minmax(70px,100px) 28px; padding:8px 10px; gap:6px; }
+  .grp-row .grp-cat,
+  .grp-row .grp-acct{ display:none; }
+  .grp-col-header{ grid-template-columns:minmax(56px,auto) 1fr minmax(70px,100px) 28px; padding:5px 10px; gap:6px; }
+  .grp-col-header span:nth-child(5),
+  .grp-col-header span:nth-child(6){ display:none; }
+  .tx-card-with-runbal .yr-body .grp-row,
+  .tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:minmax(56px,auto) 1fr minmax(70px,100px) 28px; }
 }
 
 /* ---- Net worth banner ---- */
