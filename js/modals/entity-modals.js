@@ -1323,9 +1323,9 @@ window.Ledger.openAutoCategorizeModal = function(uncatTx){
     listHtml += '<div class="auto-cat-row auto-cat-more">...and ' + (suggestions.length - 30) + ' more</div>';
   }
 
-  var html = '<div class="modal-header">'
+  var html = '<div class="modal-head">'
     + '<h3>Auto-categorize</h3>'
-    + '<button class="modal-close" id="closeModalBtn">&times;</button>'
+    + '<button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
     + '</div>'
     + '<div class="modal-body">'
     + '<p style="margin:0 0 12px">Found <strong>' + uncatTx.length + '</strong> uncategorized transaction' + (uncatTx.length !== 1 ? 's' : '') + '.</p>'
@@ -1333,7 +1333,7 @@ window.Ledger.openAutoCategorizeModal = function(uncatTx){
     + (noMatch > 0 ? ', <strong>' + noMatch + '</strong> have no match' : '') + '.</p>'
     + '<div class="auto-cat-list">' + listHtml + '</div>'
     + '</div>'
-    + '<div class="modal-footer">'
+    + '<div class="modal-foot">'
     + '<button class="btn" id="cancelBtn">Cancel</button>'
     + '<button class="btn btn-primary" id="confirmAutoCatBtn"' + (!willCategorize ? ' disabled' : '') + '>Categorize ' + willCategorize + ' transaction' + (willCategorize !== 1 ? 's' : '') + '</button>'
     + '</div>';

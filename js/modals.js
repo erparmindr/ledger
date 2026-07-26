@@ -108,10 +108,8 @@ window.Ledger.openMarkPaidModal = function (debtItem) {
         debtItemId: debtItem.id,
         created: Date.now()
       });
-      window.Ledger.saveData();
       window.Ledger.closeModal();
       window.Ledger.showToast("Marked as paid");
-      window.Ledger.renderPage();
     });
   });
 };

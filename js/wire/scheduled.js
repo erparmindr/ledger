@@ -61,7 +61,7 @@ window.Ledger.wireScheduledPage = function(){
       window.Ledger.addTransaction({
         id:window.Ledger.uid(), type:r.type, date:window.Ledger.todayISO(), amount:r.amount, desc:r.name,
         notes:"Posted from recurring item", account:r.account, category:r.category||"", subcategory:r.subcategory||"", created:Date.now()
-      });
+      }, true);
       window.Ledger._advanceRecurring(r);
       window.Ledger.saveData();
       window.Ledger.renderPage();

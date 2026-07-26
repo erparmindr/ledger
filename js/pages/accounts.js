@@ -144,6 +144,7 @@ window.Ledger.pages.renderAccountsPage = function(){
     + '<div id="nwBanner" class="card card-pad">' + nwHtml + '</div>'
     + groupsHtml
     + '<div id="cardGrid">' + cardHtml + '</div>'
+    + '<div style="text-align:center; margin-top:var(--sp-4);"><button class="btn btn-primary" id="addAcctBtn">+ Add account</button></div>'
     + archivedHtml;
 };
 

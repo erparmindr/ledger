@@ -166,9 +166,12 @@ window.Ledger.wireTxRowActions = function(){
     });
   });
 
-  document.addEventListener("click", function(){
-    document.querySelectorAll(".kebab-menu.open").forEach(function(m){ m.classList.remove("open"); });
-  });
+  if(!window.Ledger._kebabGlobalListenerAdded){
+    document.addEventListener("click", function(){
+      document.querySelectorAll(".kebab-menu.open").forEach(function(m){ m.classList.remove("open"); });
+    });
+    window.Ledger._kebabGlobalListenerAdded = true;
+  }
 };
 
 /* ============================================================

@@ -77,14 +77,17 @@ window.Ledger.wireAccountsPage = function(){
     });
   });
 
-  document.addEventListener("click", function closeKebabs(){
-    Array.prototype.forEach.call(document.querySelectorAll(".km.open"), function(m){ m.classList.remove("open"); });
-  });
-  document.addEventListener("keydown", function closeKebabsEsc(e){
-    if(e.key === "Escape"){
+  if(!window.Ledger._acctKebabListenerAdded){
+    document.addEventListener("click", function(){
       Array.prototype.forEach.call(document.querySelectorAll(".km.open"), function(m){ m.classList.remove("open"); });
-    }
-  });
+    });
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Escape"){
+        Array.prototype.forEach.call(document.querySelectorAll(".km.open"), function(m){ m.classList.remove("open"); });
+      }
+    });
+    window.Ledger._acctKebabListenerAdded = true;
+  }
 };
 
 })();
