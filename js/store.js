@@ -177,6 +177,7 @@ window.Ledger.upsertTransaction = function(rec) {
 
 window.Ledger.deleteTransaction = function(id) {
   window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(x){ return x.id !== id; });
+  window.Ledger.replaceDebtItemsForTransaction(id, []);
   window.Ledger.saveData();
   window.Ledger.renderPage();
 };

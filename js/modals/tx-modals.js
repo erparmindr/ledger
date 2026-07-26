@@ -305,7 +305,7 @@ window.Ledger.openTxModal = function(existing){
     if(catBtn) catBtn.addEventListener("click", function(){
       var amt = parseFloat(document.getElementById("txAmount").value);
       if(!amt || amt <= 0){ window.Ledger.showToast("Enter an amount first"); return; }
-      window.Ledger.openCategorySplitModal(amt, categorySplits, function(splits){
+      window.Ledger.openCategorySplitModal(amt, categorySplits, currentType, function(splits){
         categorySplits = splits;
         friendSplit = null;
         refreshSplitBanner();
@@ -571,6 +571,7 @@ window.Ledger.openTxModal = function(existing){
           var mainRec = {
             id: mainId, type:"expense", date:date, amount: friendSplit.yourShare,
             desc: yourDesc, notes:notes, account:account, category:fCategory, subcategory:fSub,
+            friendSplit: { yourShare: friendSplit.yourShare, shares: friendSplit.shares },
             created: isEdit ? t.created : Date.now()
           };
           if(isEdit){

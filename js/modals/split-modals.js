@@ -4,13 +4,14 @@ window.Ledger = window.Ledger || {};
 /* ============================================================
    CATEGORY SPLIT MODAL — divide one expense across categories
    ============================================================ */
-window.Ledger.openCategorySplitModal = function(totalAmount, existingSplits, onDone){
+window.Ledger.openCategorySplitModal = function(totalAmount, existingSplits, txType, onDone){
   var rowsState = existingSplits && existingSplits.length ? existingSplits.map(function(s){ return {categoryId:s.categoryId, amount:s.amount}; }) : [
     {categoryId:"", amount: totalAmount}
   ];
 
   function render(){
-    var expenseCats = window.Ledger.DB.categories.filter(function(c){ return c.type === "expense"; });
+    var catFilterType = (txType === "transfer") ? "transfer" : "expense";
+    var expenseCats = window.Ledger.DB.categories.filter(function(c){ return c.type === catFilterType; });
     var catOpts = '<option value="">Choose category</option>' + expenseCats.map(function(c){ return '<option value="'+c.id+'">'+window.Ledger.escapeHtml(c.name)+'</option>'; }).join("");
 
     var rowsHtml = rowsState.map(function(r, i){
