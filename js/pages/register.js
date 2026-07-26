@@ -238,7 +238,7 @@ window.Ledger.pages.renderTransactionsPage = function(){
     + uncatBtnHtml
     + autoCatBtnHtml
     + '<button class="btn btn-sm" id="checkDupesBtn"' + (!hasAnyTx ? ' disabled' : '') + '>Check duplicates</button>'
-    + '<button class="btn btn-sm" id="exportCsvBtn"' + (!hasAnyTx ? ' disabled title="Add transactions before exporting"' : '') + '>Export CSV</button>'
+    + '<button class="btn btn-sm desktop-only" id="exportCsvBtn"' + (!hasAnyTx ? ' disabled title="Add transactions before exporting"' : '') + '>Export CSV</button>'
     + '</div>';
 
   /* ---- Column headers ---- */
@@ -248,7 +248,7 @@ window.Ledger.pages.renderTransactionsPage = function(){
   var selectedCount = sorted.filter(function(t){ return window.Ledger.registerSelectedTx[t.id]; }).length;
   var allChecked = visibleTxCount > 0 && selectedCount === visibleTxCount;
   var colHeaders = '<div class="' + colHdrCls + '">'
-    + '<span class="grp-check-cell"><input type="checkbox" id="selectAllTx" class="grp-check" ' + (allChecked ? 'checked' : '') + '></span>'
+    + '<span class="grp-check-cell desktop-only"><input type="checkbox" id="selectAllTx" class="grp-check" ' + (allChecked ? 'checked' : '') + '></span>'
     + '<span>Date</span>'
     + '<span>Description</span>'
     + '<span>Type</span>'
@@ -317,7 +317,7 @@ window.Ledger.pages.renderTransactionsPage = function(){
     var bulkCatOpts = '<option value="">No change</option>' + '<option value="__clear__">Remove category</option>' + window.Ledger.DB.categories.map(function(c){
       return '<option value="'+c.id+'">'+window.Ledger.escapeHtml(c.name)+'</option>';
     }).join("");
-    bulkBarHtml = '<div class="bulk-bar" id="bulkBar">'
+    bulkBarHtml = '<div class="bulk-bar desktop-only" id="bulkBar">'
       + '<span class="bulk-count">' + selectedCount + ' selected</span>'
       + '<select id="bulkCat" class="bulk-select">' + bulkCatOpts + '</select>'
       + '<select id="bulkSub" class="bulk-select" style="display:none"><option value="">No change</option><option value="__clear__">Remove subcategory</option></select>'
@@ -482,7 +482,7 @@ function renderGroupedTxRow(t, showRunning, runBalMap){
   var isChecked = window.Ledger.registerSelectedTx[t.id] ? ' checked' : '';
 
   return '<div class="grp-row' + (isChecked ? ' grp-row-selected' : '') + '" data-tx="' + t.id + '">'
-    + '<span class="grp-check-cell"><input type="checkbox" class="grp-check" data-tx-check="' + t.id + '"' + isChecked + '></span>'
+    + '<span class="grp-check-cell desktop-only"><input type="checkbox" class="grp-check" data-tx-check="' + t.id + '"' + isChecked + '></span>'
     + '<span class="grp-date">' + dateDisp + '</span>'
     + '<span class="grp-desc">' + window.Ledger.escapeHtml(descLabel) + notesIcon + '</span>'
     + '<span class="grp-type"><span class="grp-type-dot" style="background:' + typeColor + ';"></span>' + typeLabel + '</span>'

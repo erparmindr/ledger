@@ -583,7 +583,7 @@ window.Ledger.pages.renderReportsPage = function(){
     + '    <select id="rSubcategory" class="'+filteredCls(f.subcategory)+'">'+subOpts+'</select>'
     + '    <input type="text" id="rSearch" placeholder="Search descriptions..." value="'+window.Ledger.escapeHtml(f.search)+'" style="background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:8px 12px; font-size:12px; font-weight:500; color:var(--text); min-width:140px;">'
     + clearBtnHtml
-    + '    <button class="btn btn-sm" id="exportReportCsv" style="margin-left:auto;">Export CSV</button>'
+    + '    <button class="btn btn-sm desktop-only" id="exportReportCsv" style="margin-left:auto;">Export CSV</button>'
     + '  </div>'
     + '</div>'
 

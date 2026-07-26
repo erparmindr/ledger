@@ -1097,20 +1097,22 @@ select[data-no-cd]:focus-visible{
   border-radius:var(--radius-sm); background:var(--surface); color:var(--text);
 }
 
-/* Responsive: hide type, cat, account on small screens */
+/* Responsive: hide type, cat, account, checkbox on small screens */
 @media(max-width:880px){
-  .grp-row{ grid-template-columns:32px 80px 1fr 32px; }
+  .grp-row{ grid-template-columns:80px 1fr 32px; }
   .grp-row .grp-type,
   .grp-row .grp-cat,
   .grp-row .grp-acct,
-  .grp-row .grp-runbal{ display:none; }
-  .grp-col-header{ grid-template-columns:32px 80px 1fr 32px; }
+  .grp-row .grp-runbal,
+  .grp-row .grp-check-cell{ display:none; }
+  .grp-col-header{ grid-template-columns:80px 1fr 32px; }
+  .grp-col-header span:nth-child(1),
   .grp-col-header span:nth-child(4),
   .grp-col-header span:nth-child(5),
   .grp-col-header span:nth-child(6),
   .grp-col-header span:nth-child(8){ display:none; }
   .tx-card-with-runbal .yr-body .grp-row,
-  .tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:32px 80px 1fr 32px; }
+  .tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:80px 1fr 32px; }
   .tx-card-with-runbal .yr-body .grp-row .grp-runbal,
   .tx-card-with-runbal .mo-body .grp-row .grp-runbal{ display:none; }
 }
@@ -1855,3 +1857,28 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
    TOUCH TARGETS — WCAG 2.5.5 minimum 44px
    ============================================================ */
 .icon-btn{ min-width:44px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; }
+
+/* ============================================================
+   MOBILE / DESKTOP FEATURE GATING
+   ============================================================ */
+body.is-mobile .desktop-only{ display:none !important; }
+body:not(.is-mobile) .mobile-only{ display:none !important; }
+
+/* Filters bar: wrap earlier to prevent overflow on tablets */
+@media (max-width:760px){
+  .filters-bar{ flex-wrap:wrap; }
+  .filters-bar > *{ flex:1 1 auto; min-width:0; }
+  .filters-bar .btn{ flex:0 0 auto; }
+}
+
+/* DRP: single calendar on phones */
+@media (max-width:480px){
+  .drp-calendar[data-side="right"]{ display:none; }
+  .drp-calendars{ justify-content:center; }
+}
+
+/* Modal fullscreen on phones */
+@media (max-width:480px){
+  .modal-backdrop{ padding:0; align-items:flex-end; }
+  .modal{ max-width:100vw; width:100vw; max-height:92vh; border-radius:var(--radius-lg) var(--radius-lg) 0 0; margin:0; }
+}

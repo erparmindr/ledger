@@ -186,6 +186,10 @@ document.getElementById("globalSearch") && document.getElementById("globalSearch
    INIT
    ============================================================ */
 window.Ledger.__LEDGER_INIT__ = function(){
+  /* ---- Mobile detection ---- */
+  window.Ledger.isMobile = window.innerWidth <= 768 || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+  window.Ledger._lastIsMobile = window.Ledger.isMobile;
+
   var savedTheme = localStorage.getItem("ledger_theme");
   if(savedTheme) window.Ledger.currentTheme = savedTheme;
   window.Ledger.applyTheme(window.Ledger.currentTheme);
@@ -241,6 +245,22 @@ document.addEventListener("DOMContentLoaded", function(){
   document.addEventListener("click", function(){
     document.querySelectorAll(".pill-dropdown.open").forEach(function(x){ x.classList.remove("open"); });
   });
+
+  /* ---- Resize: update isMobile + re-render if layout class changed ---- */
+  var _resizeTimer;
+  window.addEventListener("resize", function(){
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(function(){
+      var now = window.innerWidth <= 768 || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+      if(now !== window.Ledger._lastIsMobile){
+        window.Ledger.isMobile = now;
+        window.Ledger._lastIsMobile = now;
+        document.body.classList.toggle("is-mobile", now);
+        window.Ledger.renderPage();
+      }
+    }, 200);
+  });
+  document.body.classList.toggle("is-mobile", window.Ledger.isMobile);
 
   document.getElementById("pageContent").addEventListener("click", function(e){
     var trigger = e.target.closest(".pill-trigger");

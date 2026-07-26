@@ -14,14 +14,14 @@ window.Ledger.pages.renderSettingsPage = function(){
     + '  </div>'
     + '</div>'
 
-    + '<div class="card card-pad section-gap">'
+    + '<div class="card card-pad section-gap desktop-only">'
     + '  <h2 style="font-size:16px; font-weight:800; margin:0 0 6px;">Import bank statement (CSV)</h2>'
     + '  <p class="muted" style="font-size:12.5px; margin:0 0 14px;">Upload a CSV exported from your bank. You\'ll map which column is which before anything is imported.</p>'
     + '  <button class="btn btn-sm" id="importCsvBtn">Choose CSV file</button>'
     + '  <input type="file" id="importCsvFile" accept=".csv" style="display:none;">'
     + '</div>'
 
-    + '<div class="card card-pad section-gap">'
+    + '<div class="card card-pad section-gap desktop-only">'
     + '  <h2 style="font-size:16px; font-weight:800; margin:0 0 6px;">Import from PDF statement</h2>'
     + '  <p class="muted" style="font-size:12.5px; margin:0 0 14px;">Open your PDF statement, select and copy the transaction text, then paste it in. Works across different banks &mdash; you review everything before it\'s imported.</p>'
     + '  <button class="btn btn-sm" id="importStatementBtn">Paste statement text</button>'
