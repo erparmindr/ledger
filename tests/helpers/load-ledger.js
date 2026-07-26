@@ -15,6 +15,7 @@ const FILES_IN_ORDER = [
   "js/services/recurring.js",
   "js/services/backup.js",
   "js/services/import-preview.js",
+  "js/app.js",
 ];
 
 export function loadLedger(overrides) {
@@ -71,7 +72,21 @@ export function loadLedger(overrides) {
         tagName: "",
         value: "",
       }),
-      body: { appendChild: () => {}, setAttribute: () => {} },
+      body: {
+        appendChild: () => {},
+        setAttribute: () => {},
+        classList: {
+          _classes: {},
+          toggle(cls, force) {
+            if (force === undefined) this._classes[cls] = !this._classes[cls];
+            else this._classes[cls] = !!force;
+          },
+          add(cls) { this._classes[cls] = true; },
+          remove(cls) { this._classes[cls] = false; },
+          contains(cls) { return !!this._classes[cls]; },
+        },
+        setAttribute: () => {},
+      },
       addEventListener: () => {},
     },
     navigator: { serviceWorker: null },
@@ -96,5 +111,8 @@ export function loadLedger(overrides) {
     }
   }
 
-  return ctx.window.Ledger;
+  const result = ctx.window.Ledger;
+  result._localStorage = ctx.localStorage;
+  result._document = ctx.document;
+  return result;
 }
