@@ -1109,8 +1109,8 @@ select[data-no-cd]:focus-visible{
   .grp-col-header span:nth-child(1),
   .grp-col-header span:nth-child(4),
   .grp-col-header span:nth-child(5),
-  .grp-col-header span:nth-child(6),
-  .grp-col-header span:nth-child(8){ display:none; }
+  .grp-col-header span:nth-child(6){ display:none; }
+  .grp-col-header .grp-runbal{ display:none; }
   .tx-card-with-runbal .yr-body .grp-row,
   .tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:80px 1fr 100px 32px; }
   .tx-card-with-runbal .yr-body .grp-row .grp-runbal,

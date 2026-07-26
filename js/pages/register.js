@@ -255,7 +255,7 @@ window.Ledger.pages.renderTransactionsPage = function(){
     + '<span>Category</span>'
     + '<span>Account</span>'
     + '<span>Amount</span>'
-    + (showRunning ? '<span>Balance</span>' : '')
+    + (showRunning ? '<span class="grp-runbal">Balance</span>' : '')
     + '<span class="grp-kebab"></span>'
     + '</div>';
 
