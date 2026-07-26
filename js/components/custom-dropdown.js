@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 
 /* ============================================================
@@ -116,3 +117,5 @@ window.Ledger.refreshCustomDropdown = function(sel){
     });
   });
 };
+
+})();

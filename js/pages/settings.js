@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 window.Ledger.pages = window.Ledger.pages || {};
 
@@ -32,3 +33,5 @@ window.Ledger.pages.renderSettingsPage = function(){
     + '  <button class="btn btn-danger btn-sm" id="resetAllBtn">Clear all data</button>'
     + '</div>';
 };
+
+})();

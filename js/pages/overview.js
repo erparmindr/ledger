@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 window.Ledger.pages = window.Ledger.pages || {};
 
@@ -467,3 +468,5 @@ window.Ledger.frequencyLabel = function(freq){
   if(freq === "biweekly") return "Every 2 weeks";
   return "Monthly";
 };
+
+})();

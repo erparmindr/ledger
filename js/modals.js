@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 
 /* ============================================================
@@ -114,3 +115,5 @@ window.Ledger.openMarkPaidModal = function (debtItem) {
     });
   });
 };
+
+})();

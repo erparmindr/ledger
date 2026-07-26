@@ -1,3 +1,4 @@
+(function(){
 /* ============================================================
    TRANSACTIONS PAGE  v3 — year > month grouped layout
    ============================================================ */
@@ -499,3 +500,5 @@ function renderGroupedTxRow(t, showRunning, runBalMap){
     + '</div>'
     + '</div>';
 }
+
+})();

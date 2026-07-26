@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 
 /* ============================================================
@@ -294,3 +295,5 @@ window.Ledger.openDateRangePicker = function(opts){
   render();
   setTimeout(function(){ document.addEventListener("click", onDocClick); document.addEventListener("keydown", onKey); }, 0);
 };
+
+})();

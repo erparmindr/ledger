@@ -1,3 +1,4 @@
+(function(){
 /* ============================================================
    BACKUP EXPORT / IMPORT
    ============================================================ */
@@ -116,3 +117,5 @@ window.Ledger.exportCsv = function(){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
 };
+
+})();

@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 
 /* ============================================================
@@ -516,3 +517,5 @@ window.Ledger.openLinkTransferModal = function(txId){
     });
   });
 };
+
+})();

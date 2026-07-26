@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 
 window.Ledger.CURRENCIES = ["USD","CAD","EUR","GBP","INR","AUD","JPY"];
@@ -207,3 +208,5 @@ window.Ledger.rankCategorySuggestions = function(desc, forType, DB, findCategory
   results.sort(function(a,b){ return b.score - a.score; });
   return results.slice(0, 3);
 };
+
+})();

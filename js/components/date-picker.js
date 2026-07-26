@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 
 /* ============================================================
@@ -184,3 +185,5 @@ window.Ledger.dpFormatDate = function(iso){
   var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   return months[m-1] + " " + d + ", " + y;
 };
+
+})();

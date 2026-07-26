@@ -1,3 +1,4 @@
+(function(){
 /* ============================================================
    TRANSACTION ROW RENDERING (shared by overview + transactions)
    ============================================================ */
@@ -133,3 +134,5 @@ window.Ledger.renderTxRow = function(t, opts){ /* v=4 */
     + '</div>'
     + '</div>';
 };
+
+})();

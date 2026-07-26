@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 
 /* ---------- Transaction modal ---------- */
@@ -1354,3 +1355,5 @@ window.Ledger.openAutoCategorizeModal = function(uncatTx){
     });
   });
 };
+
+})();

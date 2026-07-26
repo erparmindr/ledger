@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 window.Ledger.pages = window.Ledger.pages || {};
 
@@ -619,3 +620,5 @@ window.Ledger.pages.renderReportsPage = function(){
     + '  <div class="card-pad" style="padding-top:0;">' + tabContent + '</div>'
     + '</div>';
 };
+
+})();

@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 
 /* ============================================================
@@ -339,3 +340,5 @@ window.Ledger.normalizeDate = function(raw){
 window.Ledger.todayISOFromDate = function(d){
   return d.getFullYear() + "-" + window.Ledger.pad2(d.getMonth()+1) + "-" + window.Ledger.pad2(d.getDate());
 };
+
+})();

@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 
 window.Ledger.STORAGE_KEY = "ledger_app_v1";
@@ -402,3 +403,5 @@ window.Ledger.replaceAllData = function(data) {
 };
 
 window.Ledger.DB = window.Ledger.loadData();
+
+})();

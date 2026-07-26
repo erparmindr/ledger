@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 window.Ledger.pages = window.Ledger.pages || {};
 
@@ -80,3 +81,5 @@ window.Ledger.pages.renderRecurringPage = function(){
     + '  </div>'
     + '</div>';
 };
+
+})();

@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 
 /* ============================================================
@@ -248,3 +249,5 @@ window.Ledger.findOrphanTransfers = function findOrphanTransfers(accountId){
   });
   return orphans;
 };
+
+})();

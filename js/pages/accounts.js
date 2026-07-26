@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 window.Ledger.pages = window.Ledger.pages || {};
 
@@ -145,3 +146,5 @@ window.Ledger.pages.renderAccountsPage = function(){
     + '<div id="cardGrid">' + cardHtml + '</div>'
     + archivedHtml;
 };
+
+})();

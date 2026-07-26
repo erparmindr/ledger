@@ -1,3 +1,4 @@
+(function(){
 window.Ledger = window.Ledger || {};
 
 /* ============================================================
@@ -906,3 +907,5 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   }
 });
+
+})();
