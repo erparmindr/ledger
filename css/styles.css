@@ -1099,18 +1099,21 @@ select[data-no-cd]:focus-visible{
 
 /* Responsive: hide type + checkbox on small screens; keep date, desc, cat, acct, amount, kebab */
 @media(max-width:880px){
-  .grp-row{ grid-template-columns:80px 1fr 120px 100px 100px 32px; }
+  .grp-row{ grid-template-columns:72px 1fr 100px 80px 90px 28px; padding:9px 12px; gap:8px; }
   .grp-row .grp-type,
   .grp-row .grp-runbal,
   .grp-row .grp-check-cell{ display:none; }
-  .grp-col-header{ grid-template-columns:80px 1fr 120px 100px 100px 32px; }
+  .grp-col-header{ grid-template-columns:72px 1fr 100px 80px 90px 28px; padding:6px 12px; gap:8px; }
   .grp-col-header span:nth-child(1),
   .grp-col-header span:nth-child(4){ display:none; }
   .grp-col-header .grp-runbal{ display:none; }
   .tx-card-with-runbal .yr-body .grp-row,
-  .tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:80px 1fr 120px 100px 100px 32px; }
+  .tx-card-with-runbal .mo-body .grp-row{ grid-template-columns:72px 1fr 100px 80px 90px 28px; }
   .tx-card-with-runbal .yr-body .grp-row .grp-runbal,
   .tx-card-with-runbal .mo-body .grp-row .grp-runbal{ display:none; }
+  .grp-date{ font-size:11px; }
+  .grp-cat, .grp-acct{ font-size:11px; }
+  .grp-amt{ font-size:13px; }
 }
 
 /* ---- Net worth banner ---- */
