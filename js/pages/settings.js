@@ -3,8 +3,19 @@ window.Ledger = window.Ledger || {};
 window.Ledger.pages = window.Ledger.pages || {};
 
 window.Ledger.pages.renderSettingsPage = function(){
+  var mode = window.Ledger.layoutMode || "auto";
   return ''
     + '<div class="card card-pad">'
+    + '  <h2 style="font-size:16px; font-weight:800; margin:0 0 6px;">Layout mode</h2>'
+    + '  <p class="muted" style="font-size:12.5px; margin:0 0 14px;">Choose how the app adapts to your screen. <strong>Auto</strong> detects your device. <strong>Mobile</strong> hides desktop-heavy features (CSV import, bulk edit). <strong>Desktop</strong> shows everything.</p>'
+    + '  <div style="display:flex; gap:8px; flex-wrap:wrap;">'
+    + '    <button class="btn btn-sm layout-mode-btn' + (mode==="auto" ? " btn-primary" : "") + '" data-layout-mode="auto">Auto</button>'
+    + '    <button class="btn btn-sm layout-mode-btn' + (mode==="mobile" ? " btn-primary" : "") + '" data-layout-mode="mobile">Mobile</button>'
+    + '    <button class="btn btn-sm layout-mode-btn' + (mode==="desktop" ? " btn-primary" : "") + '" data-layout-mode="desktop">Desktop</button>'
+    + '  </div>'
+    + '</div>'
+
+    + '<div class="card card-pad section-gap">'
     + '  <h2 style="font-size:16px; font-weight:800; margin:0 0 6px;">Backup &amp; restore</h2>'
     + '  <p class="muted" style="font-size:12.5px; margin:0 0 14px;">Export everything (accounts, people, transactions, categories, recurring items) into one file. Use it to move your data to another device or browser, or just keep a safety copy.</p>'
     + '  <div style="display:flex; gap:10px; flex-wrap:wrap;">'

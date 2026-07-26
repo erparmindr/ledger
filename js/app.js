@@ -186,9 +186,10 @@ document.getElementById("globalSearch") && document.getElementById("globalSearch
    INIT
    ============================================================ */
 window.Ledger.__LEDGER_INIT__ = function(){
-  /* ---- Mobile detection ---- */
-  window.Ledger.isMobile = window.innerWidth <= 768 || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
-  window.Ledger._lastIsMobile = window.Ledger.isMobile;
+  /* ---- Mobile detection + layout mode override ---- */
+  window.Ledger._autoIsMobile = window.innerWidth <= 768 || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+  var savedMode = localStorage.getItem("ledger_layout_mode") || "auto";
+  window.Ledger.applyLayoutMode(savedMode, true);
 
   var savedTheme = localStorage.getItem("ledger_theme");
   if(savedTheme) window.Ledger.currentTheme = savedTheme;
@@ -213,6 +214,16 @@ window.Ledger.applyTheme = function(t){
   Array.prototype.forEach.call(document.querySelectorAll("[data-theme-btn]"), function(b){
     b.classList.toggle("active", b.getAttribute("data-theme-btn") === t);
   });
+};
+
+window.Ledger.applyLayoutMode = function(mode, skipRender){
+  window.Ledger.layoutMode = mode;
+  localStorage.setItem("ledger_layout_mode", mode);
+  if(mode === "mobile") window.Ledger.isMobile = true;
+  else if(mode === "desktop") window.Ledger.isMobile = false;
+  else window.Ledger.isMobile = window.Ledger._autoIsMobile;
+  document.body.classList.toggle("is-mobile", window.Ledger.isMobile);
+  if(!skipRender) window.Ledger.renderPage();
 };
 
 document.addEventListener("DOMContentLoaded", function(){
@@ -251,12 +262,14 @@ document.addEventListener("DOMContentLoaded", function(){
   window.addEventListener("resize", function(){
     clearTimeout(_resizeTimer);
     _resizeTimer = setTimeout(function(){
-      var now = window.innerWidth <= 768 || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
-      if(now !== window.Ledger._lastIsMobile){
-        window.Ledger.isMobile = now;
-        window.Ledger._lastIsMobile = now;
-        document.body.classList.toggle("is-mobile", now);
-        window.Ledger.renderPage();
+      window.Ledger._autoIsMobile = window.innerWidth <= 768 || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+      if(window.Ledger.layoutMode === "auto"){
+        var now = window.Ledger._autoIsMobile;
+        if(now !== window.Ledger.isMobile){
+          window.Ledger.isMobile = now;
+          document.body.classList.toggle("is-mobile", now);
+          window.Ledger.renderPage();
+        }
       }
     }, 200);
   });

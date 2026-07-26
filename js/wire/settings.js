@@ -3,6 +3,14 @@ window.Ledger = window.Ledger || {};
 
 window.Ledger.wireSettingsPage = function(){
   var el;
+
+  /* ---- Layout mode toggle ---- */
+  Array.prototype.forEach.call(document.querySelectorAll(".layout-mode-btn"), function(btn){
+    btn.addEventListener("click", function(){
+      window.Ledger.applyLayoutMode(btn.getAttribute("data-layout-mode"));
+    });
+  });
+
   el = document.getElementById("exportBackupBtn"); if(el) el.addEventListener("click", window.Ledger.exportBackup);
   el = document.getElementById("importBackupBtn"); if(el) el.addEventListener("click", function(){ document.getElementById("importBackupFile").click(); });
   el = document.getElementById("importBackupFile"); if(el) el.addEventListener("change", function(e){
