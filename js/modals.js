@@ -17,6 +17,7 @@ window.Ledger.openModal = function (html, onMount, className) {
   backdrop.style.zIndex = 100 + idx;
   backdrop.innerHTML = '<div class="' + modalClass + '" role="dialog" aria-modal="true">' + html + '</div>';
   root.appendChild(backdrop);
+  document.querySelectorAll(".cd-wrap.open").forEach(function(w){ var l=w._cdList||w.querySelector(".cd-list"); if(l&&l.parentNode!==w)w.appendChild(l); l.style.cssText=""; w.classList.remove("open"); });
   window.Ledger.modalStack.push(backdrop);
   backdrop.addEventListener("click", function (e) {
     if (e.target.classList.contains("modal-backdrop")) window.Ledger.closeModal();
@@ -36,6 +37,7 @@ window.Ledger.closeSubModal = function () {
 };
 
 window.Ledger.closeModal = function () {
+  document.querySelectorAll(".cd-wrap.open").forEach(function(w){ var l=w._cdList||w.querySelector(".cd-list"); if(l&&l.parentNode!==w)w.appendChild(l); l.style.cssText=""; w.classList.remove("open"); });
   var top = window.Ledger.modalStack.pop();
   if (top) top.remove();
 };

@@ -340,6 +340,10 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
               fromType: "account", fromId: account, pending: true
             });
             importedIds.push(newId);
+            if(chosenCategory){
+              window.Ledger.learnCategory(chosenDesc, chosenCategory);
+              if(chosenSubcategory) window.Ledger.learnSubcategory(chosenDesc, chosenCategory, chosenSubcategory);
+            }
           } else {
             var newId2 = window.Ledger.uid();
             txArray.push({

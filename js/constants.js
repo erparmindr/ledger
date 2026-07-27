@@ -87,7 +87,7 @@ window.Ledger.suggestCategoryForDescription = function suggestCategoryForDescrip
     var subLearned = DB.subcategoryLearning[firstWord];
     if(subLearned){
       var sCat = findCategory(subLearned.catId);
-      if(sCat && sCat.type === forType){
+      if(sCat){
         var sub = (sCat.subs||[]).find(function(s){ return s.id === subLearned.subId; });
         if(sub) return { categoryId: subLearned.catId, subcategoryId: subLearned.subId };
       }
@@ -101,7 +101,7 @@ window.Ledger.suggestCategoryForDescription = function suggestCategoryForDescrip
       if(norm.indexOf(keys[i]) !== -1 || descLower.indexOf(keys[i]) !== -1){
         var learnedCatId = DB.categoryLearning[keys[i]];
         var cat = findCategory(learnedCatId);
-        if(cat && cat.type === forType) return { categoryId: learnedCatId, subcategoryId: null };
+        if(cat) return { categoryId: learnedCatId, subcategoryId: null };
       }
     }
   }
@@ -141,7 +141,7 @@ window.Ledger.rankCategorySuggestions = function(desc, forType, DB, findCategory
     var subLearned = DB.subcategoryLearning[firstWord];
     if(subLearned){
       var sCat = findCategory(subLearned.catId);
-      if(sCat && sCat.type === forType){
+      if(sCat){
         scores[sCat.id] = (scores[sCat.id]||0) + 15;
         subMap[sCat.id] = subLearned.subId;
       }
@@ -154,7 +154,7 @@ window.Ledger.rankCategorySuggestions = function(desc, forType, DB, findCategory
     for(var i=0;i<lKeys.length;i++){
       if(norm.indexOf(lKeys[i]) !== -1 || descLower.indexOf(lKeys[i]) !== -1){
         var cat = findCategory(DB.categoryLearning[lKeys[i]]);
-        if(cat && cat.type === forType){
+        if(cat){
           scores[cat.id] = (scores[cat.id]||0) + 10;
         }
       }
