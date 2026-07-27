@@ -111,9 +111,7 @@ window.Ledger = window.Ledger || {};
 
     save: function(data){
       if(!idbHandle) return Promise.resolve();
-      return idbPut(data).catch(function(err){
-        console.error("IDB save failed:", err);
-      });
+      return idbPut(data);
     },
 
     load: function(){
@@ -141,11 +139,6 @@ window.Ledger = window.Ledger || {};
       var self = this;
       return this.adapter.init().then(function(data){
         self.ready = true;
-        if(data){
-          var normalized = window.Ledger.normalizeData(data);
-          window.Ledger.DB = normalized;
-          lsWrite(normalized);
-        }
         return data;
       }).catch(function(err){
         console.error("Storage init failed, falling back to localStorage:", err);
@@ -161,11 +154,9 @@ window.Ledger = window.Ledger || {};
      */
     persist: function(){
       var data = window.Ledger.DB;
-      // Sync write to localStorage (backup)
       lsWrite(data);
-      // Async write to IDB (primary)
       if(this.ready){
-        this.adapter.save(data);
+        return this.adapter.save(data);
       }
     }
   };

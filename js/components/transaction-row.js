@@ -43,6 +43,7 @@ window.Ledger.renderTxRow = function(t, opts){ /* v=4 */
     catLabel = window.Ledger.categoryName(t.category);
     if(t.subcategory) catLabel += " &rsaquo; " + window.Ledger.subcatName(t.category, t.subcategory);
   }
+  catLabel = window.Ledger.escapeHtml(catLabel);
 
   var amtDisp, mainLabel, subLabel;
   if(t.type === "transfer"){

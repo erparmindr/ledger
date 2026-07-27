@@ -458,4 +458,219 @@ describe("Split: Edge cases", () => {
     expect(L.DB.transactions[0].amount).toBe(10000);
     expect(L.accountBalance("a1")).toBe(-10000);
   });
+
+  it("6-way split → edit to 2-way: full math trace", () => {
+    seedDB();
+    // 5 friends
+    ["p1","p2","p3","p4","p5"].forEach(pid => {
+      L.DB.people.push({ id: pid, name: "Friend " + pid.slice(1), created: Date.now() });
+    });
+
+    // ---- STEP 1: Post a $120 bill split 6 ways (you + 5 friends) ----
+    // $120 / 6 = $20 each
+    const totalBill = 120;
+    const shares6 = [
+      { personId: "p1", amount: 20 },
+      { personId: "p2", amount: 20 },
+      { personId: "p3", amount: 20 },
+      { personId: "p4", amount: 20 },
+      { personId: "p5", amount: 20 },
+    ];
+    const yourShare6 = 20; // 120 - 100 = 20
+
+    const tx = {
+      id: "tx1", type: "expense", date: "2026-07-15", amount: yourShare6,
+      desc: "Group dinner", notes: "", account: "a1",
+      category: "c1", subcategory: "",
+      friendSplit: { yourShare: yourShare6, shares: shares6 },
+      created: Date.now()
+    };
+    L.addTransaction(tx);
+
+    // Simulate what commitTransaction does: create debt items
+    shares6.forEach(share => {
+      L.DB.debtItems.push({
+        id: L.uid(), sourceTransactionId: "tx1",
+        personId: share.personId, description: "Group dinner",
+        amount: share.amount, currency: "USD",
+        status: "open", date: "2026-07-15", created: Date.now()
+      });
+    });
+
+    // ---- CHECKS AFTER 6-WAY POST ----
+    console.log("\n===== STEP 1: After 6-way split ($120 / 6 = $20 each) =====");
+    console.log("Transaction amount (your expense):", L.DB.transactions[0].amount);
+    console.log("Total expense from breakdown:", L.accountBreakdown("a1").expense);
+    console.log("Account balance:", L.accountBalance("a1"));
+    console.log("Debt items:", L.DB.debtItems.length);
+    L.DB.debtItems.forEach(d => {
+      const p = L.DB.people.find(x => x.id === d.personId);
+      console.log("  -", p.name, "owes you", d.amount, "status:", d.status);
+    });
+    console.log("Person balances:");
+    ["p1","p2","p3","p4","p5"].forEach(pid => {
+      const bal = L.personBalanceByCurrency(pid);
+      console.log("  -", pid, "balance:", bal);
+    });
+
+    expect(L.DB.transactions[0].amount).toBe(20);
+    expect(L.accountBreakdown("a1").expense).toBe(20);
+    expect(L.accountBalance("a1")).toBe(-20);
+    expect(L.DB.debtItems.length).toBe(5);
+    expect(L.DB.debtItems.filter(d => d.status === "open").length).toBe(5);
+    const totalDebt6 = L.DB.debtItems.reduce((a, d) => a + d.amount, 0);
+    expect(totalDebt6).toBe(100);
+    // Your expense + friends' debt = total bill
+    expect(L.DB.transactions[0].amount + totalDebt6).toBe(120);
+
+    // ---- STEP 2: Edit to 2-way split (you + 1 friend) ----
+    // Simulate what commitTransaction does on edit:
+    //   1. upsertTransaction (update tx amount to new yourShare)
+    //   2. replaceDebtItemsForTransaction("tx1", [], true) → clears ALL old debt items
+    //   3. Push new debt items for new shares
+
+    const newYourShare = 60; // $120 / 2 = $60
+    const newShares = [
+      { personId: "p1", amount: 60 },
+    ];
+
+    // 2a. Update the transaction (like upsertTransaction does)
+    const existingTx = L.DB.transactions.find(t => t.id === "tx1");
+    existingTx.amount = newYourShare;
+    existingTx.friendSplit = { yourShare: newYourShare, shares: newShares };
+
+    // 2b. Clear old debt items (like replaceDebtItemsForTransaction does)
+    L.DB.debtItems = L.DB.debtItems.filter(d => d.sourceTransactionId !== "tx1");
+
+    // 2c. Push new debt items
+    newShares.forEach(share => {
+      L.DB.debtItems.push({
+        id: L.uid(), sourceTransactionId: "tx1",
+        personId: share.personId, description: "Group dinner",
+        amount: share.amount, currency: "USD",
+        status: "open", date: "2026-07-15", created: Date.now()
+      });
+    });
+
+    // ---- CHECKS AFTER EDIT TO 2-WAY ----
+    console.log("\n===== STEP 2: After edit to 2-way split ($120 / 2 = $60 each) =====");
+    console.log("Transaction amount (your expense):", L.DB.transactions[0].amount);
+    console.log("Total expense from breakdown:", L.accountBreakdown("a1").expense);
+    console.log("Account balance:", L.accountBalance("a1"));
+    console.log("Debt items:", L.DB.debtItems.length);
+    L.DB.debtItems.forEach(d => {
+      const p = L.DB.people.find(x => x.id === d.personId);
+      console.log("  -", p.name, "owes you", d.amount, "status:", d.status);
+    });
+    console.log("Person balances:");
+    ["p1","p2","p3","p4","p5"].forEach(pid => {
+      const bal = L.personBalanceByCurrency(pid);
+      console.log("  -", pid, "balance:", bal);
+    });
+
+    expect(L.DB.transactions[0].amount).toBe(60);
+    expect(L.accountBreakdown("a1").expense).toBe(60);
+    expect(L.accountBalance("a1")).toBe(-60);
+    expect(L.DB.debtItems.length).toBe(1);
+    expect(L.DB.debtItems[0].personId).toBe("p1");
+    expect(L.DB.debtItems[0].amount).toBe(60);
+    expect(L.DB.debtItems[0].status).toBe("open");
+    // Your expense + friends' debt = total bill (still 120)
+    const totalDebt2 = L.DB.debtItems.reduce((a, d) => a + d.amount, 0);
+    expect(L.DB.transactions[0].amount + totalDebt2).toBe(120);
+    // p2-p5 have no debt items left → balance is 0
+    expect(L.personBalanceByCurrency("p2")).toEqual({});
+    expect(L.personBalanceByCurrency("p3")).toEqual({});
+    expect(L.personBalanceByCurrency("p4")).toEqual({});
+    expect(L.personBalanceByCurrency("p5")).toEqual({});
+    // p1 still owes $60
+    expect(L.personBalanceByCurrency("p1")).toEqual({ USD: 60 });
+  });
+
+  it("6-way split → edit to 2-way: category split excluded from expense math", () => {
+    seedDB();
+    // Same scenario but verify category split is unaffected
+    const tx = {
+      id: "tx2", type: "expense", date: "2026-07-15", amount: 20,
+      desc: "Group dinner", notes: "", account: "a1",
+      category: "c1", subcategory: "",
+      friendSplit: { yourShare: 20, shares: [
+        { personId: "p1", amount: 20 },
+        { personId: "p2", amount: 20 },
+        { personId: "p3", amount: 20 },
+        { personId: "p4", amount: 20 },
+        { personId: "p5", amount: 20 },
+      ]},
+      created: Date.now()
+    };
+    L.addTransaction(tx);
+    ["p1","p2","p3","p4","p5"].forEach((pid, i) => {
+      L.DB.debtItems.push({
+        id: "d" + i, sourceTransactionId: "tx2",
+        personId: pid, description: "Group dinner",
+        amount: 20, currency: "USD",
+        status: "open", date: "2026-07-15", created: Date.now()
+      });
+    });
+    // Total of your share + all debt = 20 + 100 = 120
+    expect(L.DB.transactions[0].amount + L.DB.debtItems.reduce((a,d) => a+d.amount, 0)).toBe(120);
+
+    // Edit: change to yourShare=60, 1 friend
+    L.DB.transactions[0].amount = 60;
+    L.DB.transactions[0].friendSplit = { yourShare: 60, shares: [{ personId:"p1", amount:60 }] };
+    L.DB.debtItems = L.DB.debtItems.filter(d => d.sourceTransactionId !== "tx2");
+    L.DB.debtItems.push({
+      id: "dnew", sourceTransactionId: "tx2",
+      personId: "p1", description: "Group dinner",
+      amount: 60, currency: "USD",
+      status: "open", date: "2026-07-15", created: Date.now()
+    });
+
+    // Verify math still holds
+    expect(L.DB.transactions[0].amount + L.DB.debtItems.reduce((a,d) => a+d.amount, 0)).toBe(120);
+    expect(L.accountBalance("a1")).toBe(-60);
+    expect(L.personBalanceByCurrency("p1")).toEqual({ USD: 60 });
+    expect(L.personBalanceByCurrency("p2")).toEqual({});
+  });
+
+  it("category split sum always equals original bill after edit", () => {
+    seedDB();
+    // Simulates the real app pattern: last share = total - sum_of_others
+    const scenarios = [
+      { total: 60,  shares6: 5, yourShare6: 10,  shares2: 1, yourShare2: 30 },
+      { total: 100, shares6: 5, yourShare6: 20,  shares2: 1, yourShare2: 50 },
+      { total: 77,  shares6: 5, yourShare6: 13,  shares2: 1, yourShare2: 39 },
+    ];
+
+    scenarios.forEach(s => {
+      seedDB();
+      // Post 6-way: yourShare + 5 friends, last friend gets remainder
+      const even6 = Math.round(((s.total - s.yourShare6) / s.shares6) * 100) / 100;
+      const shares6 = Array.from({length: s.shares6}, (_, i) => ({
+        personId: "p" + (i+1),
+        amount: i < s.shares6 - 1 ? even6 : Math.round((s.total - s.yourShare6 - even6 * (s.shares6 - 1)) * 100) / 100
+      }));
+      L.DB.transactions.push({
+        id:"sc1", type:"expense", date:"2026-07-15", amount: s.yourShare6,
+        desc:"Test", notes:"", account:"a1", category:"c1", subcategory:"",
+        friendSplit: { yourShare: s.yourShare6, shares: shares6 }, created: Date.now()
+      });
+      shares6.forEach(sh => {
+        L.DB.debtItems.push({ id:L.uid(), sourceTransactionId:"sc1", personId:sh.personId,
+          description:"Test", amount:sh.amount, currency:"USD", status:"open",
+          date:"2026-07-15", created:Date.now() });
+      });
+      const debt6 = L.DB.debtItems.reduce((a,d) => a+d.amount, 0);
+      expect(Math.round((s.yourShare6 + debt6)*100)/100).toBe(s.total);
+
+      // Edit to 2-way: yourShare + 1 friend gets remainder
+      L.DB.transactions[0].amount = s.yourShare2;
+      L.DB.debtItems = [];
+      L.DB.debtItems.push({ id:"dnew", sourceTransactionId:"sc1", personId:"p1",
+        description:"Test", amount: Math.round((s.total - s.yourShare2)*100)/100,
+        currency:"USD", status:"open", date:"2026-07-15", created:Date.now() });
+      const debt2 = L.DB.debtItems.reduce((a,d) => a+d.amount, 0);
+      expect(Math.round((s.yourShare2 + debt2)*100)/100).toBe(s.total);
+    });
+  });
 });

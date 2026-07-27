@@ -105,7 +105,7 @@ window.Ledger.openReconModal = function(account){
     dupes.forEach(function(t){
       items += '<div class="recon-issue-item">'
         + '<span class="recon-issue-icon">\u26A0</span>'
-        + '<span>Possible duplicate: "' + window.Ledger.escapeHtml(t.description || "Untitled") + '" ' + window.Ledger.fmtMoney(t.amount, a.currency) + ' on ' + t.date + '</span>'
+        + '<span>Possible duplicate: "' + window.Ledger.escapeHtml(t.desc || "Untitled") + '" ' + window.Ledger.fmtMoney(t.amount, a.currency) + ' on ' + t.date + '</span>'
         + '<button class="btn btn-sm" data-recon-goto-tx="' + t.id + '">View</button>'
         + '</div>';
     });

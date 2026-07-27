@@ -9,7 +9,7 @@ beforeAll(() => { L = loadLedger(); });
    ============================================================ */
 function makeAccounts(n) {
   return Array.from({ length: n }, (_, i) => ({
-    id: "acct-" + i, name: "Account " + i, type: i % 3 === 0 ? "credit" : "checking",
+    id: "acct-" + i, name: "Account " + i, type: i % 3 === 0 ? "credit_card" : "checking",
     currency: "USD", owner: "me", group: "default", archived: false,
     openingBalance: 0, created: Date.now()
   }));

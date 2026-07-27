@@ -82,6 +82,22 @@ window.Ledger.importBackupFile = function(file){
   reader.readAsText(file);
 };
 
+/* ---- CSV export (shared by register + reports) ---- */
+window.Ledger._downloadCsv = function(rows, filename){
+  var csv = rows.map(function(r){
+    return r.map(function(cell){
+      var s = String(cell);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+    }).join(",");
+  }).join("\n");
+  var blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
 window.Ledger.exportCsv = function(){
   var list = window.Ledger.filteredTransactions();
   if(list.length === 0){ window.Ledger.showToast("No transactions to export"); return; }
@@ -92,7 +108,6 @@ window.Ledger.exportCsv = function(){
       var fr = window.Ledger.entityRef(t.fromType,t.fromId), toR = window.Ledger.entityRef(t.toType,t.toId);
       from = fr?fr.name:""; to = toR?toR.name:""; cur = fr?fr.currency:"USD";
     } else if(t.linkId){
-      // Cross-currency linked transfer pair (stored as expense/income, not "transfer")
       var acc = window.Ledger.findAccount(t.account);
       from = acc?acc.name:""; cur = acc?acc.currency:"USD";
       var otherRow = window.Ledger.DB.transactions.find(function(x){ return x.linkId===t.linkId && x.id!==t.id; });
@@ -104,18 +119,7 @@ window.Ledger.exportCsv = function(){
     }
     rows.push([t.date, t.linkId ? "transfer (cross-currency)" : t.type, t.desc||"", t.notes||"", t.category?window.Ledger.categoryName(t.category):"", t.subcategory?window.Ledger.subcatName(t.category,t.subcategory):"", from, to, t.amount.toFixed(2), cur]);
   });
-  var csv = rows.map(function(r){
-    return r.map(function(cell){
-      var s = String(cell);
-      return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
-    }).join(",");
-  }).join("\n");
-  var blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement("a");
-  a.href = url; a.download = "ledger-export-" + window.Ledger.todayISO() + ".csv";
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  window.Ledger._downloadCsv(rows, "ledger-export-" + window.Ledger.todayISO() + ".csv");
 };
 
 })();

@@ -375,7 +375,7 @@ function renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunn
 
     var isYearCollapsed = cy[yk];
     html += '<div class="yr-section' + (isYearCollapsed ? ' collapsed' : '') + '">';
-    html += '<div class="yr-header" onclick="window.Ledger.toggleRegYear(\'' + yk + '\')">';
+    html += '<div class="yr-header" data-toggle-year="' + yk + '">';
     html += '<div class="yr-title"><span class="yr-chevron">\u25BC</span> ' + yk + ' <span class="yr-count">(' + yearCount + ' txns)</span></div>';
     html += '<div class="yr-summary">';
     html += '<span class="pos">+' + window.Ledger.fmtMoneyShort(yearInc) + '</span>';
@@ -396,7 +396,7 @@ function renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunn
       var bodyMaxH = isMonthCollapsed ? 0 : (txs.length * 48);
 
       html += '<div class="mo-section' + (isMonthCollapsed ? ' collapsed' : '') + '">';
-      html += '<div class="mo-header" onclick="window.Ledger.toggleRegMonth(\'' + mk + '\')">';
+      html += '<div class="mo-header" data-toggle-month="' + mk + '">';
       html += '<div class="mo-title"><span class="mo-chevron">\u25BC</span> ' + window.Ledger.monthLabelOf(mk) + ' <span class="mo-count">(' + txs.length + ')</span></div>';
       html += '<div class="mo-summary">';
       html += '<span class="pos">+' + window.Ledger.fmtMoneyShort(inc) + '</span>';
@@ -419,7 +419,7 @@ function renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunn
     var remaining = allMonthKeys.length - visibleMonthKeys.length;
     var nextMk = allMonthKeys[visibleMonthKeys.length];
     var nextLabel = window.Ledger.monthLabelOf(nextMk);
-    html += '<button class="load-earlier" onclick="window.Ledger.loadRegEarlierMonths()">';
+    html += '<button class="load-earlier" data-load-earlier="true">';
     html += '\u2191 Load earlier months';
     html += '<span class="load-earlier-sub">' + remaining + ' month' + (remaining > 1 ? 's' : '') + ' remaining (' + nextLabel + ' \u2190)</span>';
     html += '</button>';
@@ -486,7 +486,7 @@ function renderGroupedTxRow(t, showRunning, runBalMap){
     + '<span class="grp-date">' + dateDisp + '</span>'
     + '<span class="grp-desc">' + window.Ledger.escapeHtml(descLabel) + notesIcon + '</span>'
     + '<span class="grp-type"><span class="grp-type-dot" style="background:' + typeColor + ';"></span>' + typeLabel + '</span>'
-    + '<span class="grp-cat">' + catLabel + '</span>'
+    + '<span class="grp-cat">' + window.Ledger.escapeHtml(catLabel) + '</span>'
     + '<span class="grp-acct">' + window.Ledger.escapeHtml(acctLabel) + '</span>'
     + '<span class="grp-amt ' + amtCls + '">' + sign + window.Ledger.fmtMoney(t.amount, currency) + '</span>'
     + runBalHtml

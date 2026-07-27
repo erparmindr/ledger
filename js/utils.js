@@ -42,7 +42,6 @@ window.Ledger.todayISO = function todayISO(){
   return d.getFullYear() + "-" + window.Ledger.pad2(d.getMonth()+1) + "-" + window.Ledger.pad2(d.getDate());
 };
 window.Ledger.monthKeyOf = function monthKeyOf(dateStr){ return dateStr.slice(0,7); };
-window.Ledger.clamp = function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); };
 
 /* Entity lookup */
 window.Ledger.findAccount = function findAccount(id){ return Ledger.DB.accounts.find(function(a){ return a.id === id; }); };
@@ -191,8 +190,12 @@ window.Ledger.accountBreakdown = function accountBreakdown(accountId){
     else if(t.type === "expense" && t.account === accountId) expense += amt;
     else if(t.type === "refund" && t.account === accountId) refund += amt;
     else if(t.type === "transfer"){
-      if(t.fromType === "account" && t.fromId === accountId) transferOut += amt;
-      if(t.toType === "account" && t.toId === accountId) transferIn += amt;
+      if(t.pending){
+        if(t.fromType === "account" && t.fromId === accountId) transferOut += amt;
+      } else {
+        if(t.fromType === "account" && t.fromId === accountId) transferOut += amt;
+        if(t.toType === "account" && t.toId === accountId) transferIn += amt;
+      }
     }
   });
   var computed = opening + income - expense + refund - transferOut + transferIn;
@@ -240,10 +243,10 @@ window.Ledger.findOrphanTransfers = function findOrphanTransfers(accountId){
   var orphans = [];
   window.Ledger.DB.transactions.forEach(function(t){
     if(t.type !== "transfer") return;
-    if(t.fromType === "account" && t.fromId === accountId && !t.toId){
+    if(t.fromType === "account" && t.fromId === accountId && (!t.toId || !window.Ledger.findAccount(t.toId))){
       orphans.push(t);
     }
-    if(t.toType === "account" && t.toId === accountId && !t.fromId){
+    if(t.toType === "account" && t.toId === accountId && (!t.fromId || !window.Ledger.findAccount(t.fromId))){
       orphans.push(t);
     }
   });

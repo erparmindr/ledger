@@ -91,12 +91,6 @@ describe("monthKeyOf", () => {
   });
 });
 
-describe("clamp", () => {
-  it("clamps to min", () => { expect(L.clamp(-5, 0, 100)).toBe(0); });
-  it("clamps to max", () => { expect(L.clamp(150, 0, 100)).toBe(100); });
-  it("passes through in range", () => { expect(L.clamp(50, 0, 100)).toBe(50); });
-});
-
 describe("categoryHasSubs", () => {
   it("returns false for no subs", () => {
     const cat = L.DB.categories.find(c => c.name === "Food" && c.type === "expense");

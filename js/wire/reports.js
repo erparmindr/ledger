@@ -68,18 +68,7 @@ window.Ledger.wireReportsPage = function(){
       }
       rows.push([t.date, t.linkId ? "transfer (cross-currency)" : t.type, t.desc||"", t.notes||"", t.category?window.Ledger.categoryName(t.category):"", t.subcategory?window.Ledger.subcatName(t.category,t.subcategory):"", from, to, t.amount.toFixed(2), cur]);
     });
-    var csv = rows.map(function(r){
-      return r.map(function(cell){
-        var s = String(cell);
-        return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
-      }).join(",");
-    }).join("\n");
-    var blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url; a.download = "ledger-report-" + window.Ledger.todayISO() + ".csv";
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    window.Ledger._downloadCsv(rows, "ledger-report-" + window.Ledger.todayISO() + ".csv");
   });
 
   var upcomingLink = document.querySelector(".upcoming-link");

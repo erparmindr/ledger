@@ -29,12 +29,12 @@ window.Ledger.autoPostRecurring = function(){
         notes:"Auto-posted from recurring item", account:r.account, category:r.category||"", subcategory:r.subcategory||"", created:Date.now()
       });
       window.Ledger._advanceRecurring(r);
+      window.Ledger.saveData();
       safety++;
     }
     if(safety > 0) posted.push(r.name + " (" + safety + "x) \u2192 " + (acc?acc.name:"account"));
   });
   if(posted.length > 0){
-    window.Ledger.saveData();
     window.Ledger.showToast("Auto-posted: " + posted.join(", "));
   }
 };

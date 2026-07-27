@@ -578,7 +578,7 @@ window.Ledger.openTxModal = function(existing){
             window.Ledger.upsertTransaction(mainRec);
             window.Ledger.replaceDebtItemsForTransaction(mainId, [], true);
           } else {
-            window.Ledger.addTransaction(mainRec);
+            window.Ledger.addTransaction(mainRec, true);
             window.Ledger.learnCategory(yourDesc, fCategory);
             if(fSub) window.Ledger.learnSubcategory(yourDesc, fCategory, fSub);
           }

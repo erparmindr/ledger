@@ -177,7 +177,7 @@ window.Ledger.upsertTransaction = function(rec) {
 
 window.Ledger.deleteTransaction = function(id) {
   window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(x){ return x.id !== id; });
-  window.Ledger.replaceDebtItemsForTransaction(id, []);
+  window.Ledger.replaceDebtItemsForTransaction(id, [], true);
   window.Ledger.saveData();
   window.Ledger.renderPage();
 };
@@ -221,9 +221,13 @@ window.Ledger.unarchiveAccount = function(id) {
 
 window.Ledger.deleteAccount = function(id) {
   window.Ledger.DB.accounts = window.Ledger.DB.accounts.filter(function(a){ return a.id !== id; });
+  var linksToClean = {};
   window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(t){
-    return t.account !== id && !(t.fromType==="account" && t.fromId===id) && !(t.toType==="account" && t.toId===id);
+    var touches = t.account === id || (t.fromType==="account" && t.fromId===id) || (t.toType==="account" && t.toId===id);
+    if(touches && t.linkId) linksToClean[t.linkId] = true;
+    return !touches;
   });
+  Object.keys(linksToClean).forEach(function(lid){ window.Ledger.deleteTransactionsByLink(lid); });
   window.Ledger.saveData();
   window.Ledger.renderPage();
   window.Ledger.showToast("Account deleted");
@@ -247,6 +251,14 @@ window.Ledger.renameCategory = function(catId, name) {
 
 window.Ledger.deleteCategory = function(catId) {
   window.Ledger.DB.categories = window.Ledger.DB.categories.filter(function(c){ return c.id !== catId; });
+  window.Ledger.DB.transactions.forEach(function(t){
+    if(t.category === catId) t.category = "";
+    if(t.subcategory && t.category === "") t.subcategory = "";
+    if(t.categorySplits){
+      t.categorySplits = t.categorySplits.filter(function(s){ return s.categoryId !== catId; });
+      if(t.categorySplits.length === 0) t.categorySplits = null;
+    }
+  });
   window.Ledger.saveData();
   window.Ledger.renderPage();
   window.Ledger.showToast("Category deleted");
@@ -312,6 +324,14 @@ window.Ledger.updatePerson = function(rec) {
 
 window.Ledger.deletePerson = function(id) {
   window.Ledger.DB.people = window.Ledger.DB.people.filter(function(p){ return p.id !== id; });
+  window.Ledger.DB.transactions.forEach(function(t){
+    if(t.fromType === "person" && t.fromId === id){ t.fromId = ""; t.fromType = ""; }
+    if(t.toType === "person" && t.toId === id){ t.toId = ""; t.toType = ""; }
+    if(t.friendSplit && t.friendSplit.shares){
+      t.friendSplit.shares = t.friendSplit.shares.filter(function(s){ return s.personId !== id; });
+    }
+  });
+  window.Ledger.DB.debtItems = window.Ledger.DB.debtItems.filter(function(d){ return d.personId !== id; });
   window.Ledger.saveData();
   window.Ledger.renderPage();
   window.Ledger.showToast("Person deleted");
@@ -349,6 +369,7 @@ window.Ledger.learnCategory = function(desc, catId) {
   var firstToken = key.split(" ")[0] || "";
   if(firstToken.length >= 4){
     window.Ledger.DB.categoryLearning[firstToken] = catId;
+    window.Ledger.saveData();
   }
 };
 
@@ -359,6 +380,7 @@ window.Ledger.learnSubcategory = function(desc, catId, subId) {
   var firstToken = key.split(" ")[0] || "";
   if(firstToken.length >= 4){
     window.Ledger.DB.subcategoryLearning[firstToken] = { catId: catId, subId: subId };
+    window.Ledger.saveData();
   }
 };
 

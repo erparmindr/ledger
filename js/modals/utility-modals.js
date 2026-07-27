@@ -24,7 +24,7 @@ window.Ledger.openDuplicatesModal = function(){
     var rows = g.map(function(t){
       var acct = window.Ledger.findAccount(t.account);
       var cat = window.Ledger.findCategory(t.category);
-      var desc = window.Ledger.escapeHtml(t.description || "Untitled");
+      var desc = window.Ledger.escapeHtml(t.desc || "Untitled");
       return '<div class="dupe-row" data-dupe-tx="' + t.id + '">'
         + '<label class="dupe-check"><input type="checkbox" class="dupe-cb" data-dupe-cb="' + t.id + '" data-group="' + gi + '"><span class="dupe-check-mark"></span></label>'
         + '<span class="dupe-row-date">' + t.date + '</span>'

@@ -48,6 +48,14 @@ window.Ledger.wireTransactionsPage = function(){
   if(exportBtn) exportBtn.addEventListener("click", window.Ledger.exportCsv);
   var dupesBtn = document.getElementById("checkDupesBtn");
   if(dupesBtn) dupesBtn.addEventListener("click", function(){ window.Ledger.openDuplicatesModal(); });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-toggle-year]"), function(el){
+    el.addEventListener("click", function(){ window.Ledger.toggleRegYear(el.getAttribute("data-toggle-year")); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-toggle-month]"), function(el){
+    el.addEventListener("click", function(){ window.Ledger.toggleRegMonth(el.getAttribute("data-toggle-month")); });
+  });
+  var loadEarlier = document.querySelector("[data-load-earlier]");
+  if(loadEarlier) loadEarlier.addEventListener("click", window.Ledger.loadRegEarlierMonths);
   function wireClearFilters(btnId){
     var btn = document.getElementById(btnId);
     if(btn) btn.addEventListener("click", function(){
@@ -132,6 +140,7 @@ window.Ledger.wireTransactionsPage = function(){
       if(catVal){
         changes.category = catVal === "__clear__" ? "" : catVal;
         if(catVal === "__clear__") changes.subcategory = "";
+        changes.categorySplits = null;
       }
       if(subVal) changes.subcategory = subVal === "__clear__" ? "" : subVal;
       window.Ledger.updateTransaction(txId, changes);
