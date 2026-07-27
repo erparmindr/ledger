@@ -367,7 +367,7 @@ window.Ledger.learnCategory = function(desc, catId) {
   if(!window.Ledger.DB.categoryLearning) window.Ledger.DB.categoryLearning = {};
   var key = window.Ledger.learnedCategoryKey(desc);
   var firstToken = key.split(" ")[0] || "";
-  if(firstToken.length >= 4){
+  if(firstToken.length >= 3){
     window.Ledger.DB.categoryLearning[firstToken] = catId;
     window.Ledger.saveData();
   }
@@ -378,7 +378,7 @@ window.Ledger.learnSubcategory = function(desc, catId, subId) {
   if(!window.Ledger.DB.subcategoryLearning) window.Ledger.DB.subcategoryLearning = {};
   var key = window.Ledger.learnedCategoryKey(desc);
   var firstToken = key.split(" ")[0] || "";
-  if(firstToken.length >= 4){
+  if(firstToken.length >= 3){
     window.Ledger.DB.subcategoryLearning[firstToken] = { catId: catId, subId: subId };
     window.Ledger.saveData();
   }

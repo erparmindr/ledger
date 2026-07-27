@@ -83,7 +83,7 @@ window.Ledger.suggestCategoryForDescription = function suggestCategoryForDescrip
   var firstWord = norm.split(" ")[0] || "";
 
   // 1. Learned subcategory mappings
-  if(DB.subcategoryLearning && firstWord.length >= 4){
+  if(DB.subcategoryLearning && firstWord.length >= 3){
     var subLearned = DB.subcategoryLearning[firstWord];
     if(subLearned){
       var sCat = findCategory(subLearned.catId);
@@ -137,7 +137,7 @@ window.Ledger.rankCategorySuggestions = function(desc, forType, DB, findCategory
   var subMap = {};
 
   /* 1. Learned subcategory (strongest) */
-  if(DB.subcategoryLearning && firstWord.length >= 4){
+  if(DB.subcategoryLearning && firstWord.length >= 3){
     var subLearned = DB.subcategoryLearning[firstWord];
     if(subLearned){
       var sCat = findCategory(subLearned.catId);
