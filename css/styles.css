@@ -1531,7 +1531,7 @@ select[data-no-cd]:focus-visible{
 .prev-group-row{ display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; transition:background var(--transition-fast); }
 .prev-group-row:hover{ background:var(--surface-2); }
 .prev-group-uncat .prev-group-row{ background:var(--clay-soft); }
-.prev-group-uncat .prev-group-row:hover{ background:var(--clay-soft); filter:brightness(0.95); }
+.prev-group-uncat .prev-group-row:hover{ background:var(--clay-soft); opacity:0.95; }
 .prev-group-check{ width:15px; height:15px; cursor:pointer; accent-color:var(--brass); flex-shrink:0; }
 .prev-group-desc{ flex:1; font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
 .prev-group-count{ font-size:11px; color:var(--text-faint); white-space:nowrap; flex-shrink:0; }
