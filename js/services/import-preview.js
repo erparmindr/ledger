@@ -116,7 +116,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     return '<option value="'+a.id+'" '+(a.id===preselectedAccount?'selected':'')+'>'+window.Ledger.escapeHtml(a.name)+'</option>';
   }).join("");
 
-  var REFUND_KW = /\b(refund|return|reversal|chargeback|cash\s*back|rebate|reward|credit\s*refund)\b/i;
+  var REFUND_KW = /\b(refunds?|returns?|reversal|chargeback|cash\s*back|rebates?|rewards?|credit\s*refunds?)\b/i;
 
   parsedRows.forEach(function(r){
     if(r.suggestedCategoryId === undefined){
