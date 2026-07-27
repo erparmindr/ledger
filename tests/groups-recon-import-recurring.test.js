@@ -441,3 +441,66 @@ describe("CSV Export: _downloadCsv", () => {
     expect(result).toBe('Note\n"Say ""hello"""');
   });
 });
+
+/* ============================================================
+   csvDetermineType
+   ============================================================ */
+describe("csvDetermineType", () => {
+  it("returns income for positive amount without invert", () => {
+    expect(L.csvDetermineType("50.00", false)).toEqual({ type:"income", amount:50 });
+  });
+  it("returns expense for negative amount without invert", () => {
+    expect(L.csvDetermineType("-50.00", false)).toEqual({ type:"expense", amount:50 });
+  });
+  it("inverts sign: positive becomes expense", () => {
+    expect(L.csvDetermineType("50.00", true)).toEqual({ type:"expense", amount:50 });
+  });
+  it("inverts sign: negative becomes income", () => {
+    expect(L.csvDetermineType("-50.00", true)).toEqual({ type:"income", amount:50 });
+  });
+  it("handles parenthetical negatives", () => {
+    expect(L.csvDetermineType("(50.00)", false)).toEqual({ type:"expense", amount:50 });
+  });
+  it("handles parenthetical with invert (double negative → income)", () => {
+    expect(L.csvDetermineType("(50.00)", true)).toEqual({ type:"income", amount:50 });
+  });
+  it("handles dollar sign prefix", () => {
+    expect(L.csvDetermineType("$50.00", false)).toEqual({ type:"income", amount:50 });
+  });
+  it("handles comma in amount", () => {
+    expect(L.csvDetermineType("1,234.56", false)).toEqual({ type:"income", amount:1234.56 });
+  });
+  it("returns null for NaN input", () => {
+    expect(L.csvDetermineType("abc", false)).toBeNull();
+  });
+  it("returns null for empty input", () => {
+    expect(L.csvDetermineType("", false)).toBeNull();
+  });
+  it("returns null for null input", () => {
+    expect(L.csvDetermineType(null, false)).toBeNull();
+  });
+  it("handles zero amount", () => {
+    expect(L.csvDetermineType("0.00", false)).toEqual({ type:"income", amount:0 });
+  });
+  it("split mode: debit returns expense", () => {
+    expect(L.csvDetermineType(null, false, "100.00", "")).toEqual({ type:"expense", amount:100 });
+  });
+  it("split mode: credit returns income", () => {
+    expect(L.csvDetermineType(null, false, "", "200.00")).toEqual({ type:"income", amount:200 });
+  });
+  it("split mode: both debit and credit picks larger", () => {
+    expect(L.csvDetermineType(null, false, "50.00", "100.00")).toEqual({ type:"income", amount:100 });
+  });
+  it("split mode: debit larger than credit picks expense", () => {
+    expect(L.csvDetermineType(null, false, "100.00", "50.00")).toEqual({ type:"expense", amount:100 });
+  });
+  it("split mode: returns null when both are empty", () => {
+    expect(L.csvDetermineType(null, false, "", "")).toBeNull();
+  });
+  it("handles credit card invert: negative CSV amount becomes income", () => {
+    expect(L.csvDetermineType("-50.00", true)).toEqual({ type:"income", amount:50 });
+  });
+  it("handles credit card invert: positive CSV amount is expense", () => {
+    expect(L.csvDetermineType("100.00", true)).toEqual({ type:"expense", amount:100 });
+  });
+});

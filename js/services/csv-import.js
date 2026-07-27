@@ -24,6 +24,28 @@ window.Ledger.parseCsv = function(text){
   return rows.filter(function(r){ return r.length > 1 || (r.length===1 && r[0].trim()!==""); });
 };
 
+window.Ledger.csvDetermineType = function(rawAmt, invertChecked, rawDr, rawCr){
+  if(rawDr !== undefined && rawDr !== null){
+    var drAmt = rawDr ? parseFloat(rawDr.replace(/[^0-9.]/g,"")) : 0;
+    var crAmt = rawCr ? parseFloat(rawCr.replace(/[^0-9.]/g,"")) : 0;
+    if(isNaN(drAmt)) drAmt = 0;
+    if(isNaN(crAmt)) crAmt = 0;
+    if(drAmt > 0 && crAmt === 0) return { type:"expense", amount:drAmt };
+    if(crAmt > 0 && drAmt === 0) return { type:"income", amount:crAmt };
+    if(drAmt > 0 && crAmt > 0) return { type: drAmt >= crAmt ? "expense" : "income", amount: Math.max(drAmt, crAmt) };
+    return null;
+  }
+  if(rawAmt == null) return null;
+  rawAmt = String(rawAmt).trim();
+  var isParenNeg = /^\(.*\)$/.test(rawAmt);
+  var cleaned = rawAmt.replace(/[^0-9.\-]/g,"");
+  var amt = parseFloat(cleaned);
+  if(isNaN(amt)) return null;
+  if(isParenNeg) amt = -amt;
+  if(invertChecked) amt = -amt;
+  return { type: amt < 0 ? "expense" : "income", amount: Math.abs(amt) };
+};
+
 window.Ledger.openCsvImportModal = function(file){
   var reader = new FileReader();
   reader.onload = function(e){
@@ -207,23 +229,13 @@ window.Ledger.openCsvImportModal = function(file){
           var amt, type;
 
           if(!isSplitMode){
-            var rawAmt = (r[amtIdx]||"").trim();
-            var isParenNeg = /^\(.*\)$/.test(rawAmt);
-            var cleaned = rawAmt.replace(/[^0-9.\-]/g,"");
-            amt = parseFloat(cleaned);
-            if(isNaN(amt)) return null;
-            if(isParenNeg) amt = -amt;
-            if(invertChecked) amt = -amt;
-            type = amt < 0 ? "expense" : "income";
-            amt = Math.abs(amt);
+            var result = window.Ledger.csvDetermineType((r[amtIdx]||"").trim(), invertChecked);
+            if(!result) return null;
+            type = result.type; amt = result.amount;
           } else {
-            var rawDr = drIdx !== "" ? (r[drIdx]||"").replace(/[^0-9.]/g,"") : "";
-            var rawCr = crIdx !== "" ? (r[crIdx]||"").replace(/[^0-9.]/g,"") : "";
-            var drAmt = rawDr ? parseFloat(rawDr) : 0;
-            var crAmt = rawCr ? parseFloat(rawCr) : 0;
-            if(drAmt > 0 && crAmt === 0){ type = "expense"; amt = drAmt; }
-            else if(crAmt > 0 && drAmt === 0){ type = "income"; amt = crAmt; }
-            else return null;
+            var result = window.Ledger.csvDetermineType(null, false, r[drIdx]||"", r[crIdx]||"");
+            if(!result) return null;
+            type = result.type; amt = result.amount;
           }
 
           var typeColor = type === "expense" ? "var(--clay)" : "var(--sage)";
@@ -272,31 +284,15 @@ window.Ledger.openCsvImportModal = function(file){
           var isoDate = window.Ledger.normalizeDate(rawDate);
           if(!isoDate) return;
 
-          var amt, type;
+          var invertChecked = document.getElementById("invertSign") && document.getElementById("invertSign").checked;
+          var result;
           if(!isSplitMode){
-            var rawAmt = (r[amtIdx]||"").trim();
-            // Handle parenthetical negatives: ($45.20) or (1,234.56)
-            var isParenNeg = /^\(.*\)$/.test(rawAmt);
-            var cleaned = rawAmt.replace(/[^0-9.\-]/g,"");
-            amt = parseFloat(cleaned);
-            if(isNaN(amt)) return;
-            if(isParenNeg) amt = -amt;
-            // Invert sign toggle: positive = expense
-            if(document.getElementById("invertSign") && document.getElementById("invertSign").checked) amt = -amt;
-            type = amt < 0 ? "expense" : "income";
-            amt = Math.abs(amt);
+            result = window.Ledger.csvDetermineType((r[amtIdx]||"").trim(), invertChecked);
           } else {
-            var rawDr = drIdx !== "" ? (r[drIdx]||"").replace(/[^0-9.]/g,"") : "";
-            var rawCr = crIdx !== "" ? (r[crIdx]||"").replace(/[^0-9.]/g,"") : "";
-            var drAmt = rawDr ? parseFloat(rawDr) : 0;
-            var crAmt = rawCr ? parseFloat(rawCr) : 0;
-            if(isNaN(drAmt)) drAmt = 0;
-            if(isNaN(crAmt)) crAmt = 0;
-            if(drAmt > 0 && crAmt === 0){ type = "expense"; amt = drAmt; }
-            else if(crAmt > 0 && drAmt === 0){ type = "income"; amt = crAmt; }
-            else if(drAmt > 0 && crAmt > 0){ type = drAmt >= crAmt ? "expense" : "income"; amt = Math.max(drAmt, crAmt); }
-            else return;
+            result = window.Ledger.csvDetermineType(null, false, r[drIdx]||"", r[crIdx]||"");
           }
+          if(!result) return;
+          var amt = result.amount, type = result.type;
 
           var desc = descIdx !== "" ? ((r[descIdx]||"").trim() || "Imported transaction") : "Imported transaction";
 
