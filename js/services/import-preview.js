@@ -120,12 +120,14 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
   parsedRows.forEach(function(r){
     if(r.suggestedCategoryId === undefined){
       if(!r.type && REFUND_KW.test(r.desc)) r.type = "refund";
-      var forType = r.type || (r.amount < 0 ? "expense" : "income");
+      var isCreditCard = preselectedAccount && (window.Ledger.findAccount(preselectedAccount) || {}).type === "credit_card";
+      var forType = r.type || (r.amount < 0 ? "expense" : isCreditCard ? "expense" : "income");
       var sug = window.Ledger.suggestCategoryForDescription(r.desc, forType, window.Ledger.DB, window.Ledger.findCategory);
       r.suggestedCategoryId = sug ? sug.categoryId : "";
       r.suggestedSubcategoryId = sug ? (sug.subcategoryId || "") : "";
     }
-    r._type = r.type || (r.amount < 0 ? "expense" : "income");
+    var isCreditCard = preselectedAccount && (window.Ledger.findAccount(preselectedAccount) || {}).type === "credit_card";
+    r._type = r.type || (r.amount < 0 ? "expense" : isCreditCard ? "expense" : "income");
   });
 
   var existingSet = {};
