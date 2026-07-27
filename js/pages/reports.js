@@ -204,6 +204,16 @@ window.Ledger.getMonthlyTrend = function(txList, numMonths){
   return months;
 };
 
+window.Ledger._trendMonths = function(){
+  var p = window.Ledger.reportState.datePreset;
+  if(p === "month") return 1;
+  if(p === "3months") return 3;
+  if(p === "6months") return 6;
+  if(p === "year") return new Date().getMonth()+1;
+  if(p === "all") return 12;
+  return 6;
+};
+
 /* ============================================================
    REPORT TABS: EXPENSES
    ============================================================ */
@@ -258,11 +268,11 @@ window.Ledger._reportExpenseTab = function(){
     html = '<div class="empty-state"><div class="big">No expenses in this range</div>Try adjusting your filters.</div>';
   }
 
-  /* Monthly trend */
-  var trendMonths = window.Ledger.getMonthlyTrend(txList, 6);
+/* Monthly trend */
+  var trendMonths = window.Ledger.getMonthlyTrend(txList, window.Ledger._trendMonths());
   var hasTrend = trendMonths.some(function(m){ return m.amt > 0; });
   if(hasTrend){
-    html += '<div class="card section-gap"><div class="card-header"><h2>Monthly trend</h2><span class="hint">last 6 months</span></div><div class="card-pad">';
+    html += '<div class="card section-gap"><div class="card-header"><h2>Monthly trend</h2><span class="hint">' + window.Ledger.reportState.datePreset + '</span></div><div class="card-pad">';
     html += window.Ledger.htmlBarChart(trendMonths, "var(--clay)");
     html += '</div></div>';
   }
@@ -302,7 +312,7 @@ window.Ledger._reportIncomeTab = function(){
     }).sort(function(a,b){ return b.amt - a.amt; });
 
     var txCount = txList.filter(function(t){ return window.Ledger.reportGetCur(t)===cur; }).length;
-    var topCat = catEntries.length > 0 ? catEntries[0].label : "—";
+    var topCat = catEntries.length > 0 ? catEntries[0].label : "\u2014";
 
     html += '<div class="section-gap">';
     html += '<div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin-bottom:12px;">'+window.Ledger.escapeHtml(cur)+'</div>';
@@ -325,10 +335,10 @@ window.Ledger._reportIncomeTab = function(){
     html = '<div class="empty-state"><div class="big">No income in this range</div>Try adjusting your filters.</div>';
   }
 
-  var trendMonths = window.Ledger.getMonthlyTrend(txList, 6);
+  var trendMonths = window.Ledger.getMonthlyTrend(txList, window.Ledger._trendMonths());
   var hasTrend = trendMonths.some(function(m){ return m.amt > 0; });
   if(hasTrend){
-    html += '<div class="card section-gap"><div class="card-header"><h2>Monthly trend</h2><span class="hint">last 6 months</span></div><div class="card-pad">';
+    html += '<div class="card section-gap"><div class="card-header"><h2>Monthly trend</h2><span class="hint">' + window.Ledger.reportState.datePreset + '</span></div><div class="card-pad">';
     html += window.Ledger.htmlBarChart(trendMonths, "var(--sage)");
     html += '</div></div>';
   }
@@ -501,10 +511,10 @@ window.Ledger._reportRefundTab = function(){
     html = '<div class="empty-state"><div class="big">No refunds in this range</div>Try adjusting your filters.</div>';
   }
 
-  var trendMonths = window.Ledger.getMonthlyTrend(txList, 6);
+  var trendMonths = window.Ledger.getMonthlyTrend(txList, window.Ledger._trendMonths());
   var hasTrend = trendMonths.some(function(m){ return m.amt > 0; });
   if(hasTrend){
-    html += '<div class="card section-gap"><div class="card-header"><h2>Monthly trend</h2><span class="hint">last 6 months</span></div><div class="card-pad">';
+    html += '<div class="card section-gap"><div class="card-header"><h2>Monthly trend</h2><span class="hint">' + window.Ledger.reportState.datePreset + '</span></div><div class="card-pad">';
     html += window.Ledger.htmlBarChart(trendMonths, "var(--sage)");
     html += '</div></div>';
   }
