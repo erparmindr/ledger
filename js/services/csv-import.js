@@ -150,8 +150,8 @@ window.Ledger.openCsvImportModal = function(file){
       + '    <div class="field"><label>Description column</label><select id="mapDesc">' + selOpts(guessDesc) + '</select></div>'
       + '  </div>'
       + '  <div id="signedRow" class="form-row" style="display:' + (!defaultSplit ? 'flex' : 'none') + ';">'
-      + '    <div class="field"><label>Amount column <span class="faint">(negative = expense)</span></label><select id="mapAmount">' + selOpts(guessAmt) + '</select></div>'
-      + '    <div class="field" style="display:flex; align-items:flex-end; padding-bottom:2px;"><label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:11.5px; color:var(--text-dim);"><input type="checkbox" id="invertSign"> Invert sign (positive = expense)</label></div>'
+      + '    <div class="field"><label>Amount column</label><select id="mapAmount">' + selOpts(guessAmt) + '</select></div>'
+      + '    <div class="field"><label>Debits are <span class="faint">(expense)</span></label><select id="debitSign"><option value="negative">Negative amounts</option><option value="positive">Positive amounts</option></select></div>'
       + '  </div>'
       + '  <div id="splitRow" class="form-row" style="display:' + (defaultSplit ? 'flex' : 'none') + ';">'
       + '    <div class="field"><label>Debit column <span class="faint">(money out)</span></label><select id="mapDebit">' + selOpts(guessDr) + '</select></div>'
@@ -186,16 +186,12 @@ window.Ledger.openCsvImportModal = function(file){
         document.getElementById("splitRow").style.display = "flex";
       });
 
-      // Auto-check "Invert sign" when credit card account is selected
+      // Auto-set debit sign when account changes
       var acctSel = document.getElementById("mapAccount");
-      var invertCb = document.getElementById("invertSign");
+      var debitSignSel = document.getElementById("debitSign");
       acctSel.addEventListener("change", function(){
         var acc = window.Ledger.findAccount(acctSel.value);
-        if(acc && acc.type === "credit_card"){
-          invertCb.checked = true;
-        } else {
-          invertCb.checked = false;
-        }
+        debitSignSel.value = acc && acc.type === "credit_card" ? "positive" : "negative";
         updateSamplePreview();
       });
 
@@ -209,7 +205,7 @@ window.Ledger.openCsvImportModal = function(file){
         var descIdx = document.getElementById("mapDesc").value;
         var amtSel = document.getElementById("mapAmount");
         var amtIdx = amtSel ? amtSel.value : "";
-        var invertChecked = invertCb && invertCb.checked;
+        var debitPositive = debitSignSel.value === "positive";
         var drSel = document.getElementById("mapDebit");
         var crSel = document.getElementById("mapCredit");
         var drIdx = drSel ? drSel.value : "";
@@ -223,19 +219,21 @@ window.Ledger.openCsvImportModal = function(file){
         var samples = allDataRows.slice(0, 3);
         if(samples.length === 0){ previewEl.style.display = "none"; return; }
 
+        var isCreditCard = acctSel.value && (window.Ledger.findAccount(acctSel.value) || {}).type === "credit_card";
+
         var html = samples.map(function(r){
           var rawDate = (r[dateIdx]||"").trim();
           var desc = descIdx !== "" ? (r[descIdx]||"").trim() : "";
           var amt, type;
 
           if(!isSplitMode){
-            var result = window.Ledger.csvDetermineType((r[amtIdx]||"").trim(), invertChecked);
+            var result = window.Ledger.csvDetermineType((r[amtIdx]||"").trim(), debitPositive);
             if(!result) return null;
-            type = result.type; amt = result.amount;
+            amt = result.amount; type = isCreditCard ? "expense" : result.type;
           } else {
             var result = window.Ledger.csvDetermineType(null, false, r[drIdx]||"", r[crIdx]||"");
             if(!result) return null;
-            type = result.type; amt = result.amount;
+            amt = result.amount; type = result.type;
           }
 
           var typeColor = type === "expense" ? "var(--clay)" : "var(--sage)";
@@ -251,11 +249,10 @@ window.Ledger.openCsvImportModal = function(file){
       }
 
       // Wire preview to all mapping controls
-      ["mapDate","mapDesc","mapAmount","mapDebit","mapCredit","mapAccount"].forEach(function(id){
+      ["mapDate","mapDesc","mapAmount","mapDebit","mapCredit","mapAccount","debitSign"].forEach(function(id){
         var el = document.getElementById(id);
         if(el) el.addEventListener("change", updateSamplePreview);
       });
-      if(invertCb) invertCb.addEventListener("change", updateSamplePreview);
       document.getElementById("modeSignedBtn").addEventListener("click", function(){ setTimeout(updateSamplePreview, 0); });
       document.getElementById("modeSplitBtn").addEventListener("click", function(){ setTimeout(updateSamplePreview, 0); });
       updateSamplePreview();
@@ -279,20 +276,21 @@ window.Ledger.openCsvImportModal = function(file){
 
         // Parse into preview rows instead of committing directly
         var parsedRows = [];
+        var isCreditCard = account && (window.Ledger.findAccount(account) || {}).type === "credit_card";
+        var debitPositive = debitSignSel.value === "positive";
         allDataRows.forEach(function(r){
           var rawDate = (r[dateIdx]||"").trim();
           var isoDate = window.Ledger.normalizeDate(rawDate);
           if(!isoDate) return;
 
-          var invertChecked = document.getElementById("invertSign") && document.getElementById("invertSign").checked;
           var result;
           if(!isSplitMode){
-            result = window.Ledger.csvDetermineType((r[amtIdx]||"").trim(), invertChecked);
+            result = window.Ledger.csvDetermineType((r[amtIdx]||"").trim(), debitPositive);
           } else {
             result = window.Ledger.csvDetermineType(null, false, r[drIdx]||"", r[crIdx]||"");
           }
           if(!result) return;
-          var amt = result.amount, type = result.type;
+          var amt = result.amount, type = isCreditCard && !isSplitMode ? "expense" : result.type;
 
           var desc = descIdx !== "" ? ((r[descIdx]||"").trim() || "Imported transaction") : "Imported transaction";
 
