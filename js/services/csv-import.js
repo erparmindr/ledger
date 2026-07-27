@@ -171,8 +171,10 @@ window.Ledger.openCsvImportModal = function(file){
         var acc = window.Ledger.findAccount(acctSel.value);
         if(acc && acc.type === "credit_card"){
           invertCb.checked = true;
-          updateSamplePreview();
+        } else {
+          invertCb.checked = false;
         }
+        updateSamplePreview();
       });
 
       // Live sample preview: show 3 rows with proposed type
@@ -222,6 +224,13 @@ window.Ledger.openCsvImportModal = function(file){
             if(drAmt > 0 && crAmt === 0){ type = "expense"; amt = drAmt; }
             else if(crAmt > 0 && drAmt === 0){ type = "income"; amt = crAmt; }
             else return null;
+          }
+
+          // Credit card preview: income → refund
+          var previewAccount = document.getElementById("mapAccount");
+          if(previewAccount){
+            var previewAccObj = window.Ledger.findAccount(previewAccount.value);
+            if(previewAccObj && previewAccObj.type === "credit_card" && type === "income") type = "refund";
           }
 
           var typeColor = type === "expense" ? "var(--clay)" : "var(--sage)";
@@ -303,6 +312,10 @@ window.Ledger.openCsvImportModal = function(file){
 
           var REFUND_KW = /\b(refund|return|reversal|chargeback|credit\s*refund)\b/i;
           if(type !== "transfer" && REFUND_KW.test(desc)) type = "refund";
+
+          // Credit card accounts should never have "income" — credits are refunds/cashback
+          var acc = window.Ledger.findAccount(account);
+          if(acc && acc.type === "credit_card" && type === "income") type = "refund";
 
           parsedRows.push({ date: isoDate, amount: amt, type: type, desc: desc, raw: r.join(", ") });
         });
