@@ -1726,7 +1726,7 @@ footer.app-footer{ text-align:center; color:var(--text-faint); font-size:11px; p
   box-shadow:0 12px 32px -8px rgba(0,0,0,0.35);
   max-height:220px;
   overflow-y:auto;
-  z-index:60;
+z-index:9999;
   display:none;
   padding:4px;
 }

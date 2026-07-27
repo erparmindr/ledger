@@ -115,11 +115,11 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     return '<option value="'+a.id+'" '+(a.id===preselectedAccount?'selected':'')+'>'+window.Ledger.escapeHtml(a.name)+'</option>';
   }).join("");
 
-  var REFUND_KW = /\b(refund|return|reversal|chargeback|cashback|rebate|reward|credit\s*refund)\b/i;
+  var REFUND_KW = /\b(refund|return|reversal|chargeback|cash\s*back|rebate|reward|credit\s*refund)\b/i;
 
   parsedRows.forEach(function(r){
     if(r.suggestedCategoryId === undefined){
-      if(!r.type && REFUND_KW.test(r.desc)) r.type = "refund";
+      if(REFUND_KW.test(r.desc)) r.type = "refund";
       var isCreditCard = preselectedAccount && (window.Ledger.findAccount(preselectedAccount) || {}).type === "credit_card";
       var forType = r.type || (r.amount < 0 ? "expense" : isCreditCard ? "expense" : "income");
       var sug = window.Ledger.suggestCategoryForDescription(r.desc, forType, window.Ledger.DB, window.Ledger.findCategory);
