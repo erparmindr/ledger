@@ -226,13 +226,6 @@ window.Ledger.openCsvImportModal = function(file){
             else return null;
           }
 
-          // Credit card preview: income → refund
-          var previewAccount = document.getElementById("mapAccount");
-          if(previewAccount){
-            var previewAccObj = window.Ledger.findAccount(previewAccount.value);
-            if(previewAccObj && previewAccObj.type === "credit_card" && type === "income") type = "refund";
-          }
-
           var typeColor = type === "expense" ? "var(--clay)" : "var(--sage)";
           return '<div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0; font-size:11.5px;">'
             + '<span class="faint">' + window.Ledger.escapeHtml(desc || rawDate || "—") + '</span>'
@@ -312,10 +305,6 @@ window.Ledger.openCsvImportModal = function(file){
 
           var REFUND_KW = /\b(refund|return|reversal|chargeback|credit\s*refund)\b/i;
           if(type !== "transfer" && REFUND_KW.test(desc)) type = "refund";
-
-          // Credit card accounts should never have "income" — credits are refunds/cashback
-          var acc = window.Ledger.findAccount(account);
-          if(acc && acc.type === "credit_card" && type === "income") type = "refund";
 
           parsedRows.push({ date: isoDate, amount: amt, type: type, desc: desc, raw: r.join(", ") });
         });
