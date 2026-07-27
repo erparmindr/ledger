@@ -304,6 +304,7 @@ window.Ledger.openCsvImportModal = function(file){
         });
 
         if(parsedRows.length === 0){ window.Ledger.showToast("No valid rows found — check your column mapping"); return; }
+        window.Ledger.closeModal();
         window.Ledger.openImportPreviewModal(parsedRows, account, "CSV");
       });
     });

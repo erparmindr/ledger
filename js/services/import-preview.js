@@ -101,6 +101,7 @@ window.Ledger.openStatementPasteModal = function(){
         window.Ledger.showToast("Couldn't find any date + amount lines in that text");
         return;
       }
+      window.Ledger.closeModal();
       window.Ledger.openStatementPreviewModal(parsed);
     });
   });
