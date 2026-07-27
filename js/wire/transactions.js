@@ -156,6 +156,22 @@ window.Ledger.wireTransactionsPage = function(){
     window.Ledger.renderPage();
   });
 
+  var bulkDeleteBtn = document.getElementById("bulkDeleteBtn");
+  if(bulkDeleteBtn) bulkDeleteBtn.addEventListener("click", function(){
+    var selectedIds = Object.keys(window.Ledger.registerSelectedTx);
+    if(!selectedIds.length) return;
+    window.Ledger.openConfirmModal("Delete " + selectedIds.length + " transaction" + (selectedIds.length !== 1 ? "s" : "") + "?", "This will permanently remove the selected transactions. This cannot be undone.", function(){
+      selectedIds.forEach(function(id){
+        window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(x){ return x.id !== id; });
+        window.Ledger.replaceDebtItemsForTransaction(id, [], true);
+      });
+      window.Ledger.registerSelectedTx = {};
+      window.Ledger.saveData();
+      window.Ledger.renderPage();
+      window.Ledger.showToast(selectedIds.length + " transaction" + (selectedIds.length !== 1 ? "s" : "") + " deleted");
+    });
+  });
+
   var upcomingLink = document.querySelector(".upcoming-link");
   if(upcomingLink) upcomingLink.addEventListener("click", function(e){ e.preventDefault(); window.Ledger.navigateTo("scheduled"); });
 

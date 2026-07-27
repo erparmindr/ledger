@@ -323,6 +323,7 @@ window.Ledger.pages.renderTransactionsPage = function(){
       + '<select id="bulkSub" class="bulk-select" style="display:none"><option value="">No change</option><option value="__clear__">Remove subcategory</option></select>'
       + '<button class="btn btn-sm btn-primary" id="bulkApplyBtn">Apply</button>'
       + '<button class="btn btn-sm" id="bulkClearBtn">Clear selection</button>'
+      + '<button class="btn btn-sm btn-danger" id="bulkDeleteBtn" style="margin-left:auto;">Delete selected</button>'
       + '</div>';
   }
 
