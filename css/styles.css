@@ -1525,7 +1525,7 @@ select[data-no-cd]:focus-visible{
 .prev-summary-dot.dupe{ background:var(--brass); }
 .prev-sub-row.is-dupe{ background:var(--clay-soft); border-radius:var(--radius-sm); padding:4px 6px; margin:2px 0; }
 .prev-group.has-dupes .prev-group-desc::after{ content:" \u26A0"; font-size:11px; color:var(--brass); }
-.prev-groups{ display:flex; flex-direction:column; gap:2px; max-height:55vh; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius-md); }
+.prev-groups{ display:flex; flex-direction:column; gap:2px; max-height:55vh; overflow:visible; border:1px solid var(--border); border-radius:var(--radius-md); }
 .prev-group{ border-bottom:1px solid var(--border-soft); }
 .prev-group:last-child{ border-bottom:none; }
 .prev-group-row{ display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; transition:background var(--transition-fast); }
