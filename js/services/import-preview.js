@@ -112,6 +112,7 @@ window.Ledger.openStatementPasteModal = function(){
    ============================================================ */
 
 window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, source, onBack){
+  var isCreditCard = preselectedAccount && (window.Ledger.findAccount(preselectedAccount) || {}).type === "credit_card";
   var accOpts = window.Ledger.DB.accounts.filter(function(a){ return !a.archived; }).map(function(a){
     return '<option value="'+a.id+'" '+(a.id===preselectedAccount?'selected':'')+'>'+window.Ledger.escapeHtml(a.name)+'</option>';
   }).join("");
@@ -354,12 +355,43 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
 
           if(chosenType === "transfer"){
             var newId = window.Ledger.uid();
-            txArray.push({
+            
+            var fromId, toId;
+            var fromType = "account";
+            var toType = "account";
+            var pending = true;
+            
+            var originalAmount = r.amount;
+            var originalAccount = window.Ledger.findAccount(account);
+            
+            if(originalAmount < 0){
+              toId = account;
+              fromId = originalAccount && originalAccount.type === "credit_card" ? "" : (window.Ledger.DB.accounts.length > 1 ? window.Ledger.DB.accounts.find(function(a){ return a.id !== account && !a.archived; }).id : "");
+            } else {
+              toId = account;
+              fromId = originalAccount && originalAccount.type === "credit_card" ? (window.Ledger.DB.accounts.length > 1 ? window.Ledger.DB.accounts.find(function(a){ return a.id !== account && !a.archived && a.type === "account"; }).id : "") : (window.Ledger.DB.accounts.length > 1 ? window.Ledger.DB.accounts.find(function(a){ return a.id !== account && !a.archived; }).id : "");
+            }
+            
+            if(fromId === toId){
+              fromId = account;
+              toId = "";
+              pending = true;
+            }
+            
+            var txObj = {
               id: newId, type: "transfer", date: r.date, amount: Math.abs(r.amount),
               desc: chosenDesc, notes: "Imported from " + (source||"import"),
               account: account, category: chosenCategory, subcategory: chosenSubcategory, created: Date.now(),
-              fromType: "account", fromId: account, pending: true
-            });
+              fromType: fromType, fromId: fromId
+            };
+            
+            if(toId && toId !== ""){
+              txObj.toType = toType;
+              txObj.toId = toId;
+              txObj.pending = false;
+            }
+            
+            txArray.push(txObj);
             importedIds.push(newId);
             if(chosenCategory){
               window.Ledger.learnCategory(chosenDesc, chosenCategory);
