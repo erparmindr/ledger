@@ -353,6 +353,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       if(imported === 0){ window.Ledger.showToast("No rows checked"); return; }
       window.Ledger.addTransactionBatch(txArray);
       window.Ledger.closeModal();
+      window.Ledger.closeModal();
       window.Ledger.showToast(imported + " transaction"+(imported===1?"":"s")+" imported");
       window.Ledger.promptLinkTransfers(account, importedIds);
     });
