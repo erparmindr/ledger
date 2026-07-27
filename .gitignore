@@ -9,3 +9,4 @@ backup-*/
 node_modules
 _backups
 package-lock.json
+tests/

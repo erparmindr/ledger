@@ -4,7 +4,6 @@
   "description": "A private, offline-first personal finance ledger. No accounts, no cloud, no tracking — everything stays in your browser.",
   "main": "sw.js",
   "scripts": {
-    "test": "vitest run"
   },
   "repository": {
     "type": "git",
@@ -17,8 +16,5 @@
   "bugs": {
     "url": "https://github.com/erparmindr/ledger/issues"
   },
-  "homepage": "https://github.com/erparmindr/ledger#readme",
-  "devDependencies": {
-    "vitest": "^4.1.10"
-  }
+  "homepage": "https://github.com/erparmindr/ledger#readme"
 }
