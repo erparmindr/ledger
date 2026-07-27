@@ -241,7 +241,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     + '  <button class="btn btn-primary" id="confirmImportBtn">Import checked rows</button>'
     + '</div>';
 
-  window.Ledger.openModal(html, function(){
+  window.Ledger.openModal(html, "modal-import", function(){
     document.getElementById("closeModalBtn").addEventListener("click", window.Ledger.closeModal);
     var cancelBtn = document.getElementById("cancelImportBtn");
     if(cancelBtn) cancelBtn.addEventListener("click", window.Ledger.closeModal);

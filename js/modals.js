@@ -6,10 +6,11 @@ window.Ledger = window.Ledger || {};
    ============================================================ */
 window.Ledger.modalStack = [];
 
-window.Ledger.openModal = function (html, onMount) {
+window.Ledger.openModal = function (html, onMount, className) {
   var root = document.getElementById("modalRoot");
   window.Ledger.modalStack.push(root.innerHTML);
-  root.innerHTML = '<div class="modal-backdrop" id="modalBackdrop"><div class="modal" role="dialog" aria-modal="true">' + html + '</div></div>';
+  var modalClass = "modal" + (className ? " " + className : "");
+  root.innerHTML = '<div class="modal-backdrop" id="modalBackdrop"><div class="' + modalClass + '" role="dialog" aria-modal="true">' + html + '</div></div>';
   document.getElementById("modalBackdrop").addEventListener("click", function (e) {
     if (e.target.id === "modalBackdrop") window.Ledger.closeModal();
   });
