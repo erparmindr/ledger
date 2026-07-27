@@ -224,8 +224,8 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       + '<span class="prev-group-toggle" data-gi="'+gi+'">&#9654;</span>'
       + '<span class="prev-group-desc" title="'+window.Ledger.escapeHtml(g.desc)+'">'+window.Ledger.escapeHtml(g.desc)+'</span>'
       + '<span class="prev-group-count">'+g.rows.length+' &times; '+amtDisplay+'</span>'
-      + '<select class="prev-group-cat prev-category '+catBorder+'" data-gi="'+gi+'">'+catOptsAll(g.rows[0].parsedRow._type, g.categoryId)+'</select>'
-      + (subHtml ? '<select class="prev-group-sub" data-gi="'+gi+'">'+subHtml+'</select>' : '')
+      + '<select class="prev-group-cat prev-category '+catBorder+'" data-no-cd data-gi="'+gi+'">'+catOptsAll(g.rows[0].parsedRow._type, g.categoryId)+'</select>'
+      + (subHtml ? '<select class="prev-group-sub" data-no-cd data-gi="'+gi+'">'+subHtml+'</select>' : '')
       + '</div>'
       + '<div class="prev-group-rows" data-gi="'+gi+'">'+rowsDetail+'</div>'
       + '</div>';
@@ -284,6 +284,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
             if(!subSel){
               subSel = document.createElement("select");
               subSel.className = "prev-group-sub";
+              subSel.setAttribute("data-no-cd","");
               subSel.setAttribute("data-gi", gi);
               sel.parentElement.insertBefore(subSel, sel.nextSibling);
               if(window.Ledger.initCustomDropdowns) window.Ledger.initCustomDropdowns();
