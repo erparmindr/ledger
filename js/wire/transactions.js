@@ -106,10 +106,11 @@ window.Ledger.wireTransactionsPage = function(){
   });
 
   var bulkCatSel = document.getElementById("bulkCat");
-  var bulkSubSel = document.getElementById("bulkSub");
   if(bulkCatSel){
     bulkCatSel.addEventListener("change", function(){
       var catId = bulkCatSel.value;
+      var bulkSubSel = document.getElementById("bulkSub");
+      if(!bulkSubSel) return;
       if(catId && catId !== "__clear__" && window.Ledger.categoryHasSubs(catId)){
         var cat = window.Ledger.findCategory(catId);
         bulkSubSel.innerHTML = '<option value="">No change</option><option value="__clear__">Remove subcategory</option>'
@@ -123,8 +124,10 @@ window.Ledger.wireTransactionsPage = function(){
   }
   var bulkApplyBtn = document.getElementById("bulkApplyBtn");
   if(bulkApplyBtn) bulkApplyBtn.addEventListener("click", function(){
-    var catVal = bulkCatSel ? bulkCatSel.value : "";
-    var subVal = bulkSubSel ? bulkSubSel.value : "";
+    var catEl = document.getElementById("bulkCat");
+    var subEl = document.getElementById("bulkSub");
+    var catVal = catEl ? catEl.value : "";
+    var subVal = subEl ? subEl.value : "";
     if(!catVal && !subVal) return;
     var selectedIds = Object.keys(window.Ledger.registerSelectedTx);
     if(!selectedIds.length) return;
