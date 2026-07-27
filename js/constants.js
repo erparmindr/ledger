@@ -61,7 +61,9 @@ window.Ledger.AUTO_CATEGORY_KEYWORDS = [
    Strips trailing numbers, common bank suffixes, normalizes whitespace. */
 window.Ledger.normalizeMerchant = function normalizeMerchant(desc) {
   if(!desc) return "";
-  return desc.toLowerCase()
+  return desc
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .toLowerCase()
     .replace(/[^a-z0-9 ]/g, " ")
     .replace(/\b(na|pur|pos|tfr|pm|dr|cr|POS PUR|POS WDL|INTERAC|DEBIT|CREDIT)\b/g, "")
     .replace(/\s+/g, " ")

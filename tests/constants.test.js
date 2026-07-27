@@ -18,6 +18,10 @@ describe("normalizeMerchant", () => {
   it("collapses whitespace", () => {
     expect(L.normalizeMerchant("hello   world")).toBe("hello world");
   });
+  it("splits camelCase merchant names", () => {
+    expect(L.normalizeMerchant("DoordashBurgerKing")).toBe("doordash burger king");
+    expect(L.normalizeMerchant("DoordashKFC")).toBe("doordash kfc");
+  });
   it("returns empty string for null/undefined", () => {
     expect(L.normalizeMerchant(null)).toBe("");
     expect(L.normalizeMerchant(undefined)).toBe("");
