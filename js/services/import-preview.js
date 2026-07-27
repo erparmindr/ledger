@@ -165,9 +165,14 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     return b.rows.length - a.rows.length;
   });
 
-  function catOptsAll(selectedId){
-    return '<option value="">Choose category\u2026</option>' + window.Ledger.DB.categories.map(function(c){
-      return '<option value="'+c.id+'" '+(c.id===selectedId?'selected':'')+'>'+window.Ledger.escapeHtml(c.name)+(c.type!=="expense"?" ("+c.type+")":"")+'</option>';
+  function catOptsAll(forType, selectedId){
+    var filtered = window.Ledger.DB.categories.filter(function(c){
+      if(forType === "expense" || forType === "refund") return c.type === "expense";
+      if(forType === "income") return c.type !== "expense";
+      return true;
+    });
+    return '<option value="">Choose category\u2026</option>' + filtered.map(function(c){
+      return '<option value="'+c.id+'" '+(c.id===selectedId?'selected':'')+'>'+window.Ledger.escapeHtml(c.name)+'</option>';
     }).join("");
   }
 
@@ -219,8 +224,8 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       + '<span class="prev-group-toggle" data-gi="'+gi+'">&#9654;</span>'
       + '<span class="prev-group-desc" title="'+window.Ledger.escapeHtml(g.desc)+'">'+window.Ledger.escapeHtml(g.desc)+'</span>'
       + '<span class="prev-group-count">'+g.rows.length+' &times; '+amtDisplay+'</span>'
-      + '<select class="prev-group-cat prev-category '+catBorder+'" data-no-cd data-gi="'+gi+'">'+catOptsAll(g.categoryId)+'</select>'
-      + (subHtml ? '<select class="prev-group-sub" data-no-cd data-gi="'+gi+'">'+subHtml+'</select>' : '')
+      + '<select class="prev-group-cat prev-category '+catBorder+'" data-gi="'+gi+'">'+catOptsAll(g.rows[0].parsedRow._type, g.categoryId)+'</select>'
+      + (subHtml ? '<select class="prev-group-sub" data-gi="'+gi+'">'+subHtml+'</select>' : '')
       + '</div>'
       + '<div class="prev-group-rows" data-gi="'+gi+'">'+rowsDetail+'</div>'
       + '</div>';
@@ -279,7 +284,6 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
             if(!subSel){
               subSel = document.createElement("select");
               subSel.className = "prev-group-sub";
-              subSel.setAttribute("data-no-cd","");
               subSel.setAttribute("data-gi", gi);
               sel.parentElement.insertBefore(subSel, sel.nextSibling);
               if(window.Ledger.initCustomDropdowns) window.Ledger.initCustomDropdowns();
