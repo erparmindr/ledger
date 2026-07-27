@@ -5,7 +5,9 @@ window.Ledger.pages = window.Ledger.pages || {};
 window.Ledger.pages.renderAccountsPage = function(){
   var DB = window.Ledger.DB;
   var ACCOUNT_TYPES = window.Ledger.ACCOUNT_TYPES;
-  var OWNERS = window.Ledger.ACCOUNT_OWNERS || [];
+  var OWNERS = (window.Ledger.ACCOUNT_OWNERS || []).concat(
+    (DB.groups || []).map(function(g){ return { id: g.id, label: g.name, cls: "", avatar: "" }; })
+  );
   var accountBalance = window.Ledger.accountBalance;
   var fmtMoney = window.Ledger.fmtMoney;
   var escHtml = window.Ledger.escapeHtml;
@@ -110,8 +112,9 @@ window.Ledger.pages.renderAccountsPage = function(){
   OWNERS.forEach(function(o){
     var ownerAccts = active.filter(function(a){ return a.owner === o.id; });
     if(!ownerAccts.length) return;
+    var avatarHtml = o.avatar ? '<div class="owner-avatar ' + (o.cls||'') + '">' + o.avatar + '</div>' : '';
     cardHtml += '<div class="owner-group">'
-      + '<div class="owner-header"><div class="owner-left"><div class="owner-avatar ' + o.cls + '">' + o.avatar + '</div><span class="owner-name">' + escHtml(o.label) + '</span> <span class="owner-count">' + ownerAccts.length + '</span></div></div>'
+      + '<div class="owner-header"><div class="owner-left">' + avatarHtml + '<span class="owner-name">' + escHtml(o.label) + '</span> <span class="owner-count">' + ownerAccts.length + '</span></div></div>'
       + '<div class="card-grid">';
     ownerAccts.forEach(function(a){ cardHtml += renderTile(a); });
     cardHtml += '</div></div>';
