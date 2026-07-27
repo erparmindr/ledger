@@ -249,11 +249,11 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     + '</div>';
 
   window.Ledger.openModal(html, function(){
-    document.getElementById("closeModalBtn").addEventListener("click", function(){ window.Ledger.closeModal(); window.Ledger.closeModal(); });
+    document.getElementById("closeModalBtn").addEventListener("click", window.Ledger.closeModal);
     var cancelBtn = document.getElementById("cancelImportBtn");
-    if(cancelBtn) cancelBtn.addEventListener("click", function(){ window.Ledger.closeModal(); window.Ledger.closeModal(); });
+    if(cancelBtn) cancelBtn.addEventListener("click", window.Ledger.closeModal);
     var backBtn = document.getElementById("backBtn");
-    if(backBtn) backBtn.addEventListener("click", function(){ window.Ledger.closeModal(); window.Ledger.closeModal(); if(onBack) onBack(); });
+    if(backBtn) backBtn.addEventListener("click", function(){ window.Ledger.closeModal(); if(onBack) onBack(); });
 
     function toggleGroup(gi){
       var rows = document.querySelector('.prev-group-rows[data-gi="'+gi+'"]');

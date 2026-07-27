@@ -2,22 +2,29 @@
 window.Ledger = window.Ledger || {};
 
 /* ============================================================
-   MODAL SYSTEM
+   MODAL SYSTEM — append-based stacking
+   Opens a new backdrop+modal child; closeModal removes the top.
+   Underlying modals keep their DOM + event listeners intact.
    ============================================================ */
 window.Ledger.modalStack = [];
 
 window.Ledger.openModal = function (html, onMount, className) {
   var root = document.getElementById("modalRoot");
-  window.Ledger.modalStack.push(root.innerHTML);
+  var idx = window.Ledger.modalStack.length;
   var modalClass = "modal" + (className ? " " + className : "");
-  root.innerHTML = '<div class="modal-backdrop" id="modalBackdrop"><div class="' + modalClass + '" role="dialog" aria-modal="true">' + html + '</div></div>';
-  document.getElementById("modalBackdrop").addEventListener("click", function (e) {
-    if (e.target.id === "modalBackdrop") window.Ledger.closeModal();
+  var backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+  backdrop.style.zIndex = 100 + idx;
+  backdrop.innerHTML = '<div class="' + modalClass + '" role="dialog" aria-modal="true">' + html + '</div>';
+  root.appendChild(backdrop);
+  window.Ledger.modalStack.push(backdrop);
+  backdrop.addEventListener("click", function (e) {
+    if (e.target.classList.contains("modal-backdrop")) window.Ledger.closeModal();
   });
   if (onMount) onMount();
-  if(window.Ledger.initCustomDropdowns) window.Ledger.initCustomDropdowns();
-  if(window.Ledger.initDatePickers) window.Ledger.initDatePickers();
-  if(window.Ledger.refreshIcons) window.Ledger.refreshIcons();
+  if (window.Ledger.initCustomDropdowns) window.Ledger.initCustomDropdowns();
+  if (window.Ledger.initDatePickers) window.Ledger.initDatePickers();
+  if (window.Ledger.refreshIcons) window.Ledger.refreshIcons();
 };
 
 window.Ledger.openSubModal = function (html, onMount) {
@@ -25,27 +32,12 @@ window.Ledger.openSubModal = function (html, onMount) {
 };
 
 window.Ledger.closeSubModal = function () {
-  var root = document.getElementById("modalRoot");
-  var prev = window.Ledger.modalStack.pop();
-  root.innerHTML = prev != null ? prev : "";
-  var backdrop = document.getElementById("modalBackdrop");
-  if (backdrop) {
-    backdrop.addEventListener("click", function (e) {
-      if (e.target.id === "modalBackdrop") window.Ledger.closeModal();
-    });
-  }
+  window.Ledger.closeModal();
 };
 
 window.Ledger.closeModal = function () {
-  var root = document.getElementById("modalRoot");
-  var prev = window.Ledger.modalStack.pop();
-  root.innerHTML = prev != null ? prev : "";
-  var backdrop = document.getElementById("modalBackdrop");
-  if (backdrop) {
-    backdrop.addEventListener("click", function (e) {
-      if (e.target.id === "modalBackdrop") window.Ledger.closeModal();
-    });
-  }
+  var top = window.Ledger.modalStack.pop();
+  if (top) top.remove();
 };
 
 /* ============================================================
