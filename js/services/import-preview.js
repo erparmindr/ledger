@@ -115,7 +115,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     return '<option value="'+a.id+'" '+(a.id===preselectedAccount?'selected':'')+'>'+window.Ledger.escapeHtml(a.name)+'</option>';
   }).join("");
 
-  var REFUND_KW = /\b(refund|return|reversal|chargeback|credit\s*refund)\b/i;
+  var REFUND_KW = /\b(refund|return|reversal|chargeback|cashback|rebate|reward|credit\s*refund)\b/i;
 
   parsedRows.forEach(function(r){
     if(r.suggestedCategoryId === undefined){
