@@ -242,8 +242,8 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     + '</div>'
     + '<div class="modal-body">'
     + summaryHtml
-    + '<div class="prev-groups">'+groupsHtml+'</div>'
     + '<div class="field"><label>Import into account</label><select id="prevAccount">'+accOpts+'</select></div>'
+    + '<div class="prev-groups">'+groupsHtml+'</div>'
     + '</div>'
     + '<div class="modal-foot">'
     + (onBack ? '<button class="btn" id="backBtn">Back</button>' : '<button class="btn" id="cancelImportBtn">Cancel</button>')
