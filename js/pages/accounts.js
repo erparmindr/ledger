@@ -5,9 +5,7 @@ window.Ledger.pages = window.Ledger.pages || {};
 window.Ledger.pages.renderAccountsPage = function(){
   var DB = window.Ledger.DB;
   var ACCOUNT_TYPES = window.Ledger.ACCOUNT_TYPES;
-  var OWNERS = (window.Ledger.ACCOUNT_OWNERS || []).concat(
-    (DB.groups || []).map(function(g){ return { id: g.id, label: g.name, cls: "", avatar: "" }; })
-  );
+  var OWNERS = (DB.groups || []).map(function(g){ return { id: g.id, label: g.name }; });
   var accountBalance = window.Ledger.accountBalance;
   var fmtMoney = window.Ledger.fmtMoney;
   var escHtml = window.Ledger.escapeHtml;

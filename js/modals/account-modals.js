@@ -7,9 +7,7 @@ window.Ledger.openAccountModal = function(existing){
   var a = existing ? Object.assign({}, existing) : { name:"", type:"checking", currency:"USD", owner:"", openingBalance:0, archived:false };
   var typeOpts = window.Ledger.ACCOUNT_TYPES.map(function(t){ return '<option value="'+t.id+'" '+(a.type===t.id?'selected':'')+'>'+t.label+'</option>'; }).join("");
   var curSuggestions = window.Ledger.CURRENCIES.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join("");
-  var OWNERS = (window.Ledger.ACCOUNT_OWNERS || []).concat(
-    (window.Ledger.DB.groups || []).map(function(g){ return { id: g.id, label: g.name }; })
-  );
+  var OWNERS = (window.Ledger.DB.groups || []).map(function(g){ return { id: g.id, label: g.name }; });
   var ownerOpts = '<option value="">None</option>' + OWNERS.map(function(o){ return '<option value="'+o.id+'" '+(a.owner===o.id?'selected':'')+'>'+window.Ledger.escapeHtml(o.label)+'</option>'; }).join("");
   var curBal = isEdit ? window.Ledger.accountBalance(a.id) : 0;
 
