@@ -258,8 +258,9 @@ window.Ledger._reportExpenseTab = function(){
     html = '<div class="empty-state"><div class="big">No expenses in this range</div>Try adjusting your filters.</div>';
   }
 
-  /* Monthly trend */
-  var trendMonths = window.Ledger.getMonthlyTrend(txList, 6);
+  /* Monthly trend — always last 6 months, ignore date filter */
+  var allTx = window.Ledger.DB.transactions.filter(function(t){ return (t.type==="expense"||t.type==="refund") && !t.linkId; });
+  var trendMonths = window.Ledger.getMonthlyTrend(allTx, 6);
   var hasTrend = trendMonths.some(function(m){ return m.amt > 0; });
   if(hasTrend){
     html += '<div class="card section-gap"><div class="card-header"><h2>Monthly trend</h2><span class="hint">last 6 months</span></div><div class="card-pad">';
@@ -325,7 +326,8 @@ window.Ledger._reportIncomeTab = function(){
     html = '<div class="empty-state"><div class="big">No income in this range</div>Try adjusting your filters.</div>';
   }
 
-  var trendMonths = window.Ledger.getMonthlyTrend(txList, 6);
+  var allTxIncome = window.Ledger.DB.transactions.filter(function(t){ return t.type==="income" && !t.linkId; });
+  var trendMonths = window.Ledger.getMonthlyTrend(allTxIncome, 6);
   var hasTrend = trendMonths.some(function(m){ return m.amt > 0; });
   if(hasTrend){
     html += '<div class="card section-gap"><div class="card-header"><h2>Monthly trend</h2><span class="hint">last 6 months</span></div><div class="card-pad">';
@@ -501,7 +503,8 @@ window.Ledger._reportRefundTab = function(){
     html = '<div class="empty-state"><div class="big">No refunds in this range</div>Try adjusting your filters.</div>';
   }
 
-  var trendMonths = window.Ledger.getMonthlyTrend(txList, 6);
+  var allTxRefund = window.Ledger.DB.transactions.filter(function(t){ return t.type==="refund" && !t.linkId; });
+  var trendMonths = window.Ledger.getMonthlyTrend(allTxRefund, 6);
   var hasTrend = trendMonths.some(function(m){ return m.amt > 0; });
   if(hasTrend){
     html += '<div class="card section-gap"><div class="card-header"><h2>Monthly trend</h2><span class="hint">last 6 months</span></div><div class="card-pad">';
