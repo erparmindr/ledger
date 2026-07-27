@@ -36,8 +36,15 @@ window.Ledger.closeSubModal = function () {
 };
 
 window.Ledger.closeModal = function () {
-  window.Ledger.modalStack = [];
-  document.getElementById("modalRoot").innerHTML = "";
+  var root = document.getElementById("modalRoot");
+  var prev = window.Ledger.modalStack.pop();
+  root.innerHTML = prev != null ? prev : "";
+  var backdrop = document.getElementById("modalBackdrop");
+  if (backdrop) {
+    backdrop.addEventListener("click", function (e) {
+      if (e.target.id === "modalBackdrop") window.Ledger.closeModal();
+    });
+  }
 };
 
 /* ============================================================
