@@ -152,7 +152,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     var norm = window.Ledger.normalizeMerchant ? window.Ledger.normalizeMerchant(r.desc) : raw;
     var key = norm || raw || "__empty__";
     if(!groupMap[key]){
-      groupMap[key] = { key:key, desc:r.desc, rows:[], categoryId:r.suggestedCategoryId||"", subcategoryId:r.suggestedSubcategoryId||"" };
+      groupMap[key] = { key:key, desc:r.desc, rows:[], categoryId:r.suggestedCategoryId||"", subcategoryId:r.suggestedSubcategoryId||"", type:r._type||"" };
       groups.push(groupMap[key]);
     }
     groupMap[key].rows.push({ parsedRow:r, idx:idx });
@@ -222,13 +222,18 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
         + '</div>';
     }).join("");
 
+    var typeOpts = ['expense','income','transfer','refund'].map(function(t){
+      return '<option value="'+t+'"'+(t===g.type?' selected':'')+'>'+t.charAt(0).toUpperCase()+t.slice(1)+'</option>';
+    }).join("");
+
     return '<div class="prev-group'+(isUncat?' prev-group-uncat':'')+(hasDupes?' has-dupes':'')+'" data-gi="'+gi+'">'
       + '<div class="prev-group-row" data-gi="'+gi+'">'
       + '<input type="checkbox" class="prev-group-check" data-gi="'+gi+'" checked>'
       + '<span class="prev-group-toggle" data-gi="'+gi+'">&#9654;</span>'
       + '<span class="prev-group-desc" title="'+window.Ledger.escapeHtml(g.desc)+'">'+window.Ledger.escapeHtml(g.desc)+'</span>'
       + '<span class="prev-group-count">'+g.rows.length+' &times; '+amtDisplay+'</span>'
-      + '<select class="prev-group-cat prev-category '+catBorder+'" data-gi="'+gi+'">'+catOptsAll(g.rows[0].parsedRow._type, g.categoryId)+'</select>'
+      + '<select class="prev-group-type prev-category" data-gi="'+gi+'">'+typeOpts+'</select>'
+      + '<select class="prev-group-cat prev-category '+catBorder+'" data-gi="'+gi+'">'+catOptsAll(g.type, g.categoryId)+'</select>'
       + (subHtml ? '<select class="prev-group-sub" data-gi="'+gi+'">'+subHtml+'</select>' : '')
       + '</div>'
       + '<div class="prev-group-rows" data-gi="'+gi+'">'+rowsDetail+'</div>'
@@ -309,6 +314,21 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       });
     });
 
+    Array.prototype.forEach.call(document.querySelectorAll(".prev-group-type"), function(sel){
+      sel.addEventListener("change", function(){
+        var gi = parseInt(sel.getAttribute("data-gi"), 10);
+        groups[gi].type = sel.value;
+        var catSel = document.querySelector('.prev-group-cat[data-gi="'+gi+'"]');
+        if(catSel){
+          var oldCat = catSel.value;
+          catSel.innerHTML = catOptsAll(sel.value, oldCat);
+        }
+        groups[gi].categoryId = document.querySelector('.prev-group-cat[data-gi="'+gi+'"]').value || "";
+        var row = document.querySelector('.prev-group[data-gi="'+gi+'"]');
+        if(row) row.classList.toggle("prev-group-uncat", !groups[gi].categoryId);
+      });
+    });
+
     Array.prototype.forEach.call(document.querySelectorAll(".prev-group-check"), function(chk){
       chk.addEventListener("change", function(){
         groups[parseInt(chk.getAttribute("data-gi"), 10)]._unchecked = !chk.checked;
@@ -327,7 +347,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
         if(g._unchecked) return;
         g.rows.forEach(function(item){
           var r = item.parsedRow;
-          var chosenType = r._type;
+          var chosenType = g.type || r._type;
           var chosenDesc = r.desc || "Imported transaction";
           var chosenCategory = g.categoryId || "";
           var chosenSubcategory = g.subcategoryId || "";
