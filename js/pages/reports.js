@@ -31,12 +31,16 @@ window.Ledger.reportMatchesDate = function(dateStr){
     var weekAgo = new Date(now); weekAgo.setDate(now.getDate()-7);
     return d >= weekAgo && d <= now;
   }
+  if(f.datePreset === "month"){
+    var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    return d >= monthStart && d <= now;
+  }
   if(f.datePreset === "3months"){
-    var threeMo = new Date(now); threeMo.setMonth(now.getMonth()-3);
+    var threeMo = new Date(now); threeMo.setMonth(now.getMonth()-2, 1);
     return d >= threeMo && d <= now;
   }
   if(f.datePreset === "6months"){
-    var sixMo = new Date(now); sixMo.setMonth(now.getMonth()-6);
+    var sixMo = new Date(now); sixMo.setMonth(now.getMonth()-5, 1);
     return d >= sixMo && d <= now;
   }
   if(f.datePreset === "year") return d.getFullYear() === now.getFullYear();
