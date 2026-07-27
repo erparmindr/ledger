@@ -169,7 +169,8 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
 
   function catOptsAll(forType, selectedId){
     var filtered = window.Ledger.DB.categories.filter(function(c){
-      if(forType === "expense" || forType === "refund") return c.type === "expense";
+      if(forType === "refund" || forType === "transfer") return true;
+      if(forType === "expense") return c.type === "expense";
       if(forType === "income") return c.type !== "expense";
       return true;
     });
