@@ -67,6 +67,7 @@ window.Ledger.normalizeMerchant = function normalizeMerchant(desc) {
     .replace(/[^a-z0-9 ]/g, " ")
     .replace(/\b(na|pur|pos|tfr|pm|dr|cr|POS PUR|POS WDL|INTERAC|DEBIT|CREDIT)\b/g, "")
     .replace(/\s+/g, " ")
+    .replace(/\s+[a-z]*[0-9][a-z0-9]*[a-z][a-z0-9]*$/i, "")
     .trim();
 };
 
