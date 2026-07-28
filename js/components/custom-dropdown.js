@@ -39,7 +39,8 @@ window.Ledger.initCustomDropdowns = function(){
     var wrap = document.createElement("div");
     wrap.className = "cd-wrap";
     if(sel.classList.contains("is-filtered")) wrap.classList.add("is-filtered");
-    wrap.setAttribute("tabindex", "0");
+    if(sel.disabled) wrap.classList.add("cd-wrap-disabled");
+    wrap.setAttribute("tabindex", sel.disabled ? "-1" : "0");
 
     var trigger = document.createElement("div");
     trigger.className = "cd-trigger";
@@ -83,6 +84,7 @@ window.Ledger.initCustomDropdowns = function(){
     sel.parentNode.insertBefore(wrap, sel);
 
     wrap.addEventListener("click", function(e){
+      if(sel.disabled) return;
       e.stopPropagation();
       var wasOpen = wrap.classList.contains("open");
       document.querySelectorAll(".cd-wrap.open").forEach(function(w){ cdClose(w); });
@@ -91,6 +93,7 @@ window.Ledger.initCustomDropdowns = function(){
 
     wrap.addEventListener("keydown", function(e){
       if(e.key === "Enter" || e.key === " "){
+        if(sel.disabled) return;
         e.preventDefault();
         wrap.click();
       }
@@ -119,6 +122,8 @@ window.Ledger.refreshCustomDropdown = function(sel){
   var trigger = wrap.querySelector(".cd-trigger");
   if(!list || !trigger) return;
 
+  wrap.classList.toggle("cd-wrap-disabled", sel.disabled);
+  wrap.setAttribute("tabindex", sel.disabled ? "-1" : "0");
   list.innerHTML = "";
   var options = sel.querySelectorAll("option");
   var currentVal = sel.value;

@@ -111,14 +111,19 @@ window.Ledger.wireTransactionsPage = function(){
       var catId = bulkCatSel.value;
       var bulkSubSel = document.getElementById("bulkSub");
       if(!bulkSubSel) return;
+      var subWrap = bulkSubSel.previousElementSibling;
+      if(subWrap && subWrap.classList.contains("cd-wrap")) subWrap.style.display = "";
       if(catId && catId !== "__clear__" && window.Ledger.categoryHasSubs(catId)){
         var cat = window.Ledger.findCategory(catId);
         bulkSubSel.innerHTML = '<option value="">No change</option><option value="__clear__">Remove subcategory</option>'
           + (cat ? cat.subs.map(function(s){ return '<option value="'+s.id+'">'+window.Ledger.escapeHtml(s.name)+'</option>'; }).join("") : "");
         bulkSubSel.style.display = "";
+        window.Ledger.refreshCustomDropdown(bulkSubSel);
       } else {
         bulkSubSel.innerHTML = '<option value="">No change</option>';
         bulkSubSel.style.display = "none";
+        if(subWrap && subWrap.classList.contains("cd-wrap")) subWrap.style.display = "none";
+        window.Ledger.refreshCustomDropdown(bulkSubSel);
       }
     });
   }

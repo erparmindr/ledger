@@ -239,13 +239,16 @@ document.addEventListener("DOMContentLoaded", function(){
     b.addEventListener("click", function(){ window.Ledger.applyTheme(b.getAttribute("data-theme-btn")); });
   });
 
-  function afterStorageReady(){
+  function afterStorageReady(data){
+    if(data){
+      window.Ledger.DB = window.Ledger.normalizeData(data);
+    }
     window.Ledger.autoPostRecurring();
     window.Ledger.renderPage();
   }
   if(window.Ledger.Storage){
-    window.Ledger.Storage.init().then(function(){
-      afterStorageReady();
+    window.Ledger.Storage.init().then(function(data){
+      afterStorageReady(data);
     });
   } else {
     afterStorageReady();
