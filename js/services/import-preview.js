@@ -322,19 +322,44 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
        sel.addEventListener("change", function(){
          var gi = parseInt(sel.getAttribute("data-gi"), 10);
          groups[gi].type = sel.value;
+         groups[gi].categorySplits = null;
+         groups[gi].friendSplit = null;
+         groups[gi].splitLabel = "";
          var catSel = document.querySelector('.prev-group-cat[data-gi="'+gi+'"]');
          if(catSel){
            var oldCat = catSel.value;
            var newOptions = catOptsAll(sel.value, oldCat);
            catSel.innerHTML = newOptions;
            
-           var matchedCategory = oldCat ? newOptions.includes('<option value="' + oldCat + '" selected>') : "";
-           groups[gi].categoryId = matchedCategory || "";
+           var oldCatValid = oldCat && newOptions.includes('value="' + oldCat + '"');
+           groups[gi].categoryId = oldCatValid ? oldCat : "";
            groups[gi].subcategoryId = "";
+           
+           catSel.className = "prev-group-cat prev-category " + (groups[gi].categoryId ? "border-sage" : "border-clay");
+           var subSel = document.querySelector('.prev-group-sub[data-gi="'+gi+'"]');
+           if(groups[gi].categoryId && window.Ledger.categoryHasSubs && window.Ledger.categoryHasSubs(groups[gi].categoryId)){
+             var cat = window.Ledger.findCategory(groups[gi].categoryId);
+             if(cat && cat.subs && cat.subs.length){
+               if(!subSel){
+                 subSel = document.createElement("select");
+                 subSel.className = "prev-group-sub";
+                 subSel.setAttribute("data-gi", gi);
+                 catSel.parentElement.insertBefore(subSel, catSel.nextSibling);
+                 if(window.Ledger.initCustomDropdowns) window.Ledger.initCustomDropdowns();
+               }
+               subSel.innerHTML = '<option value="">None</option>' + cat.subs.map(function(s){
+                 return '<option value="'+s.id+'">'+window.Ledger.escapeHtml(s.name)+'</option>';
+               }).join("");
+             }
+           } else if(subSel){
+             subSel.innerHTML = '<option value="">None</option>';
+           }
          }
          groups[gi].categoryId = groups[gi].categoryId || "";
          var row = document.querySelector('.prev-group[data-gi="'+gi+'"]');
          if(row) row.classList.toggle("prev-group-uncat", !groups[gi].categoryId);
+         var labelEl = document.querySelector('.prev-group-split-label[data-gi="'+gi+'"]');
+         if(labelEl) labelEl.textContent = "";
        });
      });
 

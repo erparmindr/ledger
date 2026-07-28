@@ -10,8 +10,12 @@ window.Ledger.openCategorySplitModal = function(totalAmount, existingSplits, txT
   ];
 
   function render(){
-    var catFilterType = (txType === "transfer") ? "transfer" : "expense";
-    var expenseCats = window.Ledger.DB.categories.filter(function(c){ return c.type === catFilterType; });
+    var expenseCats = window.Ledger.DB.categories.filter(function(c){
+      if(txType === "refund" || txType === "transfer") return true;
+      if(txType === "expense") return c.type === "expense";
+      if(txType === "income") return c.type !== "expense";
+      return true;
+    });
     var catOpts = '<option value="">Choose category</option>' + expenseCats.map(function(c){ return '<option value="'+c.id+'">'+window.Ledger.escapeHtml(c.name)+'</option>'; }).join("");
 
     var rowsHtml = rowsState.map(function(r, i){
