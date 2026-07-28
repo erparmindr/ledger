@@ -58,8 +58,8 @@ window.Ledger.openTextPromptModal = function (title, placeholder, initial, onSav
     document.getElementById("okBtn").addEventListener("click", function () {
       var v = document.getElementById("promptInput").value.trim();
       if (!v) { window.Ledger.showToast("Enter a value"); return; }
-      onSave(v);
       window.Ledger.closeModal();
+      onSave(v);
     });
   });
 };
