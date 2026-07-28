@@ -7,6 +7,33 @@ window.Ledger = window.Ledger || {};
    Underlying modals keep their DOM + event listeners intact.
    ============================================================ */
 window.Ledger.modalStack = [];
+window.Ledger._focusStack = [];
+
+var FOCUSABLE = 'input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])';
+
+function trapFocus(backdrop, e){
+  var focusable = backdrop.querySelectorAll(FOCUSABLE);
+  if(!focusable.length) return;
+  var first = focusable[0];
+  var last = focusable[focusable.length - 1];
+  if(e.shiftKey && document.activeElement === first){
+    e.preventDefault();
+    last.focus();
+  } else if(!e.shiftKey && document.activeElement === last){
+    e.preventDefault();
+    first.focus();
+  }
+}
+
+if(!window.Ledger._modalEscapeAdded){
+  window.Ledger._modalEscapeAdded = true;
+  document.addEventListener("keydown", function(e){
+    if(e.key !== "Escape") return;
+    if(!window.Ledger.modalStack.length) return;
+    if(document.querySelector(".cd-wrap.open")) return;
+    window.Ledger.closeModal();
+  });
+}
 
 window.Ledger.openModal = function (html, onMount, className) {
   var root = document.getElementById("modalRoot");
@@ -18,14 +45,22 @@ window.Ledger.openModal = function (html, onMount, className) {
   backdrop.innerHTML = '<div class="' + modalClass + '" role="dialog" aria-modal="true">' + html + '</div>';
   root.appendChild(backdrop);
   document.querySelectorAll(".cd-wrap.open").forEach(function(w){ var l=w._cdList||w.querySelector(".cd-list"); if(l&&l.parentNode!==w)w.appendChild(l); l.style.cssText=""; w.classList.remove("open"); });
+  window.Ledger._focusStack.push(document.activeElement);
   window.Ledger.modalStack.push(backdrop);
   backdrop.addEventListener("click", function (e) {
     if (e.target.classList.contains("modal-backdrop")) window.Ledger.closeModal();
+  });
+  backdrop.addEventListener("keydown", function(e){
+    if(e.key === "Tab"){
+      trapFocus(backdrop, e);
+    }
   });
   if (onMount) onMount(backdrop);
   if (window.Ledger.initCustomDropdowns) window.Ledger.initCustomDropdowns();
   if (window.Ledger.initDatePickers) window.Ledger.initDatePickers();
   if (window.Ledger.refreshIcons) window.Ledger.refreshIcons();
+  var firstFocusable = backdrop.querySelector(FOCUSABLE);
+  if(firstFocusable) firstFocusable.focus();
 };
 
 window.Ledger.openSubModal = function (html, onMount) {
@@ -40,6 +75,8 @@ window.Ledger.closeModal = function () {
   document.querySelectorAll(".cd-wrap.open").forEach(function(w){ var l=w._cdList||w.querySelector(".cd-list"); if(l&&l.parentNode!==w)w.appendChild(l); l.style.cssText=""; w.classList.remove("open"); });
   var top = window.Ledger.modalStack.pop();
   if (top) top.remove();
+  var prevFocus = window.Ledger._focusStack.pop();
+  if(prevFocus && prevFocus.focus) prevFocus.focus();
 };
 
 /* ============================================================
