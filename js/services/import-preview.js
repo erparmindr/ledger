@@ -153,7 +153,7 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
     var norm = window.Ledger.normalizeMerchant ? window.Ledger.normalizeMerchant(r.desc) : raw;
     var key = norm || raw || "__empty__";
     if(!groupMap[key]){
-      groupMap[key] = { key:key, desc:r.desc, rows:[], categoryId:r.suggestedCategoryId||"", subcategoryId:r.suggestedSubcategoryId||"", type:r._type||"" };
+      groupMap[key] = { key:key, desc:r.desc, rows:[], categoryId:r.suggestedCategoryId||"", subcategoryId:r.suggestedSubcategoryId||"", type:r._type||"", categorySplits:null, friendSplit:null, splitLabel:"" };
       groups.push(groupMap[key]);
     }
     groupMap[key].rows.push({ parsedRow:r, idx:idx });
@@ -236,6 +236,9 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       + '<select class="prev-group-type prev-category" data-gi="'+gi+'">'+typeOpts+'</select>'
       + '<select class="prev-group-cat prev-category '+catBorder+'" data-gi="'+gi+'">'+catOptsAll(g.type, g.categoryId)+'</select>'
       + (subHtml ? '<select class="prev-group-sub" data-gi="'+gi+'">'+subHtml+'</select>' : '')
+      + '<button type="button" class="btn btn-sm prev-group-split-btn" data-gi="'+gi+'" title="Split categories" style="margin-left:4px;">\u00F7</button>'
+      + '<button type="button" class="btn btn-sm prev-group-friend-btn" data-gi="'+gi+'" title="Split with friends" style="margin-left:2px;">\uD83D\uDC65</button>'
+      + '<span class="prev-group-split-label" data-gi="'+gi+'" style="margin-left:4px; font-size:11px; color:var(--sage);">'+window.Ledger.escapeHtml(g.splitLabel||"")+'</span>'
       + '</div>'
       + '<div class="prev-group-rows" data-gi="'+gi+'">'+rowsDetail+'</div>'
       + '</div>';
@@ -335,13 +338,45 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
        });
      });
 
-    Array.prototype.forEach.call(document.querySelectorAll(".prev-group-check"), function(chk){
-      chk.addEventListener("change", function(){
-        groups[parseInt(chk.getAttribute("data-gi"), 10)]._unchecked = !chk.checked;
-      });
-    });
+     Array.prototype.forEach.call(document.querySelectorAll(".prev-group-check"), function(chk){
+       chk.addEventListener("change", function(){
+         groups[parseInt(chk.getAttribute("data-gi"), 10)]._unchecked = !chk.checked;
+       });
+     });
 
-    document.getElementById("confirmImportBtn").addEventListener("click", function(){
+     Array.prototype.forEach.call(document.querySelectorAll(".prev-group-split-btn"), function(btn){
+       btn.addEventListener("click", function(){
+         var gi = parseInt(btn.getAttribute("data-gi"), 10);
+         var g = groups[gi];
+         var rowAmount = g.rows.length ? Math.abs(g.rows[0].parsedRow.amount) : 0;
+         var txType = g.type;
+         window.Ledger.openCategorySplitModal(rowAmount, g.categorySplits, txType, function(splits){
+           g.categorySplits = splits;
+           g.friendSplit = null;
+           g.splitLabel = "Split across " + splits.length + " categories";
+           var labelEl = document.querySelector('.prev-group-split-label[data-gi="'+gi+'"]');
+           if(labelEl) labelEl.textContent = g.splitLabel;
+         });
+       });
+     });
+
+     Array.prototype.forEach.call(document.querySelectorAll(".prev-group-friend-btn"), function(btn){
+       btn.addEventListener("click", function(){
+         var gi = parseInt(btn.getAttribute("data-gi"), 10);
+         var g = groups[gi];
+         var rowAmount = g.rows.length ? Math.abs(g.rows[0].parsedRow.amount) : 0;
+         window.Ledger.openFriendSplitModal(rowAmount, g.friendSplit, function(splitResult){
+           g.friendSplit = splitResult;
+           g.categorySplits = null;
+           var names = window.Ledger.DB.people.length ? " with " + window.Ledger.DB.people.filter(function(p){ return splitResult.shares.some(function(s){ return s.personId === p.id; }); }).map(function(p){return p.name;}).join(", ") : "";
+           g.splitLabel = "Your share: " + window.Ledger.fmtMoney(splitResult.yourShare) + names;
+           var labelEl = document.querySelector('.prev-group-split-label[data-gi="'+gi+'"]');
+           if(labelEl) labelEl.textContent = g.splitLabel;
+         });
+       });
+     });
+
+     document.getElementById("confirmImportBtn").addEventListener("click", function(){
       var account = document.getElementById("prevAccount").value;
       if(!account){ window.Ledger.showToast("Choose an account"); return; }
 
@@ -404,11 +439,29 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
             }
           } else {
             var newId2 = window.Ledger.uid();
-            txArray.push({
-              id: newId2, type: chosenType, date: r.date, amount: Math.abs(r.amount),
-              desc: chosenDesc, notes: "Imported from " + (source||"import"),
-              account: account, category: chosenCategory, subcategory: chosenSubcategory, created: Date.now()
-            });
+            
+            if(g.categorySplits && g.categorySplits.length){
+              txArray.push({
+                id: newId2, type: chosenType, date: r.date, amount: Math.abs(r.amount),
+                desc: chosenDesc, notes: "Imported from " + (source||"import"),
+                account: account, category: "", subcategory: "",
+                categorySplits: g.categorySplits, created: Date.now()
+              });
+            } else if(g.friendSplit && g.friendSplit.shares && g.friendSplit.shares.length){
+              txArray.push({
+                id: newId2, type: "expense", date: r.date, amount: g.friendSplit.yourShare,
+                desc: chosenDesc, notes: "Imported from " + (source||"import"),
+                account: account, category: chosenCategory, subcategory: chosenSubcategory,
+                friendSplit: g.friendSplit, created: Date.now()
+              });
+            } else {
+              txArray.push({
+                id: newId2, type: chosenType, date: r.date, amount: Math.abs(r.amount),
+                desc: chosenDesc, notes: "Imported from " + (source||"import"),
+                account: account, category: chosenCategory, subcategory: chosenSubcategory, created: Date.now()
+              });
+            }
+            
             importedIds.push(newId2);
             if(chosenCategory){
               window.Ledger.learnCategory(chosenDesc, chosenCategory);
