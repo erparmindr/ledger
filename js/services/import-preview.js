@@ -315,20 +315,25 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
       });
     });
 
-    Array.prototype.forEach.call(document.querySelectorAll(".prev-group-type"), function(sel){
-      sel.addEventListener("change", function(){
-        var gi = parseInt(sel.getAttribute("data-gi"), 10);
-        groups[gi].type = sel.value;
-        var catSel = document.querySelector('.prev-group-cat[data-gi="'+gi+'"]');
-        if(catSel){
-          var oldCat = catSel.value;
-          catSel.innerHTML = catOptsAll(sel.value, oldCat);
-        }
-        groups[gi].categoryId = document.querySelector('.prev-group-cat[data-gi="'+gi+'"]').value || "";
-        var row = document.querySelector('.prev-group[data-gi="'+gi+'"]');
-        if(row) row.classList.toggle("prev-group-uncat", !groups[gi].categoryId);
-      });
-    });
+     Array.prototype.forEach.call(document.querySelectorAll(".prev-group-type"), function(sel){
+       sel.addEventListener("change", function(){
+         var gi = parseInt(sel.getAttribute("data-gi"), 10);
+         groups[gi].type = sel.value;
+         var catSel = document.querySelector('.prev-group-cat[data-gi="'+gi+'"]');
+         if(catSel){
+           var oldCat = catSel.value;
+           var newOptions = catOptsAll(sel.value, oldCat);
+           catSel.innerHTML = newOptions;
+           
+           var matchedCategory = oldCat ? newOptions.includes('<option value="' + oldCat + '" selected>') : "";
+           groups[gi].categoryId = matchedCategory || "";
+           groups[gi].subcategoryId = "";
+         }
+         groups[gi].categoryId = groups[gi].categoryId || "";
+         var row = document.querySelector('.prev-group[data-gi="'+gi+'"]');
+         if(row) row.classList.toggle("prev-group-uncat", !groups[gi].categoryId);
+       });
+     });
 
     Array.prototype.forEach.call(document.querySelectorAll(".prev-group-check"), function(chk){
       chk.addEventListener("change", function(){
