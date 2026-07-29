@@ -159,33 +159,41 @@ window.Ledger.addTransactionBatch = function(txArray, categoryLearning, subcateg
   window.Ledger.renderPage();
 };
 
-window.Ledger.updateTransaction = function(id, changes) {
+window.Ledger.updateTransaction = function(id, changes, skipSave) {
   var idx = window.Ledger.DB.transactions.findIndex(function(x){ return x.id === id; });
   if(idx >= 0) Object.assign(window.Ledger.DB.transactions[idx], changes);
-  window.Ledger.saveData();
-  window.Ledger.renderPage();
+  if(!skipSave){
+    window.Ledger.saveData();
+    window.Ledger.renderPage();
+  }
 };
 
-window.Ledger.upsertTransaction = function(rec) {
+window.Ledger.upsertTransaction = function(rec, skipSave) {
   if(!rec || !rec.id) return;
   var idx = window.Ledger.DB.transactions.findIndex(function(x){ return x.id === rec.id; });
   if(idx >= 0) window.Ledger.DB.transactions[idx] = rec;
   else window.Ledger.DB.transactions.push(rec);
-  window.Ledger.saveData();
-  window.Ledger.renderPage();
+  if(!skipSave){
+    window.Ledger.saveData();
+    window.Ledger.renderPage();
+  }
 };
 
-window.Ledger.deleteTransaction = function(id) {
+window.Ledger.deleteTransaction = function(id, skipSave) {
   window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(x){ return x.id !== id; });
   window.Ledger.replaceDebtItemsForTransaction(id, [], true);
-  window.Ledger.saveData();
-  window.Ledger.renderPage();
+  if(!skipSave){
+    window.Ledger.saveData();
+    window.Ledger.renderPage();
+  }
 };
 
-window.Ledger.deleteTransactionsByLink = function(linkId) {
+window.Ledger.deleteTransactionsByLink = function(linkId, skipSave) {
   window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(x){ return x.linkId !== linkId; });
-  window.Ledger.saveData();
-  window.Ledger.renderPage();
+  if(!skipSave){
+    window.Ledger.saveData();
+    window.Ledger.renderPage();
+  }
 };
 
 // ---- Accounts ----
@@ -227,7 +235,7 @@ window.Ledger.deleteAccount = function(id) {
     if(touches && t.linkId) linksToClean[t.linkId] = true;
     return !touches;
   });
-  Object.keys(linksToClean).forEach(function(lid){ window.Ledger.deleteTransactionsByLink(lid); });
+  Object.keys(linksToClean).forEach(function(lid){ window.Ledger.deleteTransactionsByLink(lid, true); });
   window.Ledger.saveData();
   window.Ledger.renderPage();
   window.Ledger.showToast("Account deleted");

@@ -24,15 +24,17 @@ window.Ledger.autoPostRecurring = function(){
       var due = window.Ledger.nextDueDate(r, today);
       if(due > today) break;
       var acc = window.Ledger.findAccount(r.account);
-      window.Ledger.DB.transactions.push({
+      window.Ledger.addTransaction({
         id:window.Ledger.uid(), type:r.type, date:due, amount:r.amount, desc:r.name,
         notes:"Auto-posted from recurring item", account:r.account, category:r.category||"", subcategory:r.subcategory||"", created:Date.now()
-      });
+      }, true);
       window.Ledger._advanceRecurring(r);
-      window.Ledger.saveData();
       safety++;
     }
-    if(safety > 0) posted.push(r.name + " (" + safety + "x) \u2192 " + (acc?acc.name:"account"));
+    if(safety > 0){
+      window.Ledger.saveData();
+      posted.push(r.name + " (" + safety + "x) \u2192 " + (acc?acc.name:"account"));
+    }
   });
   if(posted.length > 0){
     window.Ledger.showToast("Auto-posted: " + posted.join(", "));

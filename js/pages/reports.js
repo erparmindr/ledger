@@ -55,41 +55,7 @@ window.Ledger.reportMatchesDate = function(dateStr){
 
 window.Ledger.reportFilterTx = function(types){
   var f = window.Ledger.reportState;
-  return window.Ledger.DB.transactions.filter(function(t){
-    if(types.indexOf(t.type) === -1) return false;
-    if(t.linkId) return false;
-    if(f.type !== "all" && t.type !== f.type) return false;
-    if(!window.Ledger.reportMatchesDate(t.date)) return false;
-    if(f.account !== "all"){
-      var touches = (t.account === f.account) ||
-        (t.fromType==="account" && t.fromId===f.account) ||
-        (t.toType==="account" && t.toId===f.account);
-      if(!touches) return false;
-    }
-    if(f.currency !== "all"){
-      var cur = null;
-      if(t.account){ var a = window.Ledger.findAccount(t.account); cur = a ? a.currency : null; }
-      else if(t.fromType==="account"){ var a2=window.Ledger.findAccount(t.fromId); cur=a2?a2.currency:null; }
-      else if(t.toType==="account"){ var a3=window.Ledger.findAccount(t.toId); cur=a3?a3.currency:null; }
-      if(cur !== f.currency) return false;
-    }
-    if(f.category !== "all"){
-      if(t.categorySplits && t.categorySplits.length){
-        if(!t.categorySplits.some(function(s){ return s.categoryId === f.category; })) return false;
-      } else if(t.category !== f.category) return false;
-    }
-    if(f.subcategory !== "all"){
-      if(t.categorySplits && t.categorySplits.length){
-        if(!t.categorySplits.some(function(s){ return s.subcategoryId === f.subcategory; })) return false;
-      } else if(t.subcategory !== f.subcategory) return false;
-    }
-    if(f.search && f.search.trim()){
-      var q = f.search.trim().toLowerCase();
-      var hay = ((t.desc||"") + " " + (t.notes||"")).toLowerCase();
-      if(hay.indexOf(q) === -1) return false;
-    }
-    return true;
-  });
+  return window.Ledger.filterTransactions(f, types, window.Ledger.reportMatchesDate, { hideLinked: true });
 };
 
 window.Ledger.reportGetCur = function(t){

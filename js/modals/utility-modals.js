@@ -179,9 +179,11 @@ window.Ledger.openAutoCategorizeModal = function(uncatTx){
         if(!s.suggestion) return;
         var changes = { category: s.suggestion.id };
         if(s.suggestion.subcategoryId) changes.subcategory = s.suggestion.subcategoryId;
-        window.Ledger.updateTransaction(s.tx.id, changes);
+        window.Ledger.updateTransaction(s.tx.id, changes, true);
         updated++;
       });
+      window.Ledger.saveData();
+      window.Ledger.renderPage();
       window.Ledger.closeModal();
       window.Ledger.showToast(updated + " transaction" + (updated !== 1 ? "s" : "") + " categorized");
     });

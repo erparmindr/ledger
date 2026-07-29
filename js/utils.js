@@ -253,4 +253,48 @@ window.Ledger.findOrphanTransfers = function findOrphanTransfers(accountId){
   return orphans;
 };
 
+window.Ledger.filterTransactions = function(state, types, matchDateFn, opts){
+  opts = opts || {};
+  return window.Ledger.DB.transactions.filter(function(t){
+    if(types && types.indexOf(t.type) === -1) return false;
+    if(opts.hideLinked && t.linkId) return false;
+    if(state.type !== "all" && t.type !== state.type) return false;
+    if(state.account !== "all"){
+      var touches = (t.account === state.account) ||
+        (t.fromType==="account" && t.fromId===state.account) ||
+        (t.toType==="account" && t.toId===state.account);
+      if(!touches) return false;
+    }
+    if(state.currency !== "all"){
+      var cur = null;
+      if(t.account){ var a = window.Ledger.findAccount(t.account); cur = a ? a.currency : null; }
+      else if(t.fromType==="account"){ var a2=window.Ledger.findAccount(t.fromId); cur = a2?a2.currency:null; }
+      else if(t.toType==="account"){ var a3=window.Ledger.findAccount(t.toId); cur = a3?a3.currency:null; }
+      if(cur !== state.currency) return false;
+    }
+    if(state.category !== "all"){
+      if(t.categorySplits && t.categorySplits.length){
+        if(!t.categorySplits.some(function(s){ return s.categoryId === state.category; })) return false;
+      } else if(t.category !== state.category) return false;
+    }
+    if(state.subcategory !== "all"){
+      if(t.categorySplits && t.categorySplits.length){
+        if(!t.categorySplits.some(function(s){ return s.subcategoryId === state.subcategory; })) return false;
+      } else if(t.subcategory !== state.subcategory) return false;
+    }
+    if(opts.uncategorized){
+      if(t.type === "transfer") return false;
+      if(t.categorySplits && t.categorySplits.length) return false;
+      if(t.category) return false;
+    }
+    if(matchDateFn && !matchDateFn(t.date)) return false;
+    if(state.search && state.search.trim()){
+      var q = state.search.trim().toLowerCase();
+      var hay = ((t.desc||"") + " " + (t.notes||"")).toLowerCase();
+      if(hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+};
+
 })();

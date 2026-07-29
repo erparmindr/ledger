@@ -134,14 +134,11 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
 
   var existingSet = {};
   (window.Ledger.DB.transactions || []).forEach(function(t){
-    var normDesc = (t.desc || t.description || "").toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," ").trim();
-    var k = (t.date||"") + "|" + String(t.amount) + "|" + normDesc;
-    existingSet[k] = true;
+    existingSet[window.Ledger._dupeKey(t)] = true;
   });
   var dupeCount = 0;
   parsedRows.forEach(function(r){
-    var normDesc = (r.desc || "").toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," ").trim();
-    var k = (r.date||"") + "|" + String(r.amount) + "|" + normDesc;
+    var k = window.Ledger._dupeKey({date:r.date, type:r._type, account:preselectedAccount, amount:r.amount, desc:r.desc});
     r._potentialDupe = !!existingSet[k];
     if(r._potentialDupe) dupeCount++;
   });

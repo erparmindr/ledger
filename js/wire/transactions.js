@@ -151,10 +151,11 @@ window.Ledger.wireTransactionsPage = function(){
         changes.categorySplits = null;
       }
       if(subVal) changes.subcategory = subVal === "__clear__" ? "" : subVal;
-      window.Ledger.updateTransaction(txId, changes);
+      window.Ledger.updateTransaction(txId, changes, true);
       updated++;
     });
     window.Ledger.registerSelectedTx = {};
+    window.Ledger.saveData();
     window.Ledger.renderPage();
     window.Ledger.showToast(updated + " transaction" + (updated !== 1 ? "s" : "") + " updated");
   });
@@ -170,8 +171,7 @@ window.Ledger.wireTransactionsPage = function(){
     if(!selectedIds.length) return;
     window.Ledger.openConfirmModal("Delete " + selectedIds.length + " transaction" + (selectedIds.length !== 1 ? "s" : "") + "?", "This will permanently remove the selected transactions. This cannot be undone.", function(){
       selectedIds.forEach(function(id){
-        window.Ledger.DB.transactions = window.Ledger.DB.transactions.filter(function(x){ return x.id !== id; });
-        window.Ledger.replaceDebtItemsForTransaction(id, [], true);
+        window.Ledger.deleteTransaction(id, true);
       });
       window.Ledger.registerSelectedTx = {};
       window.Ledger.saveData();
