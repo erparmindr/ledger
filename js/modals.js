@@ -64,7 +64,16 @@ window.Ledger.openModal = function (html, onMount, className) {
 };
 
 window.Ledger.openSubModal = function (html, onMount) {
-  window.Ledger.openModal(html, onMount);
+  var top = window.Ledger.modalStack[window.Ledger.modalStack.length - 1];
+  if(top && top.classList.contains("modal-backdrop-sub")){
+    window.Ledger.modalStack.pop();
+    top.remove();
+    window.Ledger._focusStack.pop();
+  }
+  window.Ledger.openModal(html, function (bd) {
+    bd.classList.add("modal-backdrop-sub");
+    if (onMount) onMount(bd);
+  });
 };
 
 window.Ledger.closeSubModal = function () {

@@ -27,23 +27,29 @@ window.Ledger.openCategorySplitModal = function(totalAmount, existingSplits, txT
         + '</div>';
     }).join("");
 
-    var sum = rowsState.reduce(function(a,r){ return a + (parseFloat(r.amount)||0); }, 0);
-    var remaining = Math.round((totalAmount - sum) * 100) / 100;
-    var remainingColor = Math.abs(remaining) < 0.005 ? "var(--sage)" : "var(--clay)";
+    function updateRemaining(){
+      var el = document.getElementById("splitRemaining");
+      if(!el) return;
+      var sum = rowsState.reduce(function(a,r){ return a + (parseFloat(r.amount)||0); }, 0);
+      var remaining = Math.round((totalAmount - sum) * 100) / 100;
+      el.innerHTML = "Remaining: " + window.Ledger.fmtMoney(remaining) + (Math.abs(remaining)<0.005 ? " <span class=\"split-ok\">&#10003; matches total</span>" : "");
+      el.style.color = Math.abs(remaining) < 0.005 ? "var(--sage)" : "var(--clay)";
+    }
 
     var html = ''
       + '<div class="modal-head"><h3>Split across categories</h3><button class="icon-btn" id="closeSubBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
       + '<div class="modal-body">'
-      + '  <p class="faint" style="font-size:11.5px; margin:0;">Total to split: <b class="num">' + window.Ledger.fmtMoney(totalAmount) + '</b></p>'
+      + '  <div class="split-summary"><span>Total to split: <b class="num">' + window.Ledger.fmtMoney(totalAmount) + '</b></span><span id="splitCount" class="faint"></span></div>'
       + '  <div id="splitRowsWrap" style="display:flex; flex-direction:column; gap:10px;">' + rowsHtml + '</div>'
       + '  <button type="button" class="btn btn-sm" id="addSplitRowBtn">+ Add category</button>'
-      + '  <div style="font-size:12.5px; font-weight:700; color:'+remainingColor+';">Remaining: ' + window.Ledger.fmtMoney(remaining) + (Math.abs(remaining)<0.005 ? " &#10003; matches total" : "") + '</div>'
+      + '  <div style="font-size:12.5px; font-weight:700; color:var(--clay);" id="splitRemaining"></div>'
       + '</div>'
       + '<div class="modal-foot"><button class="btn" id="cancelSubBtn">Cancel</button><button class="btn btn-primary" id="saveSplitBtn">Use this split</button></div>';
 
     window.Ledger.openSubModal(html, function(){
       document.getElementById("closeSubBtn").addEventListener("click", window.Ledger.closeSubModal);
       document.getElementById("cancelSubBtn").addEventListener("click", window.Ledger.closeSubModal);
+      updateRemaining();
 
       Array.prototype.forEach.call(document.querySelectorAll(".splitCatSel"), function(sel){
         sel.addEventListener("change", function(){ rowsState[parseInt(sel.getAttribute("data-idx"),10)].categoryId = sel.value; });
@@ -51,7 +57,7 @@ window.Ledger.openCategorySplitModal = function(totalAmount, existingSplits, txT
       Array.prototype.forEach.call(document.querySelectorAll(".splitAmtInput"), function(inp){
         inp.addEventListener("input", function(){
           rowsState[parseInt(inp.getAttribute("data-idx"),10)].amount = parseFloat(inp.value)||0;
-          render();
+          updateRemaining();
         });
       });
       Array.prototype.forEach.call(document.querySelectorAll(".splitRemoveBtn"), function(btn){
@@ -101,54 +107,91 @@ window.Ledger.openFriendSplitModal = function(totalAmount, existing, onDone){
     else yourShare = Math.round((yourShare + diff)*100)/100;
   }
 
-  function render(){
-    var peopleOpts = '<option value="">Pending &mdash; assign later</option>' + window.Ledger.DB.people.map(function(p){ return '<option value="'+p.id+'">'+window.Ledger.escapeHtml(p.name)+'</option>'; }).join("");
+  function friendOptions(selectedId){
+    var people = window.Ledger.DB.people;
+    var placeholder = people.length ? "Select friend..." : "No friends yet";
+    var opts = '<option value="">' + placeholder + '</option>';
+    people.forEach(function(p){
+      opts += '<option value="'+p.id+'"'+(p.id===selectedId?" selected":"")+'>'+window.Ledger.escapeHtml(p.name)+'</option>';
+    });
+    return opts;
+  }
 
-    var rowsHtml = shares.map(function(s, i){
-      var thisOpts = peopleOpts.replace('value="'+s.personId+'"', 'value="'+s.personId+'" selected');
+  function renderRows(){
+    return shares.map(function(s, i){
       return '<div class="form-row" data-friend-row="'+i+'" style="align-items:flex-end;">'
-        + '  <div class="field"><label>Friend</label><select class="friendPersonSel" data-idx="'+i+'">'+thisOpts+'</select></div>'
-        + '  <div class="field" style="max-width:130px;"><label>Their share</label><input type="number" class="friendAmtInput" data-idx="'+i+'" step="0.01" min="0" value="'+s.amount+'"></div>'
+        + '  <div class="field"><label>Friend</label><select class="friendPersonSel" data-idx="'+i+'">'+friendOptions(s.personId)+'</select></div>'
+        + '  <div class="field" style="max-width:140px;"><label>Their share</label><input type="number" class="friendAmtInput" data-idx="'+i+'" step="0.01" min="0" value="'+s.amount+'"></div>'
         + '  <button type="button" class="icon-btn danger friendRemoveBtn" data-idx="'+i+'" title="Remove" style="margin-bottom:9px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
         + '</div>';
     }).join("");
+  }
 
-    var sum = yourShare + shares.reduce(function(a,s){ return a + (parseFloat(s.amount)||0); }, 0);
-    var remaining = Math.round((totalAmount - sum) * 100) / 100;
-    var remainingColor = Math.abs(remaining) < 0.005 ? "var(--sage)" : "var(--clay)";
-    var unassignedCount = shares.filter(function(s){ return !s.personId; }).length;
+  function updateTotals(){
+    var friends = shares.reduce(function(a,s){ return a + (parseFloat(s.amount)||0); }, 0);
+    var remaining = Math.round((totalAmount - yourShare - friends) * 100) / 100;
+    var ysEl = document.getElementById("friendYourShare");
+    if(ysEl) ysEl.textContent = window.Ledger.fmtMoney(yourShare);
+    var remEl = document.getElementById("friendRemaining");
+    if(remEl){
+      remEl.innerHTML = "Remaining: " + window.Ledger.fmtMoney(remaining) + (Math.abs(remaining)<0.005 ? " <span class=\"split-ok\">&#10003; adds up</span>" : "");
+      remEl.style.color = Math.abs(remaining) < 0.005 ? "var(--sage)" : "var(--clay)";
+    }
+  }
 
+  function updateUnassignedNote(){
+    var el = document.getElementById("friendUnassignedNote");
+    if(!el) return;
+    var unassigned = shares.filter(function(s){ return !s.personId; }).length;
+    if(unassigned){
+      el.style.display = "block";
+      el.textContent = unassigned + " share" + (unassigned===1?"":"s") + " not assigned to a friend yet \u2014 you can assign it any time from the People page.";
+    } else {
+      el.style.display = "none";
+    }
+  }
+
+  function render(){
     var html = ''
       + '<div class="modal-head"><h3>Split with friends</h3><button class="icon-btn" id="closeSubBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
       + '<div class="modal-body">'
-      + '  <p class="faint" style="font-size:11.5px; margin:0;">Total: <b class="num">' + window.Ledger.fmtMoney(totalAmount) + '</b> &middot; your share becomes a real expense, each friend\'s share becomes money owed to you.</p>'
+      + '  <div class="split-summary">'
+      + '    <span>Total: <b class="num">' + window.Ledger.fmtMoney(totalAmount) + '</b></span>'
+      + '    <span>Your share: <b class="num" id="friendYourShare">' + window.Ledger.fmtMoney(yourShare) + '</b></span>'
+      + '  </div>'
       + '  <div class="field"><label>Your share</label><input type="number" id="yourShareInput" step="0.01" min="0" value="'+yourShare+'"></div>'
-      + '  <div id="friendRowsWrap" style="display:flex; flex-direction:column; gap:10px;">' + rowsHtml + '</div>'
-      + '  <div style="display:flex; gap:8px;">'
+      + '  <div class="split-section-label">Friends owe you</div>'
+      + '  <div id="friendRowsWrap" style="display:flex; flex-direction:column; gap:10px;">' + renderRows() + '</div>'
+      + '  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">'
       + '    <button type="button" class="btn btn-sm" id="addFriendRowBtn">+ Add friend</button>'
       + '    <button type="button" class="btn btn-sm" id="addNewPersonBtn">+ New person</button>'
       + '    <button type="button" class="btn btn-sm" id="evenSplitBtn">Split evenly</button>'
       + '  </div>'
-      + '  <div style="font-size:12.5px; font-weight:700; color:'+remainingColor+';">Remaining: ' + window.Ledger.fmtMoney(remaining) + (Math.abs(remaining)<0.005 ? " &#10003; matches total" : "") + '</div>'
-      + (unassignedCount ? '<p class="faint" style="font-size:11px; margin:0;">' + unassignedCount + ' share' + (unassignedCount===1?"":"s") + ' left pending &mdash; assign a real person any time from the People page.</p>' : '')
+      + '  <div style="font-size:12.5px; font-weight:700; color:var(--clay); margin-top:12px;" id="friendRemaining"></div>'
+      + '  <p class="faint" id="friendUnassignedNote" style="font-size:11px; margin:0;"></p>'
       + '</div>'
       + '<div class="modal-foot"><button class="btn" id="cancelSubBtn">Cancel</button><button class="btn btn-primary" id="saveFriendSplitBtn">Use this split</button></div>';
 
     window.Ledger.openSubModal(html, function(){
       document.getElementById("closeSubBtn").addEventListener("click", window.Ledger.closeSubModal);
       document.getElementById("cancelSubBtn").addEventListener("click", window.Ledger.closeSubModal);
+      updateTotals();
+      updateUnassignedNote();
 
       document.getElementById("yourShareInput").addEventListener("input", function(e){
         yourShare = parseFloat(e.target.value)||0;
-        render();
+        updateTotals();
       });
       Array.prototype.forEach.call(document.querySelectorAll(".friendPersonSel"), function(sel){
-        sel.addEventListener("change", function(){ shares[parseInt(sel.getAttribute("data-idx"),10)].personId = sel.value; });
+        sel.addEventListener("change", function(){
+          shares[parseInt(sel.getAttribute("data-idx"),10)].personId = sel.value;
+          updateUnassignedNote();
+        });
       });
       Array.prototype.forEach.call(document.querySelectorAll(".friendAmtInput"), function(inp){
         inp.addEventListener("input", function(){
           shares[parseInt(inp.getAttribute("data-idx"),10)].amount = parseFloat(inp.value)||0;
-          render();
+          updateTotals();
         });
       });
       Array.prototype.forEach.call(document.querySelectorAll(".friendRemoveBtn"), function(btn){
