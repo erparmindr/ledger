@@ -15,9 +15,46 @@ const FILES_IN_ORDER = [
   "js/services/recurring.js",
   "js/services/demo-data.js",
   "js/services/backup.js",
+  "js/services/demo-status.js",
   "js/services/import-preview.js",
   "js/app.js",
 ];
+
+function fakeElement() {
+  const el = {
+    className: "",
+    textContent: "",
+    value: "",
+    style: {},
+    _html: "",
+    get innerHTML() { return this._html; },
+    set innerHTML(v) { this._html = v; },
+    appendChild: () => {},
+    removeChild: () => {},
+    click: () => {},
+    focus: () => {},
+    remove: () => {},
+    setAttribute: () => {},
+    getAttribute: () => null,
+    addEventListener: () => {},
+    closest: () => fakeElement(),
+    parentElement: null,
+    tagName: "DIV",
+    querySelector: () => fakeElement(),
+    querySelectorAll: () => [],
+    classList: {
+      _classes: {},
+      toggle(cls, force) {
+        if (force === undefined) this._classes[cls] = !this._classes[cls];
+        else this._classes[cls] = !!force;
+      },
+      add(cls) { this._classes[cls] = true; },
+      remove(cls) { this._classes[cls] = false; },
+      contains(cls) { return !!this._classes[cls]; },
+    },
+  };
+  return el;
+}
 
 export function loadLedger(overrides, extraFiles) {
   const files = extraFiles && extraFiles.length ? FILES_IN_ORDER.concat(extraFiles) : FILES_IN_ORDER;
@@ -48,6 +85,7 @@ export function loadLedger(overrides, extraFiles) {
     decodeURIComponent,
     escape,
     unescape,
+    FileReader: class { readAsText() {} },
     indexedDB: { open: () => ({}) },
     localStorage: {
       _store: {},
@@ -56,26 +94,14 @@ export function loadLedger(overrides, extraFiles) {
       removeItem(k) { delete this._store[k]; },
     },
     document: {
-      getElementById: () => null,
-      querySelector: () => null,
+      getElementById: () => fakeElement(),
+      querySelector: () => fakeElement(),
       querySelectorAll: () => [],
-      createElement: () => ({
-        className: "",
-        textContent: "",
-        innerHTML: "",
-        style: {},
-        appendChild: () => {},
-        click: () => {},
-        addEventListener: () => {},
-        setAttribute: () => {},
-        getAttribute: () => null,
-        closest: () => null,
-        parentElement: null,
-        tagName: "",
-        value: "",
-      }),
+      createElement: () => fakeElement(),
+      activeElement: null,
       body: {
         appendChild: () => {},
+        removeChild: () => {},
         setAttribute: () => {},
         classList: {
           _classes: {},
