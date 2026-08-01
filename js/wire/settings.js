@@ -23,6 +23,15 @@ window.Ledger.wireSettingsPage = function(){
     e.target.value = "";
   });
   el = document.getElementById("importStatementBtn"); if(el) el.addEventListener("click", function(){ window.Ledger.openStatementPasteModal(); });
+  el = document.getElementById("loadDemoDataBtn"); if(el) el.addEventListener("click", function(){
+    window.Ledger.openConfirmModal(
+      "Load demo data?",
+      "This will replace all current accounts, transactions, people and categories with about a year of realistic sample data. Export a backup first if you want to keep anything. This can't be undone.",
+      function(){
+        window.Ledger.loadDemoData();
+      }
+    );
+  });
   el = document.getElementById("resetAllBtn"); if(el) el.addEventListener("click", function(){
     window.Ledger.openConfirmModal(
       "Reset all data?",
