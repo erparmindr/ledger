@@ -187,6 +187,21 @@ describe("generateDemoData", () => {
     expect(bal[cash.id]).toBeGreaterThanOrEqual(0);
   });
 
+  it("keeps the credit card paid in full so it never runs up a huge balance", () => {
+    const cc = data.accounts.find(function (a) { return a.type === "credit_card"; });
+    const payments = data.transactions.filter(function (t) {
+      return t.type === "transfer" && t.toType === "account" && t.toId === cc.id;
+    });
+    expect(payments.length).toBeGreaterThanOrEqual(10);
+    payments.forEach(function (p) {
+      expect(p.fromType).toBe("account");
+      expect(p.fromId).not.toBe(cc.id);
+    });
+    const bal = L.accountBreakdown(cc.id);
+    expect(bal.computed).toBeLessThan(0);
+    expect(Math.abs(bal.computed)).toBeLessThan(6000);
+  });
+
   it("has well-formed same-currency transfers", () => {
     data.transactions.filter(function (t) { return t.type === "transfer" && !t.linkId; }).forEach(function (t) {
       expect(t.fromType).toMatch(/account|person/);

@@ -440,6 +440,8 @@ window.Ledger.nextDueDate = function(r, fromDate){
   var start = new Date(r.startDate + "T00:00:00");
   var from = new Date(fromDate + "T00:00:00");
 
+  if(start >= from) return window.Ledger.todayISOFromDate(start);
+
   if(r.frequency === "weekly" || r.frequency === "biweekly"){
     var stepDays = r.frequency === "weekly" ? 7 : 14;
     var diffDays = Math.round((from - start) / 86400000);

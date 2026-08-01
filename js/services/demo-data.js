@@ -145,7 +145,12 @@ window.Ledger.generateDemoData = function(){
       account: accountId, category: cat ? catId(cat) : "", subcategory: sub ? subId(cat, sub) : "",
       created: new Date(date + "T00:00:00").getTime() };
     if(extra){ for(var k in extra){ if(extra.hasOwnProperty(k)) rec[k] = extra[k]; } }
-    return addTx(rec);
+    var tx = addTx(rec);
+    if(accountId === cc.id){
+      if(type === "expense") ccBal -= amount;
+      else if(type === "refund") ccBal += amount;
+    }
+    return tx;
   }
   function transferRec(fromType, fromId, toType, toId, date, amount, desc, cat, extra){
     var rec = { type: "transfer", date: date, amount: round2(amount), desc: desc, notes: "",
@@ -184,12 +189,13 @@ window.Ledger.generateDemoData = function(){
   var MEDICAL = ["Eye Exam — Vision Centre", "Physio — clinic", "Walk-in clinic"];
 
   /* ---- running state ---- */
-  var ccBal = -300;                      // credit card balance (negative = owing)
+  var ccBal = -300;                      // credit card balance (negative = owing); kept in sync by addCategorized
   var debtItems = [];
-  var captures = {};                    // holds purchase ids for later linked refunds
+  var captures = {};                    // holds split-dinner references for post-loop debt tracking
 
   function generateMonth(y, m, lastDay){
     var relIdx = (y - startY) * 12 + (m - startM); // 0-based month in window
+    var isLastMonth = (y === todayY && m === todayM);
     function d(n){ return n > lastDay ? null : iso(y, m, n); }
     function rndDay(){ return rndInt(1, Math.max(1, lastDay)); }
 
@@ -202,7 +208,10 @@ window.Ledger.generateDemoData = function(){
     if(d(28)) addCategorized("income", inrAcc.id, d(28), round2(rndBetween(150, 260)), "Interest credit", "Interest", "");
 
     /* ---- Fixed bills (Checking) ---- */
-    if(m === 8){ captures.hydroAug = addCategorized("expense", checking.id, d(10), 118.4, "Hydro One — electricity", "Utilities", "Electricity"); }
+    if(m === 8){
+      var hydroAug = addCategorized("expense", checking.id, d(10), 118.4, "Hydro One — electricity", "Utilities", "Electricity");
+      if(d(20)) addCategorized("refund", checking.id, d(20), 45, "Refund — hydro overcharge", "Utilities", "Electricity", { refundOf: hydroAug.id });
+    }
     else if(d(10)) addCategorized("expense", checking.id, d(10), round2(rndBetween(95, 125)), "Hydro One — electricity", "Utilities", "Electricity");
     if(d(12)) addCategorized("expense", checking.id, d(12), 79.99, "Rogers — internet", "Utilities", "Internet");
     if(d(18)) addCategorized("expense", checking.id, d(18), 54.5, "Fido — mobile", "Utilities", "Phone");
@@ -254,12 +263,21 @@ window.Ledger.generateDemoData = function(){
     }
 
     /* ---- Shopping ---- */
-    if(m === 1){ captures.amazonJan = addCategorized("expense", cc.id, d(3), 49.99, "Amazon.ca", "Shopping", "Online"); }
-    else if(m === 10){ captures.amazonOct = addCategorized("expense", cc.id, d(3), 27.99, "Amazon.ca", "Shopping", "Online"); }
+    if(m === 1){
+      var amzJan = addCategorized("expense", cc.id, d(3), 49.99, "Amazon.ca", "Shopping", "Online");
+      if(d(10)) addCategorized("refund", cc.id, d(10), 49.99, "Refund — Amazon.ca", "Shopping", "Online", { refundOf: amzJan.id, notes: "Returned item" });
+    }
+    else if(m === 10){
+      var amzOct = addCategorized("expense", cc.id, d(3), 27.99, "Amazon.ca", "Shopping", "Online");
+      if(d(8)) addCategorized("refund", cc.id, d(8), 27.99, "Refund — Amazon.ca", "Shopping", "Online", { refundOf: amzOct.id });
+    }
     else { var sd = d(rndInt(6, 26)); if(sd) addCategorized("expense", cc.id, sd, round2(rndBetween(25, 90)), "Amazon.ca", "Shopping", "Online"); }
-    if(relIdx % 3 === 1){
-      if(m === 3){ captures.clothingMar = addCategorized("expense", cc.id, d(2), 89.5, "Old Navy", "Shopping", "Clothing"); }
-      else { var cd = d(rndInt(6, 26)); if(cd) addCategorized("expense", cc.id, cd, round2(rndBetween(100, 250)), pick(CLOTHING), "Shopping", "Clothing"); }
+    if(m === 3){
+      var nav = addCategorized("expense", cc.id, d(2), 89.5, "Old Navy", "Shopping", "Clothing");
+      if(d(9)) addCategorized("refund", cc.id, d(9), 89.5, "Refund — Old Navy", "Shopping", "Clothing", { refundOf: nav.id });
+    }
+    else if(relIdx % 3 === 1){
+      var cd = d(rndInt(6, 26)); if(cd) addCategorized("expense", cc.id, cd, round2(rndBetween(100, 250)), pick(CLOTHING), "Shopping", "Clothing");
     }
     if(relIdx === 9){ var eDay = d(22); if(eDay) addCategorized("expense", cc.id, eDay, round2(rndBetween(250, 420)), "Best Buy — headphones", "Shopping", "Electronics"); }
     if(relIdx === 10){ var pDay = d(18); if(pDay) addCategorized("expense", cc.id, pDay, 399.99, "Apple Store — phone case bundle", "Shopping", "Electronics"); }
@@ -288,7 +306,7 @@ window.Ledger.generateDemoData = function(){
 
     /* ---- Credit card payment (paid in full) ---- */
     var payDay = d(26);
-    if(payDay && ccBal <= -1){
+    if(payDay && !isLastMonth && ccBal <= -1){
       transferRec("account", checking.id, "account", cc.id, payDay, round2(-ccBal), "Credit card payment", "Credit Card Payment");
       ccBal = 0;
     }
@@ -347,24 +365,6 @@ window.Ledger.generateDemoData = function(){
 
   /* ---- pending transfer (awaiting destination) ---- */
   transferRec("account", checking.id, "account", "", addDays(today, -12), 250, "Wire transfer — destination pending", "Other Transfer", { pending: true });
-
-  /* ---- linked refunds (referencing original purchases) ---- */
-  if(captures.amazonJan){
-    var r1 = addDays(captures.amazonJan.date, 7);
-    addCategorized("refund", cc.id, r1, 49.99, "Refund — Amazon.ca", "Shopping", "Online", { refundOf: captures.amazonJan.id, notes: "Returned item" });
-  }
-  if(captures.clothingMar){
-    var r2 = addDays(captures.clothingMar.date, 7);
-    addCategorized("refund", cc.id, r2, 89.5, "Refund — Old Navy", "Shopping", "Clothing", { refundOf: captures.clothingMar.id });
-  }
-  if(captures.hydroAug){
-    var r3 = addDays(captures.hydroAug.date, 10);
-    addCategorized("refund", checking.id, r3, 45, "Refund — hydro overcharge", "Utilities", "Electricity", { refundOf: captures.hydroAug.id });
-  }
-  if(captures.amazonOct){
-    var r4 = addDays(captures.amazonOct.date, 5);
-    addCategorized("refund", cc.id, r4, 27.99, "Refund — Amazon.ca", "Shopping", "Online", { refundOf: captures.amazonOct.id });
-  }
 
   /* ---- friend split debt tracking ---- */
   if(captures.dinner){

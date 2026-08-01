@@ -19,7 +19,8 @@ const FILES_IN_ORDER = [
   "js/app.js",
 ];
 
-export function loadLedger(overrides) {
+export function loadLedger(overrides, extraFiles) {
+  const files = extraFiles && extraFiles.length ? FILES_IN_ORDER.concat(extraFiles) : FILES_IN_ORDER;
   const ctx = {
     window: {},
     console,
@@ -102,7 +103,7 @@ export function loadLedger(overrides) {
 
   const context = vm.createContext(ctx);
 
-  for (const rel of FILES_IN_ORDER) {
+  for (const rel of files) {
     const full = path.join(ROOT, rel);
     const code = fs.readFileSync(full, "utf8");
     try {
