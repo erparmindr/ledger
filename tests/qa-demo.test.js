@@ -677,3 +677,67 @@ describe("QA: no console errors were raised while loading and exercising the app
     expect(consoleErrors).toEqual([]);
   });
 });
+
+describe("QA: demo data status panel reports real live values", () => {
+  it("returns the verified generator counts (never hardcoded)", () => {
+    freshDemoData();
+    const r = L.runDemoDataStatus();
+    expect(r.counts.accounts).toBe(6);
+    expect(r.counts.transactions).toBe(711);
+    expect(r.counts.recurring).toBe(11);
+    expect(r.counts.transfers).toBe(55);
+    expect(r.counts.linked).toBe(8);
+    expect(r.counts.people).toBe(3);
+    expect(r.counts.debtItems).toBe(4);
+    expect(r.counts.groups).toBe(2);
+    expect(r.counts.categories).toBe(22);
+  });
+
+  it("passes every validation check on demo data", () => {
+    freshDemoData();
+    const r = L.runDemoDataStatus();
+    expect(r.overall).toBe("pass");
+    expect(r.summary.failed).toBe(0);
+    expect(r.summary.passed).toBeGreaterThan(0);
+    const names = r.checks.map(function (c) { return c.name; });
+    expect(names).toContain("Transfers balanced");
+    expect(names).toContain("Database integrity");
+    expect(names).toContain("Reports & charts render");
+    expect(names).toContain("Budgets");
+    r.checks.forEach(function (c) {
+      if (c.name === "Budgets") expect(c.status).toBe("na");
+      else expect(["pass", "na"]).toContain(c.status);
+    });
+  });
+
+  it("does not disturb report state while running report checks", () => {
+    freshDemoData();
+    L.reportState.tab = "transfer";
+    L.reportState.category = "all";
+    L.runDemoDataStatus();
+    expect(L.reportState.tab).toBe("transfer");
+    expect(L.reportState.category).toBe("all");
+  });
+
+  it("reports a clean 'no data' state before demo data is loaded", () => {
+    L.replaceAllData(L.defaultData());
+    const r = L.runDemoDataStatus();
+    expect(r.overall).toBe("na");
+    expect(r.summary.failed).toBe(0);
+    expect(r.counts.accounts).toBe(2);
+    expect(r.counts.transactions).toBe(0);
+    L.replaceAllData(L.generateDemoData());
+  });
+
+  it("renders a status panel with live counts and a re-run button", () => {
+    freshDemoData();
+    const r = L.runDemoDataStatus();
+    const html = L.demoStatusHtml(r);
+    expect(html.indexOf("711")).toBeGreaterThan(-1);
+    expect(html.indexOf("6")).toBeGreaterThan(-1);
+    expect(html.indexOf("All checks passed")).toBeGreaterThan(-1);
+    expect(html.indexOf('id="rerunDemoStatusBtn"')).toBeGreaterThan(-1);
+    expect(html.indexOf("undefined")).toBe(-1);
+    expect(html.indexOf("NaN")).toBe(-1);
+  });
+});

@@ -43,6 +43,8 @@ window.Ledger.wireSettingsPage = function(){
       }
     );
   });
+
+  if(window.Ledger.refreshDemoStatus) window.Ledger.refreshDemoStatus();
 };
 
 })();
