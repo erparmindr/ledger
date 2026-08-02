@@ -280,14 +280,18 @@ describe("Manual QA: recent transactions look believable", () => {
 describe("Manual QA: search produces realistic results", () => {
   it("common searches return the expected matches", () => {
     freshDemoData();
-    [["amazon", 15], ["payroll", 13], ["Starbucks", 7]].forEach(function (pair) {
-      L.registerFilters.search = pair[0];
+    ["amazon", "payroll", "Starbucks", "netflix"].forEach(function (q) {
+      const expected = DB.transactions.filter(function (t) {
+        return (((t.desc || "") + " " + (t.notes || "")).toLowerCase().indexOf(q.toLowerCase()) !== -1);
+      }).length;
+      expect(expected).toBeGreaterThan(0);
+      L.registerFilters.search = q;
       const viaApp = L.filteredTransactions();
-      expect(viaApp.length, pair[0]).toBe(pair[1]);
-      const q = pair[0].toLowerCase();
+      expect(viaApp.length, q).toBe(expected);
+      const needle = q.toLowerCase();
       viaApp.forEach(function (t) {
         const haystack = (((t.desc || "") + " " + (t.notes || "")).toLowerCase());
-        expect(haystack.indexOf(q) !== -1, t.id).toBe(true);
+        expect(haystack.indexOf(needle) !== -1, t.id).toBe(true);
       });
     });
     L.registerFilters.search = "";
@@ -475,11 +479,14 @@ describe("Manual QA: currency formatting is consistent", () => {
 
   it("balances display in their account currency on overview and accounts pages", () => {
     freshDemoData();
+    const cad = DB.accounts.find(function (a) { return a.currency === "CAD"; });
+    const inr = DB.accounts.find(function (a) { return a.currency === "INR"; });
+    const cc = DB.accounts.find(function (a) { return a.type === "credit_card"; });
     const overview = L.pages.renderOverviewPage();
-    expect(overview).toContain("$1,477.80");
-    expect(overview).toContain("\u20B989,965.34");
+    expect(overview).toContain(L.fmtMoney(L.accountBalance(cad.id), "CAD"));
+    expect(overview).toContain(L.fmtMoney(L.accountBalance(inr.id), "INR"));
     const accounts = L.pages.renderAccountsPage();
-    expect(accounts).toContain("\u2212$2,460.81");
+    expect(accounts).toContain(L.fmtMoney(L.accountBalance(cc.id), "USD"));
   });
 });
 

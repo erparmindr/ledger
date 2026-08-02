@@ -127,7 +127,7 @@ describe("Reconciliation", () => {
     const now = new Date();
     const a = L.DB.accounts.find(x => x.id === "a1");
     a.created = Date.now() - 86400000 * 120; // 4 months ago
-    a.reconciledAt = Date.now() - 86400000 * 5; // 5 days ago (same month)
+    a.reconciledAt = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime(); // this month
     expect(L.needsVerification(a)).toBe(false);
   });
 

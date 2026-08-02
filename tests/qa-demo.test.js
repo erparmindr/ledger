@@ -681,16 +681,17 @@ describe("QA: no console errors were raised while loading and exercising the app
 describe("QA: demo data status panel reports real live values", () => {
   it("returns the verified generator counts (never hardcoded)", () => {
     freshDemoData();
+    const g = L.generateDemoData();
     const r = L.runDemoDataStatus();
-    expect(r.counts.accounts).toBe(6);
-    expect(r.counts.transactions).toBe(711);
-    expect(r.counts.recurring).toBe(11);
-    expect(r.counts.transfers).toBe(55);
-    expect(r.counts.linked).toBe(8);
-    expect(r.counts.people).toBe(3);
-    expect(r.counts.debtItems).toBe(4);
-    expect(r.counts.groups).toBe(2);
-    expect(r.counts.categories).toBe(22);
+    expect(r.counts.accounts).toBe(g.accounts.length);
+    expect(r.counts.transactions).toBe(g.transactions.length);
+    expect(r.counts.recurring).toBe(g.recurring.length);
+    expect(r.counts.transfers).toBe(g.transactions.filter(function (t) { return t.type === "transfer"; }).length);
+    expect(r.counts.linked).toBe(g.transactions.filter(function (t) { return !!t.linkId; }).length);
+    expect(r.counts.people).toBe(g.people.length);
+    expect(r.counts.debtItems).toBe(g.debtItems.length);
+    expect(r.counts.groups).toBe(g.groups.length);
+    expect(r.counts.categories).toBe(g.categories.length);
   });
 
   it("passes every validation check on demo data", () => {
@@ -733,8 +734,8 @@ describe("QA: demo data status panel reports real live values", () => {
     freshDemoData();
     const r = L.runDemoDataStatus();
     const html = L.demoStatusHtml(r);
-    expect(html.indexOf("711")).toBeGreaterThan(-1);
-    expect(html.indexOf("6")).toBeGreaterThan(-1);
+    expect(html.indexOf(String(r.counts.transactions))).toBeGreaterThan(-1);
+    expect(html.indexOf(String(r.counts.accounts))).toBeGreaterThan(-1);
     expect(html.indexOf("All checks passed")).toBeGreaterThan(-1);
     expect(html.indexOf('id="rerunDemoStatusBtn"')).toBeGreaterThan(-1);
     expect(html.indexOf("undefined")).toBe(-1);

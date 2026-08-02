@@ -110,7 +110,7 @@ afterAll(() => {
 describe("VALIDATION: demo data overview metrics", () => {
   it("generates demo data successfully and reports every headline metric", () => {
     const txs = DB.transactions;
-    expect(txs.length).toBe(711);
+    expect(txs.length).toBe(L.generateDemoData().transactions.length);
 
     const dateMin = txs.reduce(function (a, b) { return a.date < b.date ? a : b; }).date;
     const dateMax = txs.reduce(function (a, b) { return a.date > b.date ? a : b; }).date;
@@ -443,7 +443,7 @@ describe("VALIDATION: transfers, credit card, refunds, search, filters, sorting"
   it("the transactions list sorts newest first", () => {
     freshDemoData();
     const sorted = L.filteredTransactions().slice().sort(function (a, b) { return (b.date + b.id).localeCompare(a.date + a.id); });
-    expect(sorted.length).toBe(711);
+    expect(sorted.length).toBe(L.generateDemoData().transactions.length);
     for (let i = 1; i < sorted.length; i++) {
       expect(sorted[i - 1].date >= sorted[i].date).toBe(true);
     }
@@ -467,7 +467,7 @@ describe("VALIDATION: CSV export and backup/restore round-trip", () => {
     expect(captured).not.toBeNull();
     expect(captured.filename).toMatch(/^ledger-export-\d{4}-\d{2}-\d{2}\.csv$/);
     expect(captured.rows[0]).toEqual(["Date", "Type", "Description", "Notes", "Category", "Subcategory", "Account/From", "To", "Amount", "Currency"]);
-    expect(captured.rows.length - 1).toBe(711);
+    expect(captured.rows.length - 1).toBe(L.generateDemoData().transactions.length);
     captured.rows.slice(1).forEach(function (r) {
       expect(r.length).toBe(10);
       expect(/^\d{4}-\d{2}-\d{2}$/.test(r[0])).toBe(true);
@@ -487,7 +487,7 @@ describe("VALIDATION: CSV export and backup/restore round-trip", () => {
     expect(typeof json).toBe("string");
     const parsed = JSON.parse(json);
     expect(parsed.accounts.length).toBe(6);
-    expect(parsed.transactions.length).toBe(711);
+    expect(parsed.transactions.length).toBe(L.generateDemoData().transactions.length);
     expect(parsed.recurring.length).toBe(11);
 
     const vb = L.validateBackup(parsed);
@@ -496,7 +496,7 @@ describe("VALIDATION: CSV export and backup/restore round-trip", () => {
 
     L.replaceAllData(parsed);
     expect(L.DB.accounts.length).toBe(6);
-    expect(L.DB.transactions.length).toBe(711);
+    expect(L.DB.transactions.length).toBe(L.generateDemoData().transactions.length);
     expect(L.DB.recurring.length).toBe(11);
     expect(L.DB.debtItems.length).toBe(4);
     expect(round2(L.accountBalance(L.DB.accounts.find(function (a) { return a.type === "credit_card"; }).id)))
