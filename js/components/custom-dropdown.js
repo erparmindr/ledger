@@ -54,6 +54,7 @@ function cdCreateItem(sel, list, wrap, opt, idx){
     if(!item.hasAttribute("data-no-close")) cdClose(wrap);
     sel.dispatchEvent(new Event("change", {bubbles:true}));
   });
+  return item;
 }
 
 function triggerSync(list, wrap, item){
