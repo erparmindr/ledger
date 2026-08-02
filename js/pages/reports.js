@@ -229,7 +229,7 @@ window.Ledger._reportExpenseTab = function(){
   var trendMonths = window.Ledger.getMonthlyTrend(allTx, 6);
   var hasTrend = trendMonths.some(function(m){ return m.amt > 0; });
   if(hasTrend){
-    html += '<div class="card section-gap"><div class="card-header"><h2>Monthly trend</h2><span class="hint">last 6 months</span></div><div class="card-pad">';
+    html += '<div class="card section-gap">' + window.Ledger.cardHeader('Monthly trend', '<span class="hint">last 6 months</span>') + '<div class="card-pad">';
     html += window.Ledger.htmlBarChart(trendMonths, "var(--clay)");
     html += '</div></div>';
   }
@@ -296,7 +296,7 @@ window.Ledger._reportIncomeTab = function(){
   var trendMonths = window.Ledger.getMonthlyTrend(allTxIncome, 6);
   var hasTrend = trendMonths.some(function(m){ return m.amt > 0; });
   if(hasTrend){
-    html += '<div class="card section-gap"><div class="card-header"><h2>Monthly trend</h2><span class="hint">last 6 months</span></div><div class="card-pad">';
+    html += '<div class="card section-gap">' + window.Ledger.cardHeader('Monthly trend', '<span class="hint">last 6 months</span>') + '<div class="card-pad">';
     html += window.Ledger.htmlBarChart(trendMonths, "var(--sage)");
     html += '</div></div>';
   }
@@ -373,7 +373,7 @@ window.Ledger._reportTransferTab = function(){
     html += '</div>';
   });
 
-  html += '<div class="card" style="margin-bottom:var(--sp-5);"><div class="card-header"><h2>Net flow per account</h2><span class="hint">positive = money received</span></div><div class="card-pad">';
+  html += '<div class="card" style="margin-bottom:var(--sp-5);">' + window.Ledger.cardHeader('Net flow per account', '<span class="hint">positive = money received</span>') + '<div class="card-pad">';
   html += window.Ledger.htmlDivChart(flowRows);
   html += '</div></div>';
 
@@ -384,7 +384,7 @@ window.Ledger._reportTransferTab = function(){
 
   if(catEntries.length > 0){
     var catTotal = catEntries.reduce(function(s,e){ return s+e.amt; }, 0);
-    html += '<div class="card section-gap"><div class="card-header"><h2>Transfers by category</h2></div><div class="card-pad"><div class="donut-wrap">';
+    html += '<div class="card section-gap">' + window.Ledger.cardHeader('Transfers by category') + '<div class="card-pad"><div class="donut-wrap">';
     html += window.Ledger.svgDonut(catEntries, 160, 24, "Total", window.Ledger.fmtMoneyShort(catTotal));
     html += window.Ledger.donutLegend(catEntries, catTotal);
     html += '</div></div></div>';
@@ -396,7 +396,7 @@ window.Ledger._reportTransferTab = function(){
       {label:"Completed", amt:completed.length, color:"var(--sage)"},
       {label:"Pending", amt:pending.length, color:"var(--brass)"}
     ].filter(function(d){ return d.amt > 0; });
-    html += '<div class="card section-gap"><div class="card-header"><h2>Pending vs Completed</h2></div><div class="card-pad"><div class="donut-wrap">';
+    html += '<div class="card section-gap">' + window.Ledger.cardHeader('Pending vs Completed') + '<div class="card-pad"><div class="donut-wrap">';
     html += window.Ledger.svgDonut(donutData, 130, 20, "Total", txList.length+"");
     html += window.Ledger.donutLegend(donutData, txList.length);
     html += '</div></div></div>';
@@ -446,7 +446,7 @@ window.Ledger._reportRefundTab = function(){
     html += '</div>';
 
     if(catEntries.length > 0){
-      html += '<div class="card"><div class="card-header"><h2>Refunds by category</h2></div><div class="card-pad"><div class="donut-wrap">';
+      html += '<div class="card">' + window.Ledger.cardHeader('Refunds by category') + '<div class="card-pad"><div class="donut-wrap">';
       html += window.Ledger.svgDonut(catEntries, 160, 24, "Total", window.Ledger.fmtMoneyShort(data.total));
       html += window.Ledger.donutLegend(catEntries, data.total);
       html += '</div></div></div>';
@@ -457,7 +457,7 @@ window.Ledger._reportRefundTab = function(){
         {label:"Linked", amt:data.linked, color:"var(--sage)"},
         {label:"Unlinked", amt:data.unlinked, color:"var(--clay)"}
       ].filter(function(d){ return d.amt > 0; });
-      html += '<div class="card section-gap"><div class="card-header"><h2>Linked vs Unlinked</h2></div><div class="card-pad"><div class="donut-wrap">';
+      html += '<div class="card section-gap">' + window.Ledger.cardHeader('Linked vs Unlinked') + '<div class="card-pad"><div class="donut-wrap">';
       html += window.Ledger.svgDonut(linkData, 130, 20, "Total", (data.linked+data.unlinked)+"");
       html += window.Ledger.donutLegend(linkData, data.linked+data.unlinked);
       html += '</div></div></div>';
@@ -473,7 +473,7 @@ window.Ledger._reportRefundTab = function(){
   var trendMonths = window.Ledger.getMonthlyTrend(allTxRefund, 6);
   var hasTrend = trendMonths.some(function(m){ return m.amt > 0; });
   if(hasTrend){
-    html += '<div class="card section-gap"><div class="card-header"><h2>Monthly trend</h2><span class="hint">last 6 months</span></div><div class="card-pad">';
+    html += '<div class="card section-gap">' + window.Ledger.cardHeader('Monthly trend', '<span class="hint">last 6 months</span>') + '<div class="card-pad">';
     html += window.Ledger.htmlBarChart(trendMonths, "var(--sage)");
     html += '</div></div>';
   }
@@ -502,41 +502,25 @@ window.Ledger.pages.renderReportsPage = function(){
   }).join("");
 
   /* Type filter */
-  var typeOpts = '<option value="all" '+(f.type==="all"?"selected":"")+'>All types</option>'
-    + '<option value="expense" '+(f.type==="expense"?"selected":"")+'>Expense</option>'
-    + '<option value="income" '+(f.type==="income"?"selected":"")+'>Income</option>'
-    + '<option value="transfer" '+(f.type==="transfer"?"selected":"")+'>Transfer</option>'
-    + '<option value="refund" '+(f.type==="refund"?"selected":"")+'>Refund</option>';
+  var typeOpts = window.Ledger.filterTypeOptions(f.type);
 
   /* Account filter */
-  var accOpts = '<option value="all">All accounts</option>' + window.Ledger.DB.accounts.filter(function(a){ return !a.archived; }).map(function(a){
-    return '<option value="'+a.id+'" '+(f.account===a.id?"selected":"")+'>'+window.Ledger.escapeHtml(a.name)+' ('+a.currency+')</option>';
-  }).join("");
+  var accOpts = window.Ledger.filterAccountOptions(f.account, { withCurrency: true });
 
   /* Currency filter */
-  var curSet = {}; window.Ledger.DB.accounts.forEach(function(a){ if(!a.archived) curSet[a.currency]=1; });
-  var curOpts = '<option value="all">All currencies</option>' + Object.keys(curSet).map(function(c){
-    return '<option value="'+c+'" '+(f.currency===c?"selected":"")+'>'+c+'</option>';
-  }).join("");
+  var curOpts = window.Ledger.filterCurrencyOptions(f.currency);
 
   /* Category filter — type-aware */
-  var filteredCats = window.Ledger.getCategoriesForType(f.type);
-  var catOpts = '<option value="all">All categories</option>' + filteredCats.map(function(c){
-    return '<option value="'+c.id+'" '+(f.category===c.id?"selected":"")+'>'+window.Ledger.escapeHtml(c.name)+'</option>';
-  }).join("");
+  var catOpts = window.Ledger.filterCategoryOptions(f.category, f.type);
 
   /* Subcategory filter — type + category aware */
-  var filteredSubs = window.Ledger.getSubsForFilter(f.type, f.category);
-  var subOpts = '<option value="all">All subcategories</option>' + filteredSubs.map(function(s){
-    return '<option value="'+s.id+'" '+(f.subcategory===s.id?"selected":"")+'>'+window.Ledger.escapeHtml(s.name)+'</option>';
-  }).join("");
+  var subOpts = window.Ledger.filterSubcategoryOptions(f.subcategory, f.type, f.category);
 
   /* Active filter detection */
   var hasActiveFilters = (f.account!=="all" || f.currency!=="all" || f.category!=="all" || f.subcategory!=="all" || f.type!=="all" || f.datePreset!=="month" || f.search.trim()!=="");
   var clearBtnHtml = hasActiveFilters
     ? '<button class="clear-filters" id="rClearFiltersBtn">Clear filters</button>'
     : '';
-  function filteredCls(val){ return val !== "all" ? ' is-filtered' : ''; }
 
   /* Tab content */
   var tabContent = "";
@@ -548,12 +532,12 @@ window.Ledger.pages.renderReportsPage = function(){
   return ''
     + '<div class="card">'
     + '  <div class="filters-bar">'
-    + '    <select id="rDatePreset" class="'+filteredCls(f.datePreset)+'">'+dateOpts+'</select>'
-    + '    <select id="rType" class="'+filteredCls(f.type)+'">'+typeOpts+'</select>'
-    + '    <select id="rAccount" class="'+filteredCls(f.account)+'">'+accOpts+'</select>'
-    + '    <select id="rCurrency" class="'+filteredCls(f.currency)+'">'+curOpts+'</select>'
-    + '    <select id="rCategory" class="'+filteredCls(f.category)+'">'+catOpts+'</select>'
-    + '    <select id="rSubcategory" class="'+filteredCls(f.subcategory)+'">'+subOpts+'</select>'
+    + '    <select id="rDatePreset" class="'+window.Ledger.filteredCls(f.datePreset)+'">'+dateOpts+'</select>'
+    + '    <select id="rType" class="'+window.Ledger.filteredCls(f.type)+'">'+typeOpts+'</select>'
+    + '    <select id="rAccount" class="'+window.Ledger.filteredCls(f.account)+'">'+accOpts+'</select>'
+    + '    <select id="rCurrency" class="'+window.Ledger.filteredCls(f.currency)+'">'+curOpts+'</select>'
+    + '    <select id="rCategory" class="'+window.Ledger.filteredCls(f.category)+'">'+catOpts+'</select>'
+    + '    <select id="rSubcategory" class="'+window.Ledger.filteredCls(f.subcategory)+'">'+subOpts+'</select>'
     + '    <input type="text" id="rSearch" placeholder="Search descriptions..." value="'+window.Ledger.escapeHtml(f.search)+'" style="background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:8px 12px; font-size:12px; font-weight:500; color:var(--text); min-width:140px;">'
     + clearBtnHtml
     + '    <button class="btn btn-sm desktop-only" id="exportReportCsv" style="margin-left:auto;">Export CSV</button>'

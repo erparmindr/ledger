@@ -23,7 +23,7 @@ window.Ledger.openCategorySplitModal = function(totalAmount, existingSplits, txT
       return '<div class="form-row" data-split-row="'+i+'" style="align-items:flex-end;">'
         + '  <div class="field"><label>Category</label><select class="splitCatSel" data-idx="'+i+'">'+thisOpts+'</select></div>'
         + '  <div class="field" style="max-width:130px;"><label>Amount</label><input type="number" class="splitAmtInput" data-idx="'+i+'" step="0.01" min="0" value="'+r.amount+'"></div>'
-        + '  <button type="button" class="icon-btn danger splitRemoveBtn" data-idx="'+i+'" title="Remove row" aria-label="Remove row" style="margin-bottom:9px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
+        + '  <button type="button" class="icon-btn danger splitRemoveBtn" data-idx="'+i+'" title="Remove row" aria-label="Remove row" style="margin-bottom:9px;">'+window.Ledger.iconTrash()+'</button>'
         + '</div>';
     }).join("");
 
@@ -37,8 +37,8 @@ window.Ledger.openCategorySplitModal = function(totalAmount, existingSplits, txT
     }
 
     var html = ''
-      + '<div class="modal-head"><h3>Split across categories</h3><button class="icon-btn" id="closeSubBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
-      + '<div class="modal-body">'
++ window.Ledger.modalHead('Split across categories', { id: "closeSubBtn" })
+    + '<div class="modal-body">'
       + '  <div class="split-summary"><span>Total to split: <b class="num">' + window.Ledger.fmtMoney(totalAmount) + '</b></span><span id="splitCount" class="faint"></span></div>'
       + '  <div id="splitRowsWrap" style="display:flex; flex-direction:column; gap:10px;">' + rowsHtml + '</div>'
       + '  <button type="button" class="btn btn-sm" id="addSplitRowBtn">+ Add category</button>'
@@ -123,7 +123,7 @@ window.Ledger.openFriendSplitModal = function(totalAmount, existing, onDone){
       return '<div class="form-row" data-friend-row="'+i+'" style="align-items:flex-end;">'
         + '  <div class="field"><label>Friend</label><select class="friendPersonSel" data-idx="'+i+'">'+friendOptions(s.personId)+'</select></div>'
         + '  <div class="field" style="max-width:140px;"><label>Their share</label><input type="number" class="friendAmtInput" data-idx="'+i+'" step="0.01" min="0" value="'+s.amount+'"></div>'
-        + '  <button type="button" class="icon-btn danger friendRemoveBtn" data-idx="'+i+'" title="Remove" aria-label="Remove row" style="margin-bottom:9px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
+        + '  <button type="button" class="icon-btn danger friendRemoveBtn" data-idx="'+i+'" title="Remove" aria-label="Remove row" style="margin-bottom:9px;">'+window.Ledger.iconTrash()+'</button>'
         + '</div>';
     }).join("");
   }
@@ -154,8 +154,8 @@ window.Ledger.openFriendSplitModal = function(totalAmount, existing, onDone){
 
   function render(){
     var html = ''
-      + '<div class="modal-head"><h3>Split with friends</h3><button class="icon-btn" id="closeSubBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
-      + '<div class="modal-body">'
++ window.Ledger.modalHead('Split with friends', { id: "closeSubBtn" })
+    + '<div class="modal-body">'
       + '  <div class="split-summary">'
       + '    <span>Total: <b class="num">' + window.Ledger.fmtMoney(totalAmount) + '</b></span>'
       + '    <span>Your share: <b class="num" id="friendYourShare">' + window.Ledger.fmtMoney(yourShare) + '</b></span>'

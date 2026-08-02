@@ -143,8 +143,6 @@ window.Ledger.pages.renderTransactionsPage = function(){
   var clearBtnHtml = hasActiveFilters
     ? '<button class="clear-filters" id="clearFiltersBtn">Clear filters</button>'
     : '';
-  function filteredCls(val){ return val !== "all" ? ' is-filtered' : ''; }
-
   /* ---- Uncategorized count ---- */
   var uncatCount = 0;
   if(hasAnyTx){
@@ -163,39 +161,24 @@ window.Ledger.pages.renderTransactionsPage = function(){
 
   /* ---- Type-aware filter options ---- */
   var typeVal = f.type;
-  var typeOpts = '<option value="all" ' + (typeVal==="all"?"selected":"") + '>All types</option>'
-    + '<option value="expense" ' + (typeVal==="expense"?"selected":"") + '>Expense</option>'
-    + '<option value="income" ' + (typeVal==="income"?"selected":"") + '>Income</option>'
-    + '<option value="transfer" ' + (typeVal==="transfer"?"selected":"") + '>Transfer</option>'
-    + '<option value="refund" ' + (typeVal==="refund"?"selected":"") + '>Refund</option>';
+  var typeOpts = window.Ledger.filterTypeOptions(typeVal);
 
-  var filteredCats = window.Ledger.getCategoriesForType(typeVal);
-  var catOpts = '<option value="all">All categories</option>' + filteredCats.map(function(c){
-    return '<option value="'+c.id+'" '+(f.category===c.id?"selected":"")+'>'+window.Ledger.escapeHtml(c.name)+'</option>';
-  }).join("");
+  var catOpts = window.Ledger.filterCategoryOptions(f.category, typeVal);
 
-  var filteredSubs = window.Ledger.getSubsForFilter(typeVal, f.category);
-  var subOpts = '<option value="all">All subcategories</option>' + filteredSubs.map(function(s){
-    return '<option value="'+s.id+'" '+(f.subcategory===s.id?"selected":"")+'>'+window.Ledger.escapeHtml(s.name)+'</option>';
-  }).join("");
+  var subOpts = window.Ledger.filterSubcategoryOptions(f.subcategory, typeVal, f.category);
 
-  var accOpts = '<option value="all">All accounts</option>' + window.Ledger.DB.accounts.map(function(a){
-    return '<option value="' + a.id + '" ' + (f.account===a.id?'selected':'') + '>' + window.Ledger.escapeHtml(a.name) + '</option>';
-  }).join("");
+  var accOpts = window.Ledger.filterAccountOptions(f.account, { includeArchived: true });
 
-  var curSet = {}; window.Ledger.DB.accounts.forEach(function(a){ curSet[a.currency]=1; });
-  var curOpts = '<option value="all">All currencies</option>' + Object.keys(curSet).map(function(c){
-    return '<option value="' + c + '" ' + (f.currency===c?'selected':'') + '>' + c + '</option>';
-  }).join("");
+  var curOpts = window.Ledger.filterCurrencyOptions(f.currency, true);
 
   /* ---- Toolbar ---- */
   var toolbarHtml = '<div class="filters-bar">'
-    + '<select id="fType" class="' + filteredCls(f.type) + '">' + typeOpts + '</select>'
-    + '<select id="fAccount" class="' + filteredCls(f.account) + '">' + accOpts + '</select>'
-    + '<select id="fCurrency" class="' + filteredCls(f.currency) + '">' + curOpts + '</select>'
-    + '<select id="fCategory" class="' + filteredCls(f.category) + '">' + catOpts + '</select>'
-    + '<select id="fSubcategory" class="' + filteredCls(f.subcategory) + '">' + subOpts + '</select>'
-    + '<select id="fDatePreset" class="' + filteredCls(f.datePreset) + '">' + window.Ledger.DATE_PRESETS.map(function(p){
+    + '<select id="fType" class="' + window.Ledger.filteredCls(f.type) + '">' + typeOpts + '</select>'
+    + '<select id="fAccount" class="' + window.Ledger.filteredCls(f.account) + '">' + accOpts + '</select>'
+    + '<select id="fCurrency" class="' + window.Ledger.filteredCls(f.currency) + '">' + curOpts + '</select>'
+    + '<select id="fCategory" class="' + window.Ledger.filteredCls(f.category) + '">' + catOpts + '</select>'
+    + '<select id="fSubcategory" class="' + window.Ledger.filteredCls(f.subcategory) + '">' + subOpts + '</select>'
+    + '<select id="fDatePreset" class="' + window.Ledger.filteredCls(f.datePreset) + '">' + window.Ledger.DATE_PRESETS.map(function(p){
       return '<option value="'+p.id+'" '+(f.datePreset===p.id?"selected":"")+'>'+p.label+'</option>';
     }).join("") + '</select>'
     + clearBtnHtml

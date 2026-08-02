@@ -2,6 +2,10 @@
 window.Ledger = window.Ledger || {};
 
 /* ---------- Transaction modal ---------- */
+/* LDS-TODO: this file uses ~23 inline `style=` font-size/padding literals
+   (e.g. font-size:13px, padding:8px 12px). These should become design tokens
+   when LDS is implemented. Comments are not added inline to avoid changing
+   the rendered HTML output. */
 window.Ledger.openTxModal = function(existing){
   var isEdit = !!existing;
   var t = existing ? Object.assign({}, existing) : { type:"expense", date:window.Ledger.todayISO(), amount:"", desc:"", notes:"", account: (window.Ledger.DB.accounts[0]||{}).id, category:"", subcategory:"", fromType:"account", fromId:"", toType:"account", toId:"" };
@@ -44,7 +48,7 @@ window.Ledger.openTxModal = function(existing){
   }
 
   var html = ''
-    + '<div class="modal-head"><h3>' + (isEdit?'Edit transaction':'New transaction') + '</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + window.Ledger.modalHead((isEdit?'Edit transaction':'New transaction'))
     + '<div class="modal-body">'
     + '  <div class="type-pills" id="typePills">'
     + '    <button type="button" class="type-pill ' + (t.type==='expense'?'active':'') + '" data-t="expense">\u2212 Expense</button>'

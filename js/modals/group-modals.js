@@ -4,7 +4,7 @@ window.Ledger = window.Ledger || {};
 /* ---------- Add group modal ---------- */
 window.Ledger.openAddGroupModal = function(){
   var html = ''
-    + '<div class="modal-head"><h3>Add group</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + window.Ledger.modalHead('Add group')
     + '<div class="modal-body">'
     + '  <div class="field"><label>Group name</label><input type="text" id="groupName" placeholder="e.g. Joint"></div>'
     + '</div>'
@@ -31,7 +31,7 @@ window.Ledger.openEditGroupModal = function(groupId){
   if(!g) return;
 
   var html = ''
-    + '<div class="modal-head"><h3>Edit group</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + window.Ledger.modalHead('Edit group')
     + '<div class="modal-body">'
     + '  <div class="field"><label>Group name</label><input type="text" id="groupName" value="' + window.Ledger.escapeHtml(g.name) + '"></div>'
     + '</div>'

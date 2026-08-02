@@ -12,7 +12,7 @@ window.Ledger.openAccountModal = function(existing){
   var curBal = isEdit ? window.Ledger.accountBalance(a.id) : 0;
 
   var html = ''
-    + '<div class="modal-head"><h3>' + (isEdit?'Edit account':'Add account') + '</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + window.Ledger.modalHead((isEdit?'Edit account':'Add account'))
     + '<div class="modal-body">'
     + '  <div class="field"><label>Name</label><input type="text" id="acName" value="' + window.Ledger.escapeHtml(a.name) + '" placeholder="e.g. Checking"></div>'
     + '  <div class="form-row">'
@@ -121,7 +121,7 @@ window.Ledger.openReconModal = function(account){
   }
 
   var html = ''
-    + '<div class="modal-head"><h3>Verify: ' + window.Ledger.escapeHtml(a.name) + '</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + window.Ledger.modalHead('Verify: ' + window.Ledger.escapeHtml(a.name))
     + '<div class="modal-body">'
     + '  <div class="recon-current-bal"><span class="recon-current-label">Current balance</span><span class="recon-current-val num">' + window.Ledger.fmtMoney(bal, a.currency) + '</span></div>'
     + '  <div class="recon-bank-field"><label>What does your bank say?</label><input type="number" id="reconSetBalance" step="0.01" placeholder="' + window.Ledger.fmtMoney(bal, a.currency) + '"></div>'
@@ -169,7 +169,7 @@ window.Ledger.openUpdateBalanceModal = function(id){
   var bal = window.Ledger.accountBalance(a.id);
 
   var html = ''
-    + '<div class="modal-head"><h3>Update: ' + window.Ledger.escapeHtml(a.name) + '</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + window.Ledger.modalHead('Update: ' + window.Ledger.escapeHtml(a.name))
     + '<div class="modal-body">'
     + '  <div class="recon-current-bal"><span class="recon-current-label">Computed balance</span><span class="recon-current-val num">' + window.Ledger.fmtMoney(bal, a.currency) + '</span></div>'
     + '  <div class="field"><label>What is the correct balance?</label><input type="number" id="ubSetBalance" step="0.01" placeholder="' + window.Ledger.fmtMoney(bal, a.currency) + '"></div>'
@@ -208,7 +208,7 @@ window.Ledger.openDeleteAccountModal = function(id){
   var txCount = window.Ledger.DB.transactions.filter(function(t){ return t.account === id || (t.fromType==="account" && t.fromId===id) || (t.toType==="account" && t.toId===id); }).length;
 
   var html = ''
-    + '<div class="modal-head"><h3>Delete account</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + window.Ledger.modalHead('Delete account')
     + '<div class="modal-body">'
     + '  <p style="font-size:13px; margin:0;">Are you sure you want to delete <b>' + window.Ledger.escapeHtml(a.name) + '</b>?</p>'
     + (txCount > 0 ? '<p style="font-size:12px; color:var(--clay); margin:8px 0 0;">This will also delete ' + txCount + ' transaction' + (txCount !== 1 ? 's' : '') + ' linked to this account.</p>' : '')

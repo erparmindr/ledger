@@ -103,7 +103,7 @@ window.Ledger.closeModal = function () {
 
 window.Ledger.openTextPromptModal = function (title, placeholder, initial, onSave) {
   var html = ''
-    + '<div class="modal-head"><h3>' + window.Ledger.escapeHtml(title) + '</h3><button class="icon-btn close-btn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + window.Ledger.modalHead(window.Ledger.escapeHtml(title), { btnClass: "close-btn" })
     + '<div class="modal-body"><div class="field"><input type="text" id="promptInput" value="' + window.Ledger.escapeHtml(initial || "") + '" placeholder="' + window.Ledger.escapeHtml(placeholder) + '"></div></div>'
     + '<div class="modal-foot"><button class="btn cancel-btn">Cancel</button><button class="btn btn-primary ok-btn">Save</button></div>';
   window.Ledger.openModal(html, function (bd) {
@@ -121,7 +121,7 @@ window.Ledger.openTextPromptModal = function (title, placeholder, initial, onSav
 
 window.Ledger.openConfirmModal = function (title, message, onConfirm) {
   var html = ''
-    + '<div class="modal-head"><h3>' + window.Ledger.escapeHtml(title) + '</h3><button class="icon-btn close-btn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + window.Ledger.modalHead(window.Ledger.escapeHtml(title), { btnClass: "close-btn" })
     + '<div class="modal-body"><p style="margin:0; font-size:13.5px;">' + message + '</p></div>'
     + '<div class="modal-foot"><button class="btn cancel-btn">Cancel</button><button class="btn btn-danger confirm-btn">Confirm</button></div>';
   window.Ledger.openModal(html, function (bd) {
@@ -139,7 +139,7 @@ window.Ledger.openMarkPaidModal = function (debtItem) {
     return '<option value="' + a.id + '">' + window.Ledger.escapeHtml(a.name) + ' (' + a.currency + ')</option>';
   }).join("");
   var html = ''
-    + '<div class="modal-head"><h3>Mark as paid</h3><button class="icon-btn close-btn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + window.Ledger.modalHead("Mark as paid", { btnClass: "close-btn" })
     + '<div class="modal-body">'
     + '  <p style="font-size:13px; margin:0;">' + window.Ledger.escapeHtml((person || {}).name || "This person") + ' paying back <b class="num">' + window.Ledger.fmtMoney(debtItem.amount, debtItem.currency) + '</b> for &ldquo;' + window.Ledger.escapeHtml(debtItem.description) + '&rdquo;.</p>'
     + '  <div class="field"><label>Deposit into account</label><select id="paidAccount">' + accOpts + '</select></div>'

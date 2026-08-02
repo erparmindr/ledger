@@ -329,4 +329,99 @@ window.Ledger.filterTransactions = function(state, types, matchDateFn, opts){
   });
 };
 
+/* ============================================================
+   SHARED UI BUILDERS
+   Consolidated from duplicated per-page helpers so future LDS
+   theming has a single place to change.
+   ============================================================ */
+
+/* Class helper for filter controls that are actively filtering. */
+window.Ledger.filteredCls = function filteredCls(val){ return val !== "all" ? " is-filtered" : ""; };
+
+/* Filter toolbar <option> builders (type/account/currency/category/subcategory).
+   includeArchived=false excludes archived accounts (Reports behaviour). */
+window.Ledger.filterTypeOptions = function filterTypeOptions(sel){
+  return '<option value="all" ' + (sel==="all"?"selected":"") + '>All types</option>'
+    + '<option value="expense" ' + (sel==="expense"?"selected":"") + '>Expense</option>'
+    + '<option value="income" ' + (sel==="income"?"selected":"") + '>Income</option>'
+    + '<option value="transfer" ' + (sel==="transfer"?"selected":"") + '>Transfer</option>'
+    + '<option value="refund" ' + (sel==="refund"?"selected":"") + '>Refund</option>';
+};
+
+window.Ledger.filterAccountOptions = function filterAccountOptions(sel, opts){
+  opts = opts || {};
+  var accs = window.Ledger.DB.accounts;
+  if(!opts.includeArchived) accs = accs.filter(function(a){ return !a.archived; });
+  return '<option value="all">All accounts</option>' + accs.map(function(a){
+    return '<option value="' + a.id + '" ' + (sel===a.id?'selected':'') + '>' + window.Ledger.escapeHtml(a.name) + (opts.withCurrency ? ' (' + a.currency + ')' : '') + '</option>';
+  }).join("");
+};
+
+window.Ledger.filterCurrencyOptions = function filterCurrencyOptions(sel, includeArchived){
+  var curSet = {};
+  window.Ledger.DB.accounts.forEach(function(a){
+    if(includeArchived || !a.archived) curSet[a.currency] = 1;
+  });
+  return '<option value="all">All currencies</option>' + Object.keys(curSet).map(function(c){
+    return '<option value="' + c + '" ' + (sel===c?'selected':'') + '>' + c + '</option>';
+  }).join("");
+};
+
+window.Ledger.filterCategoryOptions = function filterCategoryOptions(sel, type){
+  var cats = window.Ledger.getCategoriesForType(type);
+  return '<option value="all">All categories</option>' + cats.map(function(c){
+    return '<option value="'+c.id+'" '+(sel===c.id?"selected":"")+'>'+window.Ledger.escapeHtml(c.name)+'</option>';
+  }).join("");
+};
+
+window.Ledger.filterSubcategoryOptions = function filterSubcategoryOptions(sel, type, catId){
+  var subs = window.Ledger.getSubsForFilter(type, catId);
+  return '<option value="all">All subcategories</option>' + subs.map(function(s){
+    return '<option value="'+s.id+'" '+(sel===s.id?"selected":"")+'>'+window.Ledger.escapeHtml(s.name)+'</option>';
+  }).join("");
+};
+
+/* Card header with optional right-side content (hint, actions, etc.). */
+window.Ledger.cardHeader = function cardHeader(title, rightHtml){
+  return '<div class="card-header"><h2>' + title + '</h2>' + (rightHtml ? rightHtml : '') + '</div>';
+};
+
+/* Metric card. opts: { cls, iconHtml, valCls, valStyle, afterValHtml } */
+window.Ledger.metricCard = function metricCard(lbl, valHtml, opts){
+  opts = opts || {};
+  return '<div class="metric' + (opts.cls ? ' ' + opts.cls : '') + '">'
+    + (opts.iconHtml ? '<div class="metric-icon">' + opts.iconHtml + '</div>' : '')
+    + '<div class="lbl">' + lbl + '</div>'
+    + '<div class="val' + (opts.valCls ? ' ' + opts.valCls : '') + '"' + (opts.valStyle ? ' style="' + opts.valStyle + '"' : '') + '>' + valHtml + '</div>'
+    + (opts.afterValHtml ? opts.afterValHtml : '')
+    + '</div>';
+};
+
+/* Empty state. opts: { style, icon, iconLine, big, desc, tip, cta } */
+window.Ledger.emptyState = function emptyState(opts){
+  var html = '<div class="empty-state"' + (opts.style ? ' style="' + opts.style + '"' : '') + '>';
+  if(opts.icon) html += '<div class="empty-icon' + (opts.iconLine ? ' empty-icon--line' : '') + '">' + opts.icon + '</div>';
+  html += '<div class="big">' + opts.big + '</div>';
+  if(opts.desc) html += '<div class="empty-desc">' + opts.desc + '</div>';
+  if(opts.tip) html += '<div class="empty-tip">' + opts.tip + '</div>';
+  if(opts.cta) html += '<div class="empty-cta">' + opts.cta + '</div>';
+  return html + '</div>';
+};
+
+window.Ledger.iconTrash = function iconTrash(){
+  return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+};
+
+/* Modal header with close button. opts: { id, btnClass }
+   Default id is "closeModalBtn" unless btnClass (legacy close-btn, no id) is given. */
+window.Ledger.modalHead = function modalHead(title, opts){
+  opts = opts || {};
+  var id;
+  if(opts.id) id = ' id="' + opts.id + '"';
+  else if(!opts.btnClass) id = ' id="closeModalBtn"';
+  else id = '';
+  var cls = opts.btnClass ? ' ' + opts.btnClass : '';
+  return '<div class="modal-head"><h3>' + title + '</h3><button class="icon-btn' + cls + '"' + id + ' aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>';
+};
+
 })();

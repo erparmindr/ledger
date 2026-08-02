@@ -158,8 +158,8 @@ window.Ledger.pages.renderOverviewPage = function(){
   }
 
   var cashFlowHtml = '<div class="grid-2">'
-    + '<div class="metric income"><div class="metric-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="lbl">Income this month</div><div class="val"><span class="msign">+</span>'+window.Ledger.fmtMoney(incVal, primaryCur)+'</div>'+trendArrow(incVal, incLast)+'</div>'
-    + '<div class="metric expense"><div class="metric-icon"><svg viewBox="0 0 24 24"><path d="M2 12h20"/><path d="m17 8-5-5-5 5"/><rect x="6" y="14" width="12" height="6" rx="1"/></svg></div><div class="lbl">Expenses this month</div><div class="val"><span class="msign">\u2212</span>'+window.Ledger.fmtMoney(expVal, primaryCur)+'</div>'+trendArrow(expVal, expLast)+'</div>'
+    + window.Ledger.metricCard('Income this month', '<span class="msign">+</span>'+window.Ledger.fmtMoney(incVal, primaryCur), { cls: "income", iconHtml: '<svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>', afterValHtml: trendArrow(incVal, incLast) })
+    + window.Ledger.metricCard('Expenses this month', '<span class="msign">\u2212</span>'+window.Ledger.fmtMoney(expVal, primaryCur), { cls: 'expense', iconHtml: '<svg viewBox="0 0 24 24"><path d="M2 12h20"/><path d="m17 8-5-5-5 5"/><rect x="6" y="14" width="12" height="6" rx="1"/></svg>', afterValHtml: trendArrow(expVal, expLast) })
     + '</div>';
 
   /* ---- Top spending categories (mini donut) ---- */
@@ -302,7 +302,7 @@ window.Ledger.pages.renderOverviewPage = function(){
   var pendingHtml = "";
   if(pendingTfers.length > 0){
     pendingHtml = '<div class="card section-gap">'
-      + '<div class="card-header"><h2>Pending transfers</h2><span class="hint">'+pendingTfers.length+' awaiting destination</span></div>'
+      + window.Ledger.cardHeader('Pending transfers', '<span class="hint">'+pendingTfers.length+' awaiting destination</span>')
       + '<div class="card-pad" style="padding-top:4px; padding-bottom:4px;">'
       + pendingTfers.map(function(t){
         var acc = window.Ledger.findAccount(t.fromId);
@@ -324,7 +324,7 @@ window.Ledger.pages.renderOverviewPage = function(){
   var unlinkedHtml = "";
   if(unlinked.length > 0){
     unlinkedHtml = '<div class="card section-gap">'
-      + '<div class="card-header"><h2>Unlinked refunds</h2><span class="hint">'+unlinked.length+' awaiting original</span></div>'
+      + window.Ledger.cardHeader('Unlinked refunds', '<span class="hint">'+unlinked.length+' awaiting original</span>')
       + '<div class="card-pad" style="padding-top:4px; padding-bottom:4px;">'
       + unlinked.map(function(t){
         var acc = window.Ledger.findAccount(t.account);
@@ -352,14 +352,13 @@ window.Ledger.pages.renderOverviewPage = function(){
 
   var upcomingHtml;
   if(upcoming.length === 0){
-    upcomingHtml = '<div class="empty-state" style="padding:24px 20px;">'
-      + '<div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'
-      + '<rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 14h.01"/>'
-      + '</svg></div>'
-      + '<div class="big">All clear</div>'
-      + '<div class="empty-desc">No recurring items due within 7 days. Set up scheduled transactions to automate your tracking.</div>'
-      + '<div class="empty-cta"><button class="btn btn-sm" data-nav-link="scheduled">Set up recurring &rarr;</button></div>'
-      + '</div>';
+    upcomingHtml = window.Ledger.emptyState({
+      style: "padding:24px 20px;",
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 14h.01"/></svg>',
+      big: "All clear",
+      desc: "No recurring items due within 7 days. Set up scheduled transactions to automate your tracking.",
+      cta: '<button class="btn btn-sm" data-nav-link="scheduled">Set up recurring &rarr;</button>'
+    });
   } else {
     upcomingHtml = upcoming.map(function(x){
       var r = x.r;
@@ -377,7 +376,7 @@ window.Ledger.pages.renderOverviewPage = function(){
   /* ---- Recent activity ---- */
   var recentTx = window.Ledger.DB.transactions.slice().sort(function(a,b){ return (b.date+b.id).localeCompare(a.date+a.id); }).slice(0,6);
   var recentHtml = recentTx.length === 0
-    ? '<div class="empty-state" style="padding:36px 20px;"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg></div><div class="big">No entries yet</div><div class="empty-desc">Use "New transaction" to add your first one.</div></div>'
+    ? window.Ledger.emptyState({ style: "padding:36px 20px;", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>', big: 'No entries yet', desc: 'Use "New transaction" to add your first one.' })
     : recentTx.map(window.Ledger.renderTxRow).join("");
 
   /* ---- Reconciliation banner ---- */
@@ -412,22 +411,22 @@ window.Ledger.pages.renderOverviewPage = function(){
     + '<div class="section-gap">' + cashFlowHtml + '</div>'
     + '<div class="section-gap" style="display:flex; gap:16px; flex-wrap:wrap;">'
     + '  <div class="card" style="flex:1; min-width:280px;">'
-    + '    <div class="card-header"><h2>Top spending</h2>' + window.Ledger.periodPillHtml(spendPeriod, "spendPeriod") + '</div>'
+    + '    ' + window.Ledger.cardHeader('Top spending', window.Ledger.periodPillHtml(spendPeriod, "spendPeriod")) + ''
     + '    <div class="card-pad">' + donutHtml + '</div>'
     + '  </div>'
     + '  <div class="card" style="flex:1; min-width:280px;">'
-    + '    <div class="card-header"><h2>Spending trend</h2>' + window.Ledger.periodPillHtml(trendPeriod, "trendPeriod") + '</div>'
+    + '    ' + window.Ledger.cardHeader('Spending trend', window.Ledger.periodPillHtml(trendPeriod, "trendPeriod")) + ''
     + '    <div class="card-pad">' + sparkHtml + '</div>'
     + '  </div>'
     + '</div>'
     + pendingHtml
     + unlinkedHtml
     + '<div class="card section-gap">'
-    + '  <div class="card-header"><h2>Upcoming</h2><div class="card-header-right"><span class="hint">next 7 days</span><button class="btn btn-sm" data-nav-link="scheduled">Manage &rarr;</button></div></div>'
+    + '  ' + window.Ledger.cardHeader('Upcoming', '<div class="card-header-right"><span class="hint">next 7 days</span><button class="btn btn-sm" data-nav-link="scheduled">Manage &rarr;</button></div>')
     + '  <div class="card-pad" style="padding-top:6px; padding-bottom:6px;">' + upcomingHtml + '</div>'
     + '</div>'
     + '<div class="card section-gap">'
-    + '  <div class="card-header"><h2>Recent activity</h2><span class="hint">last 6 entries &middot; <a href="#" data-nav-link="transactions" style="color:var(--brass); font-weight:700;">View all &rarr;</a></span></div>'
+    + '  ' + window.Ledger.cardHeader('Recent activity', '<span class="hint">last 6 entries &middot; <a href="#" data-nav-link="transactions" style="color:var(--brass); font-weight:700;">View all &rarr;</a></span>')
     + '  <div>' + recentHtml + '</div>'
     + '</div>';
 };

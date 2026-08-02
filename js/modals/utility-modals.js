@@ -6,7 +6,7 @@ window.Ledger.openDuplicatesModal = function(){
   var groups = window.Ledger.findAllDuplicates();
   if(groups.length === 0){
     window.Ledger.openModal(
-      '<div class="modal-head"><h3>Duplicate check</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+      window.Ledger.modalHead('Duplicate check')
       + '<div class="modal-body"><div class="dupe-empty"><div class="dupe-empty-icon">\u2713</div><div class="dupe-empty-msg">No duplicate transactions found</div><div class="dupe-empty-hint">All transactions look unique based on amount, date, description, type, and account.</div></div></div>'
       + '<div class="modal-foot"><button class="btn btn-primary" id="doneBtn">Done</button></div>',
       function(){
@@ -47,7 +47,7 @@ window.Ledger.openDuplicatesModal = function(){
   }).join("");
 
   var html = ''
-    + '<div class="modal-head"><h3>Duplicates found</h3><button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+    + window.Ledger.modalHead('Duplicates found')
     + '<div class="modal-body">'
     + '  <div class="dupe-summary">' + groups.length + ' group' + (groups.length!==1?'s':'') + ' \u2014 ' + totalDupes + ' transaction' + (totalDupes!==1?'s':'') + ' total</div>'
     + '  <div class="dupe-groups">' + groupsHtml + '</div>'
@@ -155,10 +155,7 @@ window.Ledger.openAutoCategorizeModal = function(uncatTx){
     listHtml += '<div class="auto-cat-row auto-cat-more">...and ' + (suggestions.length - 30) + ' more</div>';
   }
 
-  var html = '<div class="modal-head">'
-    + '<h3>Auto-categorize</h3>'
-    + '<button class="icon-btn" id="closeModalBtn" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
-    + '</div>'
+  var html = window.Ledger.modalHead('Auto-categorize')
     + '<div class="modal-body">'
     + '<p style="margin:0 0 12px">Found <strong>' + uncatTx.length + '</strong> uncategorized transaction' + (uncatTx.length !== 1 ? 's' : '') + '.</p>'
     + '<p style="margin:0 0 12px"><strong>' + willCategorize + '</strong> will be categorized'
