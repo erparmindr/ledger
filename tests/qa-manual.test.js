@@ -51,7 +51,6 @@ const customDocument = {
   body: themeBody,
   addEventListener: () => {},
 };
-
 let L;
 let DB;
 
@@ -570,5 +569,49 @@ describe("Manual QA: every page renders, wires, and its actions open", () => {
 describe("Manual QA: zero console errors", () => {
   it("collects zero console errors across all pages, wires and dialogs", () => {
     expect(consoleErrors).toEqual([]);
+  });
+});
+
+describe("Manual QA: person dropdown never renders undefined currency", () => {
+  it("switching the transfer entity to a person shows just the person's name", () => {
+    const elements = {};
+    function pEl() {
+      const el = {
+        className: "", value: "", textContent: "", style: {}, _html: "", listeners: {},
+        get innerHTML() { return this._html; },
+        set innerHTML(v) { this._html = v; },
+        appendChild: () => {}, removeChild: () => {}, click: () => {}, focus: () => {}, remove: () => {},
+        setAttribute: () => {}, getAttribute: () => null,
+        addEventListener(ev, fn) { (this.listeners[ev] = this.listeners[ev] || []).push(fn); },
+        closest: () => pEl(), parentElement: null, tagName: "DIV",
+        querySelector: () => pEl(), querySelectorAll: () => [],
+        classList: { toggle() {}, add() {}, remove() {}, contains: () => false },
+        options: [],
+      };
+      return el;
+    }
+    const doc = {
+      getElementById(id) { if (!elements[id]) elements[id] = pEl(); return elements[id]; },
+      querySelector: () => pEl(), querySelectorAll: () => [], createElement: () => pEl(),
+      activeElement: null, addEventListener: () => {},
+      body: { appendChild: () => {}, removeChild: () => {}, setAttribute: () => {}, classList: { add() {}, remove() {}, toggle() {}, contains: () => false } },
+    };
+    const LP = loadLedgerFull({ document: doc });
+    LP.DB = LP.defaultData();
+    LP.DB.people = [{ id: "per-1", name: "Alex Chen", created: 1 }];
+    LP.showToast = function () {};
+    LP.renderPage = function () {};
+
+    LP.openTxModal({ type: "transfer", date: "2026-07-01", amount: 10, desc: "lend", fromType: "account", fromId: LP.DB.accounts[0].id, toType: "account", toId: LP.DB.accounts[1].id, category: "", subcategory: "" });
+
+    const toType = elements["txToType"];
+    expect(toType).toBeDefined();
+    toType.value = "person";
+    (toType.listeners["change"] || []).forEach(function (fn) { fn({ target: toType }); });
+
+    const toId = elements["txToId"];
+    expect(toId.innerHTML).toContain("Alex Chen");
+    expect(toId.innerHTML).not.toContain("undefined");
+    expect(toId.innerHTML).toMatch(/<option value="per-1">Alex Chen<\/option>/);
   });
 });

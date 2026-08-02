@@ -73,6 +73,16 @@ describe("normalizeData", () => {
     const d = L.normalizeData(input);
     expect(d.categories[0].type).toBe("expense");
   });
+  it("backfills anchorDay on legacy recurring items", () => {
+    const input = { recurring: [{ id: "r1", name: "Rent", startDate: "2026-01-31" }] };
+    const d = L.normalizeData(input);
+    expect(d.recurring[0].anchorDay).toBe(31);
+  });
+  it("backfills a subs array on categories missing it", () => {
+    const input = { categories: [{ id: "c1", name: "Legacy", type: "expense" }] };
+    const d = L.normalizeData(input);
+    expect(Array.isArray(d.categories[0].subs)).toBe(true);
+  });
 });
 
 /* ============================================================
@@ -178,5 +188,33 @@ describe("_advanceRecurring", () => {
     L._advanceRecurring(r);
     const d = new Date(r.startDate + "T00:00:00");
     expect(d > new Date("2026-07-26T00:00:00")).toBe(true);
+  });
+  it("clamps monthly to month-end preserving the anchor day (Jan 31)", () => {
+    const r = { frequency: "monthly", startDate: "2026-01-31", anchorDay: 31 };
+    L._advanceRecurring(r);
+    expect(r.startDate).toBe("2026-02-28");
+    L._advanceRecurring(r);
+    expect(r.startDate).toBe("2026-03-31");
+    L._advanceRecurring(r);
+    expect(r.startDate).toBe("2026-04-30");
+    L._advanceRecurring(r);
+    expect(r.startDate).toBe("2026-05-31");
+  });
+  it("clamps monthly anchor on leap-year February (Feb 29)", () => {
+    const r = { frequency: "monthly", startDate: "2028-01-31", anchorDay: 31 };
+    L._advanceRecurring(r);
+    expect(r.startDate).toBe("2028-02-29");
+    L._advanceRecurring(r);
+    expect(r.startDate).toBe("2028-03-31");
+  });
+  it("rolls monthly over December (anchor day 15)", () => {
+    const r = { frequency: "monthly", startDate: "2026-12-15", anchorDay: 15 };
+    L._advanceRecurring(r);
+    expect(r.startDate).toBe("2027-01-15");
+  });
+  it("falls back to start-date day when anchorDay is absent", () => {
+    const r = { frequency: "monthly", startDate: "2026-06-15" };
+    L._advanceRecurring(r);
+    expect(r.startDate).toBe("2026-07-15");
   });
 });

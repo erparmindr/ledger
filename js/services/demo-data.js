@@ -391,7 +391,7 @@ window.Ledger.generateDemoData = function(){
     var s = addDays(today, startInDays);
     return { id: nextId("rec"), name: name, type: type, account: accountId, amount: round2(amount),
       category: cat ? catId(cat) : "", subcategory: sub ? subId(cat, sub) : "",
-      frequency: freq, startDate: s, postMode: postMode, created: nowTs };
+      frequency: freq, startDate: s, postMode: postMode, created: nowTs, anchorDay: parseInt(s.slice(8,10),10) };
   }
   var recurringItems = [
     recurring("Netflix", "expense", cc.id, 15.99, "Entertainment", "Subscriptions", "monthly", "auto", 12),

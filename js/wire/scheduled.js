@@ -44,7 +44,7 @@ window.Ledger.wireScheduledPage = function(){
     var postModeEl = document.querySelector('input[name="rPostMode"]:checked');
     var postMode = postModeEl ? postModeEl.value : "auto";
     if(!name || isNaN(amount) || !isFinite(amount) || amount<=0 || !startDate || !account){ window.Ledger.showToast("Fill in all fields"); return; }
-    window.Ledger.addRecurring({ id:window.Ledger.uid(), name:name, amount:amount, frequency:frequency, startDate:startDate, type:type, account:account, category:category, subcategory:subcategory, postMode:postMode });
+    window.Ledger.addRecurring({ id:window.Ledger.uid(), name:name, amount:amount, frequency:frequency, startDate:startDate, type:type, account:account, category:category, subcategory:subcategory, postMode:postMode, anchorDay:parseInt(startDate.slice(8,10),10) });
   });
   Array.prototype.forEach.call(document.querySelectorAll("[data-confirm-recurring]"), function(b){
     b.addEventListener("click", function(){

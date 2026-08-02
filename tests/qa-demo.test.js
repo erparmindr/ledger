@@ -442,6 +442,38 @@ describe("QA: recurring transactions function as expected", () => {
     });
     expect(checking).toBeDefined();
   });
+
+  it("nextDueDate and _advanceRecurring stay anchored on short months (Jan 31)", () => {
+    const r = { id: "ra", frequency: "monthly", startDate: "2026-01-31", anchorDay: 31, postMode: "auto", account: L.DB.accounts[0].id, category: "", amount: 10, name: "Anchored", type: "expense" };
+    expect(L.nextDueDate(r, "2026-02-01")).toBe("2026-02-28");
+    expect(L.nextDueDate(r, "2026-03-01")).toBe("2026-03-31");
+    L._advanceRecurring(r);
+    expect(r.startDate).toBe("2026-02-28");
+    L._advanceRecurring(r);
+    expect(r.startDate).toBe("2026-03-31");
+    expect(L.nextDueDate(r, "2026-04-01")).toBe("2026-04-30");
+  });
+
+  it("auto-posting a month-end anchor never drifts the schedule", () => {
+    freshDemoData();
+    const origToday = L.todayISO;
+    const origSave = L.saveData;
+    try {
+      L.todayISO = function () { return "2026-02-28"; };
+      L.saveData = function () {};
+      L.DB.recurring = [{ id: "rAnchor", name: "Anchor", type: "expense", amount: 10, frequency: "monthly", startDate: "2026-01-31", anchorDay: 31, postMode: "auto", account: L.DB.accounts[0].id, category: "", subcategory: "" }];
+      const before = L.DB.transactions.length;
+      L.autoPostRecurring();
+      const posted = L.DB.transactions.filter(function (t) { return (t.notes || "").indexOf("Auto-posted") !== -1; });
+      expect(posted.length).toBe(1);
+      expect(posted[0].date).toBe("2026-02-28");
+      expect(L.DB.recurring[0].startDate).toBe("2026-03-31");
+      expect(L.DB.transactions.length).toBe(before + 1);
+    } finally {
+      L.todayISO = origToday;
+      L.saveData = origSave;
+    }
+  });
 });
 
 describe("QA: search, filtering, and sorting work correctly", () => {

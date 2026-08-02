@@ -9,8 +9,12 @@ window.Ledger._advanceRecurring = function(r){
     r.startDate = window.Ledger.todayISOFromDate(d);
   } else {
     var d2 = new Date(r.startDate + "T00:00:00");
-    d2.setMonth(d2.getMonth() + 1);
-    r.startDate = window.Ledger.todayISOFromDate(d2);
+    var anchorDay = r.anchorDay || d2.getDate();
+    var ny = d2.getFullYear(), nm = d2.getMonth() + 1;
+    if(nm > 11){ nm = 0; ny++; }
+    var dim = new Date(ny, nm + 1, 0).getDate();
+    var next = new Date(ny, nm, Math.min(anchorDay, dim));
+    r.startDate = window.Ledger.todayISOFromDate(next);
   }
 };
 
@@ -28,6 +32,7 @@ window.Ledger.autoPostRecurring = function(){
         id:window.Ledger.uid(), type:r.type, date:due, amount:r.amount, desc:r.name,
         notes:"Auto-posted from recurring item", account:r.account, category:r.category||"", subcategory:r.subcategory||"", created:Date.now()
       }, true);
+      r.startDate = due;
       window.Ledger._advanceRecurring(r);
       safety++;
     }

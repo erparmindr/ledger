@@ -61,6 +61,7 @@ window.Ledger.normalizeData = function(parsed) {
   var categories = Array.isArray(parsed.categories) ? parsed.categories : d.categories;
   categories = categories.map(function(c){
     if(!c.type) c.type = "expense";
+    if(!Array.isArray(c.subs)) c.subs = [];
     return c;
   });
 
@@ -68,15 +69,18 @@ window.Ledger.normalizeData = function(parsed) {
   recurring = recurring.map(function(r){
     if(!r.frequency){
       r.frequency = "monthly";
-      var now = new Date();
-      var day = r.day || 1;
-      var y = now.getFullYear(), m = now.getMonth();
-      var candidateDay = Math.min(day, new Date(y, m+1, 0).getDate());
-      r.startDate = y + "-" + pad2(m+1) + "-" + pad2(candidateDay);
+      if(!r.startDate){
+        var now = new Date();
+        var day = r.day || 1;
+        var y = now.getFullYear(), m = now.getMonth();
+        var candidateDay = Math.min(day, new Date(y, m+1, 0).getDate());
+        r.startDate = y + "-" + pad2(m+1) + "-" + pad2(candidateDay);
+      }
     }
     if(typeof r.category === "undefined") r.category = "";
     if(typeof r.subcategory === "undefined") r.subcategory = "";
     if(typeof r.postMode === "undefined") r.postMode = "review";
+    if(typeof r.anchorDay === "undefined") r.anchorDay = r.startDate ? parseInt(r.startDate.slice(8,10),10) : (r.day || 1);
     return r;
   });
 

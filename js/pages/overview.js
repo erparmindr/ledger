@@ -453,7 +453,7 @@ window.Ledger.nextDueDate = function(r, fromDate){
     return window.Ledger.todayISOFromDate(candidate);
   }
 
-  var day = start.getDate();
+  var day = r.anchorDay || start.getDate();
   var candidateMonth = new Date(from.getFullYear(), from.getMonth(), Math.min(day, window.Ledger.daysInMonth(from.getFullYear(), from.getMonth())));
   if(candidateMonth < from){
     var nm = from.getMonth() + 1, ny = from.getFullYear();

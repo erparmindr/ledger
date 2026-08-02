@@ -196,6 +196,18 @@ describe("Stress: Category math", () => {
     expect(L.subcatName("c5", "s7")).toBe("Primary");
     expect(L.subcatName("c1", "nonexistent")).toBe("");
   });
+
+  it("subcatName tolerates categories without a subs array (legacy/corrupt backup)", () => {
+    seedDB(0);
+    L.DB.categories = [
+      { id: "cX", name: "Legacy", type: "expense" },
+      { id: "cY", name: "Empty subs", type: "expense", subs: [] },
+    ];
+    expect(L.subcatName("cX", "s1")).toBe("");
+    expect(L.subcatName("cY", "s1")).toBe("");
+    expect(L.subcatName("missing", "s1")).toBe("");
+    expect(L.subcatName("cX", "anything")).toBe("");
+  });
 });
 
 /* ============================================================

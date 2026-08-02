@@ -167,7 +167,7 @@ window.Ledger.categoryName = function categoryName(catId){
 };
 window.Ledger.subcatName = function subcatName(catId, subId){
   var c = window.Ledger.findCategory(catId);
-  if(!c) return "";
+  if(!c || !Array.isArray(c.subs)) return "";
   var s = c.subs.find(function(s){ return s.id === subId; });
   return s ? s.name : "";
 };
