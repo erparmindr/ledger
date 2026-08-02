@@ -40,7 +40,8 @@ window.Ledger.openAccountModal = function(existing){
     document.getElementById("saveAcctBtn").addEventListener("click", function(){
       var name = document.getElementById("acName").value.trim();
       if(!name){ window.Ledger.showToast("Enter an account name"); return; }
-      var ob = parseFloat(document.getElementById("acOpening").value) || 0;
+      var rawOb = parseFloat(document.getElementById("acOpening").value);
+      var ob = isFinite(rawOb) ? rawOb : 0;
       var reb = isEdit ? a.reconciledBalance : null;
       var rea = isEdit ? a.reconciledAt : null;
       if(isEdit){

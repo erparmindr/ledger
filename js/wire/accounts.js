@@ -22,7 +22,11 @@ window.Ledger.wireAccountsPage = function(){
       var id = btn.getAttribute("data-kebab-toggle");
       var menu = btn.parentElement.querySelector(".km");
       Array.prototype.forEach.call(document.querySelectorAll(".km.open"), function(m){ if(m !== menu) m.classList.remove("open"); });
-      if(menu) menu.classList.toggle("open");
+      if(menu){
+        var willOpen = !menu.classList.contains("open");
+        menu.classList.toggle("open");
+        btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+      }
     });
   });
 

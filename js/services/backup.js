@@ -20,10 +20,20 @@ window.Ledger.validateBackup = function validateBackup(data){
 
   if(!data || typeof data !== "object") return { valid:false, warnings:["File is not a valid JSON object"], stats:stats };
 
+  var structural = false;
   ["accounts","transactions","categories"].forEach(function(key){
-    if(!Array.isArray(data[key])) warnings.push("Missing or invalid '" + key + "' array");
+    if(!Array.isArray(data[key])){
+      warnings.push("Missing or invalid '" + key + "' array");
+      structural = true;
+    }
   });
-  if(!Array.isArray(data.accounts)) return { valid:false, warnings:warnings, stats:stats };
+  ["recurring","people","debtItems","groups"].forEach(function(key){
+    if(key in data && !Array.isArray(data[key])){
+      warnings.push("Invalid '" + key + "' array");
+      structural = true;
+    }
+  });
+  if(structural || !Array.isArray(data.accounts)) return { valid:false, warnings:warnings, stats:stats };
 
   var seenIds = {};
 
@@ -57,6 +67,10 @@ window.Ledger.importBackupFile = function(file){
     try{
       var parsed = JSON.parse(e.target.result);
       var result = window.Ledger.validateBackup(parsed);
+      if(!result.valid){
+        window.Ledger.showToast("Invalid backup file: " + (result.warnings[0] || "missing required data"));
+        return;
+      }
       if(!result.stats.accounts && !result.stats.transactions){
         window.Ledger.showToast("That doesn't look like a valid backup file");
         return;

@@ -12,7 +12,6 @@ window.Ledger.registerCollapsedYears = {};
 window.Ledger.registerCollapsedMonths = {};
 window.Ledger.registerSelectedTx = {};
 
-var INITIAL_MONTHS = 2;
 var LOAD_MORE_MONTHS = 2;
 
 /* ---- helpers ---- */
@@ -341,7 +340,7 @@ function renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunn
 
     var isYearCollapsed = cy[yk];
     html += '<div class="yr-section' + (isYearCollapsed ? ' collapsed' : '') + '">';
-    html += '<div class="yr-header" data-toggle-year="' + yk + '">';
+    html += '<div class="yr-header" data-toggle-year="' + yk + '" role="button" tabindex="0" aria-expanded="' + (!isYearCollapsed) + '">';
     html += '<div class="yr-title"><span class="yr-chevron">\u25BC</span> ' + yk + ' <span class="yr-count">(' + yearCount + ' txns)</span></div>';
     html += '<div class="yr-summary">';
     html += '<span class="pos">+' + window.Ledger.fmtMoneyShort(yearInc) + '</span>';
@@ -362,7 +361,7 @@ function renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunn
       var bodyMaxH = isMonthCollapsed ? 0 : (txs.length * 48);
 
       html += '<div class="mo-section' + (isMonthCollapsed ? ' collapsed' : '') + '">';
-      html += '<div class="mo-header" data-toggle-month="' + mk + '">';
+      html += '<div class="mo-header" data-toggle-month="' + mk + '" role="button" tabindex="0" aria-expanded="' + (!isMonthCollapsed) + '">';
       html += '<div class="mo-title"><span class="mo-chevron">\u25BC</span> ' + window.Ledger.monthLabelOf(mk) + ' <span class="mo-count">(' + txs.length + ')</span></div>';
       html += '<div class="mo-summary">';
       html += '<span class="pos">+' + window.Ledger.fmtMoneyShort(inc) + '</span>';
@@ -399,7 +398,7 @@ function renderYearMonthGrouped(sorted, visibleMonthKeys, allMonthKeys, showRunn
    ============================================================ */
 function renderGroupedTxRow(t, showRunning, runBalMap){
   var isLinkedTransfer = !!t.linkId;
-  var dateDisp = new Date(t.date + "T00:00:00").toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"});
+  var dateDisp = window.Ledger.dateLabel(t.date, {month:"short", day:"numeric", year:"numeric"});
 
   var catLabel = "";
   if(t.categorySplits && t.categorySplits.length){
@@ -457,7 +456,7 @@ function renderGroupedTxRow(t, showRunning, runBalMap){
     + '<span class="grp-amt ' + amtCls + '">' + sign + window.Ledger.fmtMoney(t.amount, currency) + '</span>'
     + runBalHtml
     + '<div class="grp-kebab">'
-    + '  <button class="kebab-btn" data-kebab="' + t.id + '" title="More actions">&#8942;</button>'
+    + '  <button class="kebab-btn" data-kebab="' + t.id + '" title="More actions" aria-label="More actions" aria-expanded="false" aria-haspopup="true">&#8942;</button>'
     + '  <div class="kebab-menu" id="kebab-' + t.id + '">'
     + '    <button class="kebab-item" data-edit-tx="' + t.id + '"><span class="kebab-icon">\u270F</span> Edit</button>'
     + '    <div class="kebab-divider"></div>'

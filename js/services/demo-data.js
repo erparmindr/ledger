@@ -141,6 +141,7 @@ window.Ledger.generateDemoData = function(){
     return rec;
   }
   function addCategorized(type, accountId, date, amount, desc, cat, sub, extra){
+    if(!date) return null;
     var rec = { type: type, date: date, amount: round2(amount), desc: desc, notes: "",
       account: accountId, category: cat ? catId(cat) : "", subcategory: sub ? subId(cat, sub) : "",
       created: new Date(date + "T00:00:00").getTime() };
@@ -153,6 +154,7 @@ window.Ledger.generateDemoData = function(){
     return tx;
   }
   function transferRec(fromType, fromId, toType, toId, date, amount, desc, cat, extra){
+    if(!date) return null;
     var rec = { type: "transfer", date: date, amount: round2(amount), desc: desc, notes: "",
       fromType: fromType, fromId: fromId, toType: toType, toId: toId,
       category: cat ? catId(cat) : "", subcategory: "",
@@ -161,6 +163,7 @@ window.Ledger.generateDemoData = function(){
     return addTx(rec);
   }
   function linkedTransfer(fromAcc, toAcc, date, fromAmount, toAmount, desc, cat){
+    if(!date) return;
     var linkId = nextId("link");
     addTx({ type: "expense", date: date, amount: round2(fromAmount), desc: desc + " \u2192 " + toAcc.name, notes: "",
       account: fromAcc.id, category: catId(cat), subcategory: "",
@@ -209,8 +212,10 @@ window.Ledger.generateDemoData = function(){
 
     /* ---- Fixed bills (Checking) ---- */
     if(m === 8){
-      var hydroAug = addCategorized("expense", checking.id, d(10), 118.4, "Hydro One — electricity", "Utilities", "Electricity");
-      if(d(20)) addCategorized("refund", checking.id, d(20), 45, "Refund — hydro overcharge", "Utilities", "Electricity", { refundOf: hydroAug.id });
+      var hydroDay = d(10);
+      if(hydroDay){ var hydroAug = addCategorized("expense", checking.id, hydroDay, 118.4, "Hydro One — electricity", "Utilities", "Electricity");
+        if(hydroAug && d(20)) addCategorized("refund", checking.id, d(20), 45, "Refund — hydro overcharge", "Utilities", "Electricity", { refundOf: hydroAug.id });
+      }
     }
     else if(d(10)) addCategorized("expense", checking.id, d(10), round2(rndBetween(95, 125)), "Hydro One — electricity", "Utilities", "Electricity");
     if(d(12)) addCategorized("expense", checking.id, d(12), 79.99, "Rogers — internet", "Utilities", "Internet");
@@ -265,16 +270,16 @@ window.Ledger.generateDemoData = function(){
     /* ---- Shopping ---- */
     if(m === 1){
       var amzJan = addCategorized("expense", cc.id, d(3), 49.99, "Amazon.ca", "Shopping", "Online");
-      if(d(10)) addCategorized("refund", cc.id, d(10), 49.99, "Refund — Amazon.ca", "Shopping", "Online", { refundOf: amzJan.id, notes: "Returned item" });
+      if(amzJan && d(10)) addCategorized("refund", cc.id, d(10), 49.99, "Refund — Amazon.ca", "Shopping", "Online", { refundOf: amzJan.id, notes: "Returned item" });
     }
     else if(m === 10){
       var amzOct = addCategorized("expense", cc.id, d(3), 27.99, "Amazon.ca", "Shopping", "Online");
-      if(d(8)) addCategorized("refund", cc.id, d(8), 27.99, "Refund — Amazon.ca", "Shopping", "Online", { refundOf: amzOct.id });
+      if(amzOct && d(8)) addCategorized("refund", cc.id, d(8), 27.99, "Refund — Amazon.ca", "Shopping", "Online", { refundOf: amzOct.id });
     }
     else { var sd = d(rndInt(6, 26)); if(sd) addCategorized("expense", cc.id, sd, round2(rndBetween(25, 90)), "Amazon.ca", "Shopping", "Online"); }
     if(m === 3){
       var nav = addCategorized("expense", cc.id, d(2), 89.5, "Old Navy", "Shopping", "Clothing");
-      if(d(9)) addCategorized("refund", cc.id, d(9), 89.5, "Refund — Old Navy", "Shopping", "Clothing", { refundOf: nav.id });
+      if(nav && d(9)) addCategorized("refund", cc.id, d(9), 89.5, "Refund — Old Navy", "Shopping", "Clothing", { refundOf: nav.id });
     }
     else if(relIdx % 3 === 1){
       var cd = d(rndInt(6, 26)); if(cd) addCategorized("expense", cc.id, cd, round2(rndBetween(100, 250)), pick(CLOTHING), "Shopping", "Clothing");

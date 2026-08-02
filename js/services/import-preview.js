@@ -426,12 +426,25 @@ window.Ledger.openImportPreviewModal = function(parsedRows, preselectedAccount, 
             var originalAmount = r.amount;
             var originalAccount = window.Ledger.findAccount(account);
             
+            function otherAccountFor(accountId, preferredType){
+              if(window.Ledger.DB.accounts.length <= 1) return "";
+              var candidates = window.Ledger.DB.accounts.filter(function(a){
+                return a.id !== accountId && !a.archived;
+              });
+              if(!candidates.length) return "";
+              if(preferredType){
+                var preferred = candidates.find(function(a){ return a.type === preferredType; });
+                if(preferred) return preferred.id;
+              }
+              return candidates[0].id;
+            }
+            
             if(originalAmount < 0){
               toId = account;
-              fromId = originalAccount && originalAccount.type === "credit_card" ? "" : (window.Ledger.DB.accounts.length > 1 ? window.Ledger.DB.accounts.find(function(a){ return a.id !== account && !a.archived; }).id : "");
+              fromId = originalAccount && originalAccount.type === "credit_card" ? "" : otherAccountFor(account, null);
             } else {
               toId = account;
-              fromId = originalAccount && originalAccount.type === "credit_card" ? (window.Ledger.DB.accounts.length > 1 ? window.Ledger.DB.accounts.find(function(a){ return a.id !== account && !a.archived && a.type === "account"; }).id : "") : (window.Ledger.DB.accounts.length > 1 ? window.Ledger.DB.accounts.find(function(a){ return a.id !== account && !a.archived; }).id : "");
+              fromId = originalAccount && originalAccount.type === "credit_card" ? otherAccountFor(account, "checking") : otherAccountFor(account, null);
             }
             
             if(fromId === toId){

@@ -35,7 +35,7 @@ window.Ledger.renderTxRow = function(t, opts){ /* v=4 */
     if(t.pending){ symbol = "&#8644;"; bubbleBg = "var(--clay-soft)"; bubbleColor = "var(--clay)"; }
   }
 
-  var dateDisp = new Date(t.date + "T00:00:00").toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"});
+  var dateDisp = window.Ledger.dateLabel(t.date, {month:"short", day:"numeric", year:"numeric"});
   var catLabel = "";
   if(t.categorySplits && t.categorySplits.length){
     catLabel = "split: " + t.categorySplits.map(function(s){ return window.Ledger.categoryName(s.categoryId); }).join(", ");
@@ -67,7 +67,7 @@ window.Ledger.renderTxRow = function(t, opts){ /* v=4 */
     if(t.type === "refund"){
       if(t.refundOf){
         var origTx = window.Ledger.DB.transactions.find(function(x){ return x.id === t.refundOf; });
-        var origDate = origTx ? new Date(origTx.date + "T00:00:00").toLocaleDateString(undefined, {month:"short", day:"numeric"}) : "";
+        var origDate = origTx ? window.Ledger.dateLabel(origTx.date, {month:"short", day:"numeric"}) : "";
         mainLabel = "Refund: " + window.Ledger.escapeHtml(origTx ? (origTx.desc || "transaction") : "original") + (origDate ? " (" + origDate + ")" : "");
         subLabel = accName + (catLabel ? " &middot; " + catLabel : "");
       } else {

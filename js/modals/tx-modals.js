@@ -201,7 +201,6 @@ window.Ledger.openTxModal = function(existing){
         }
         // Hide split buttons for refund (not applicable)
         var splitBtns = document.getElementById("openCategorySplitBtn");
-        var friendBtns = document.getElementById("openFriendSplitBtn");
         if(splitBtns) splitBtns.closest("div").style.display = (currentType === "refund" || currentType === "income") ? "none" : "flex";
         // Show/hide refund picker
         var refundPicker = document.getElementById("refundPickerField");
@@ -495,7 +494,7 @@ window.Ledger.openTxModal = function(existing){
       var date = document.getElementById("txDate").value;
       var notes = document.getElementById("txNotes").value.trim();
 
-      if(!amount || amount <= 0 || isNaN(amount)){ window.Ledger.showToast("Enter a valid amount"); return; }
+      if(!amount || amount <= 0 || isNaN(amount) || !isFinite(amount)){ window.Ledger.showToast("Enter a valid amount"); return; }
       if(!date){ window.Ledger.showToast("Pick a date"); return; }
 
       if(currentType === "transfer"){
@@ -642,7 +641,7 @@ window.Ledger.openTxModal = function(existing){
   });
 };
 
-window.Ledger.commitTransaction = function(rec, isEdit){
+window.Ledger.commitTransaction = function(rec){
   window.Ledger.upsertTransaction(rec);
 };
 

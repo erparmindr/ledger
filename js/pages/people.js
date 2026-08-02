@@ -16,7 +16,7 @@ window.Ledger.pages.renderPeoplePage = function(){
     var initials = (p.name || "").split(" ").map(function(w){return w[0];}).filter(Boolean).slice(0,2).join("").toUpperCase() || "?";
     var items = openDebtItemsForPerson(p.id);
     var itemsHtml = items.length ? items.map(function(d){
-      var dateDisp = new Date(d.date + "T00:00:00").toLocaleDateString(undefined, {month:"short", day:"numeric"});
+      var dateDisp = window.Ledger.dateLabel(d.date, {month:"short", day:"numeric"});
       return '<div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; font-size:12px;">'
         + '<span>' + escapeHtml(d.description) + ' <span class="faint">&middot; ' + dateDisp + '</span></span>'
         + '<span style="display:flex; align-items:center; gap:8px;">'
@@ -69,7 +69,7 @@ window.Ledger.pages.renderPeoplePage = function(){
       + '  <h2 style="font-size:16px; font-weight:800; margin:0 0 4px;">Pending splits</h2>'
       + '  <p class="faint" style="font-size:11.5px; margin:0 0 12px;">Shares from a split that don\'t have a person assigned yet.</p>'
       + pending.map(function(d){
-          var dateDisp = new Date(d.date + "T00:00:00").toLocaleDateString(undefined, {month:"short", day:"numeric"});
+        var dateDisp = window.Ledger.dateLabel(d.date, {month:"short", day:"numeric"});
           var peopleOpts = '<option value="">Assign to&hellip;</option>' + DB.people.map(function(p){ return '<option value="'+p.id+'">'+escapeHtml(p.name)+'</option>'; }).join("");
           return '<div style="display:flex; justify-content:space-between; align-items:center; padding:9px 0;">'
             + '<span style="font-size:12.5px;">' + escapeHtml(d.description) + ' <span class="faint">&middot; ' + dateDisp + ' &middot; ' + fmtMoney(d.amount, d.currency) + '</span></span>'

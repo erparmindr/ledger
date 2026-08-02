@@ -50,9 +50,15 @@ window.Ledger.wireTransactionsPage = function(){
   if(dupesBtn) dupesBtn.addEventListener("click", function(){ window.Ledger.openDuplicatesModal(); });
   Array.prototype.forEach.call(document.querySelectorAll("[data-toggle-year]"), function(el){
     el.addEventListener("click", function(){ window.Ledger.toggleRegYear(el.getAttribute("data-toggle-year")); });
+    el.addEventListener("keydown", function(e){
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); window.Ledger.toggleRegYear(el.getAttribute("data-toggle-year")); }
+    });
   });
   Array.prototype.forEach.call(document.querySelectorAll("[data-toggle-month]"), function(el){
     el.addEventListener("click", function(){ window.Ledger.toggleRegMonth(el.getAttribute("data-toggle-month")); });
+    el.addEventListener("keydown", function(e){
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); window.Ledger.toggleRegMonth(el.getAttribute("data-toggle-month")); }
+    });
   });
   var loadEarlier = document.querySelector("[data-load-earlier]");
   if(loadEarlier) loadEarlier.addEventListener("click", window.Ledger.loadRegEarlierMonths);

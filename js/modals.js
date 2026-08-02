@@ -44,6 +44,12 @@ window.Ledger.openModal = function (html, onMount, className) {
   backdrop.style.zIndex = 100 + idx;
   backdrop.innerHTML = '<div class="' + modalClass + '" role="dialog" aria-modal="true">' + html + '</div>';
   root.appendChild(backdrop);
+  var modalDiv = backdrop.querySelector(".modal");
+  var titleEl = backdrop.querySelector(".modal-head h3");
+  if(titleEl && !titleEl.id){ titleEl.id = "modalTitle-" + idx; }
+  if(titleEl && modalDiv && !modalDiv.getAttribute("aria-labelledby")){
+    modalDiv.setAttribute("aria-labelledby", titleEl.id);
+  }
   document.querySelectorAll(".cd-wrap.open").forEach(function(w){ var l=w._cdList||w.querySelector(".cd-list"); if(l&&l.parentNode!==w)w.appendChild(l); l.style.cssText=""; w.classList.remove("open"); });
   window.Ledger._focusStack.push(document.activeElement);
   window.Ledger.modalStack.push(backdrop);
@@ -59,6 +65,9 @@ window.Ledger.openModal = function (html, onMount, className) {
   if (window.Ledger.initCustomDropdowns) window.Ledger.initCustomDropdowns();
   if (window.Ledger.initDatePickers) window.Ledger.initDatePickers();
   if (window.Ledger.refreshIcons) window.Ledger.refreshIcons();
+  if (window.Ledger.associateLabels) window.Ledger.associateLabels(backdrop);
+  var firstInput = backdrop.querySelector('input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])');
+  if(firstInput){ firstInput.focus(); return; }
   var firstFocusable = backdrop.querySelector(FOCUSABLE);
   if(firstFocusable) firstFocusable.focus();
 };
@@ -118,7 +127,9 @@ window.Ledger.openConfirmModal = function (title, message, onConfirm) {
   window.Ledger.openModal(html, function (bd) {
     bd.querySelector(".close-btn").addEventListener("click", window.Ledger.closeModal);
     bd.querySelector(".cancel-btn").addEventListener("click", window.Ledger.closeModal);
-    bd.querySelector(".confirm-btn").addEventListener("click", function () { onConfirm(); window.Ledger.closeModal(); });
+    bd.querySelector(".confirm-btn").addEventListener("click", function () {
+      try { onConfirm(); } finally { window.Ledger.closeModal(); }
+    });
   });
 };
 

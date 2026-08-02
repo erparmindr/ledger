@@ -16,7 +16,7 @@ window.Ledger.pages.renderRecurringPage = function(){
     var acc = window.Ledger.findAccount(r.account);
     var due = window.Ledger.nextDueDate(r, today);
     var diffDays = Math.round((new Date(due+"T00:00:00") - new Date(today+"T00:00:00")) / 86400000);
-    var dueDisp = new Date(due+"T00:00:00").toLocaleDateString(undefined, {month:"short", day:"numeric"});
+    var dueDisp = window.Ledger.dateLabel(due, {month:"short", day:"numeric"});
     var label;
     if(diffDays === 0) label = "Due today";
     else if(diffDays > 0) label = "Due in " + diffDays + " day" + (diffDays===1?"":"s") + " (" + dueDisp + ")";

@@ -23,7 +23,7 @@ window.Ledger.openCategorySplitModal = function(totalAmount, existingSplits, txT
       return '<div class="form-row" data-split-row="'+i+'" style="align-items:flex-end;">'
         + '  <div class="field"><label>Category</label><select class="splitCatSel" data-idx="'+i+'">'+thisOpts+'</select></div>'
         + '  <div class="field" style="max-width:130px;"><label>Amount</label><input type="number" class="splitAmtInput" data-idx="'+i+'" step="0.01" min="0" value="'+r.amount+'"></div>'
-        + '  <button type="button" class="icon-btn danger splitRemoveBtn" data-idx="'+i+'" title="Remove row" style="margin-bottom:9px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
+        + '  <button type="button" class="icon-btn danger splitRemoveBtn" data-idx="'+i+'" title="Remove row" aria-label="Remove row" style="margin-bottom:9px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
         + '</div>';
     }).join("");
 
@@ -56,7 +56,8 @@ window.Ledger.openCategorySplitModal = function(totalAmount, existingSplits, txT
       });
       Array.prototype.forEach.call(document.querySelectorAll(".splitAmtInput"), function(inp){
         inp.addEventListener("input", function(){
-          rowsState[parseInt(inp.getAttribute("data-idx"),10)].amount = parseFloat(inp.value)||0;
+          var v = parseFloat(inp.value);
+          rowsState[parseInt(inp.getAttribute("data-idx"),10)].amount = isFinite(v) ? v : 0;
           updateRemaining();
         });
       });
@@ -122,7 +123,7 @@ window.Ledger.openFriendSplitModal = function(totalAmount, existing, onDone){
       return '<div class="form-row" data-friend-row="'+i+'" style="align-items:flex-end;">'
         + '  <div class="field"><label>Friend</label><select class="friendPersonSel" data-idx="'+i+'">'+friendOptions(s.personId)+'</select></div>'
         + '  <div class="field" style="max-width:140px;"><label>Their share</label><input type="number" class="friendAmtInput" data-idx="'+i+'" step="0.01" min="0" value="'+s.amount+'"></div>'
-        + '  <button type="button" class="icon-btn danger friendRemoveBtn" data-idx="'+i+'" title="Remove" style="margin-bottom:9px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
+        + '  <button type="button" class="icon-btn danger friendRemoveBtn" data-idx="'+i+'" title="Remove" aria-label="Remove row" style="margin-bottom:9px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>'
         + '</div>';
     }).join("");
   }
@@ -190,7 +191,8 @@ window.Ledger.openFriendSplitModal = function(totalAmount, existing, onDone){
       });
       Array.prototype.forEach.call(document.querySelectorAll(".friendAmtInput"), function(inp){
         inp.addEventListener("input", function(){
-          shares[parseInt(inp.getAttribute("data-idx"),10)].amount = parseFloat(inp.value)||0;
+          var v = parseFloat(inp.value);
+          shares[parseInt(inp.getAttribute("data-idx"),10)].amount = isFinite(v) ? v : 0;
           updateTotals();
         });
       });

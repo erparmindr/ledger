@@ -1774,6 +1774,10 @@ overflow-y:auto;
   color:var(--brass);
   font-weight:700;
 }
+.cd-item.cd-active{
+  background:var(--surface-2);
+  box-shadow:inset 0 0 0 1px var(--brass);
+}
 .cd-item.cd-disabled{
   opacity:0.4;
   cursor:not-allowed;

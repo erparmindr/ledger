@@ -2,13 +2,7 @@
 window.Ledger = window.Ledger || {};
 
 window.Ledger.wireScheduledPage = function(){
-  function schedCatOptions(type){
-    var relevant = window.Ledger.DB.categories.filter(function(c){ return c.type === type; });
-    if(!relevant.length) return '<option value="">No category</option>';
-    return '<option value="">No category</option>' + relevant.map(function(c){
-      return '<option value="'+c.id+'">'+window.Ledger.escapeHtml(c.name)+'</option>';
-    }).join("");
-  }
+  function schedCatOptions(type){ return window.Ledger._recurringCatOptions(type); }
   function refreshSchedSubcat(){
     var catId = document.getElementById("rCategory").value;
     var field = document.getElementById("rSubcatField");
@@ -49,7 +43,7 @@ window.Ledger.wireScheduledPage = function(){
     var subcategory = document.getElementById("rSubcategory").value;
     var postModeEl = document.querySelector('input[name="rPostMode"]:checked');
     var postMode = postModeEl ? postModeEl.value : "auto";
-    if(!name || isNaN(amount) || amount<=0 || !startDate || !account){ window.Ledger.showToast("Fill in all fields"); return; }
+    if(!name || isNaN(amount) || !isFinite(amount) || amount<=0 || !startDate || !account){ window.Ledger.showToast("Fill in all fields"); return; }
     window.Ledger.addRecurring({ id:window.Ledger.uid(), name:name, amount:amount, frequency:frequency, startDate:startDate, type:type, account:account, category:category, subcategory:subcategory, postMode:postMode });
   });
   Array.prototype.forEach.call(document.querySelectorAll("[data-confirm-recurring]"), function(b){

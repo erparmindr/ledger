@@ -1,7 +1,7 @@
 // Ledger service worker — caches the app shell for offline use and installability.
 // Bump CACHE_NAME whenever files change so returning users get the update
 // instead of a stale cached copy.
-const CACHE_NAME = "ledger-cache-v115";
+const CACHE_NAME = "ledger-cache-v116";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -37,6 +37,8 @@ const APP_SHELL = [
   "./js/services/csv-import.js",
   "./js/services/import-preview.js",
   "./js/services/recurring.js",
+  "./js/services/demo-data.js",
+  "./js/services/demo-status.js",
   "./js/wire/overview.js",
   "./js/wire/transactions.js",
   "./js/wire/accounts.js",
@@ -96,11 +98,18 @@ self.addEventListener("fetch", function(event){
       })
     );
   } else {
-    // Cache first for other assets (icons, fonts, etc.)
+    // Cache first for other assets (icons, fonts, remote libs), storing
+    // successful responses so they work on later offline visits.
     event.respondWith(
       caches.match(event.request, { ignoreSearch: true }).then(function(cached){
         if(cached) return cached;
-        return fetch(event.request).catch(function(){
+        return fetch(event.request).then(function(response){
+          if(response && response.ok){
+            var clone = response.clone();
+            caches.open(CACHE_NAME).then(function(cache){ cache.put(event.request, clone); });
+          }
+          return response;
+        }).catch(function(){
           if(event.request.mode === "navigate"){
             return caches.match("./index.html", { ignoreSearch: true });
           }

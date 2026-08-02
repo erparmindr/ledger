@@ -1,11 +1,14 @@
 (function(){
 window.Ledger = window.Ledger || {};
 
+var _cdIdCounter = 0;
+
 function cdClose(wrap){
   var list = wrap._cdList || wrap.querySelector(".cd-list");
   if(list && list.parentNode !== wrap) wrap.appendChild(list);
   list.style.cssText = "";
   wrap.classList.remove("open");
+  wrap.setAttribute("aria-expanded", "false");
 }
 
 function cdOpen(wrap, list){
@@ -22,6 +25,7 @@ function cdOpen(wrap, list){
     list.style.maxHeight = Math.max(80, spaceAbove - 4) + "px";
   }
   wrap.classList.add("open");
+  wrap.setAttribute("aria-expanded", "true");
 }
 
 /* ============================================================
@@ -30,6 +34,64 @@ function cdOpen(wrap, list){
    from modal overflow, border-radius, or filter stacking contexts.
    ============================================================ */
 window.Ledger._cdGlobalListener = false;
+
+function cdCreateItem(sel, list, wrap, opt, idx){
+  var item = document.createElement("div");
+  item.className = "cd-item" + (opt.value === sel.value ? " selected" : "");
+  item.setAttribute("data-val", opt.value);
+  item.setAttribute("role", "option");
+  item.setAttribute("aria-selected", opt.value === sel.value ? "true" : "false");
+  item.setAttribute("aria-disabled", opt.disabled ? "true" : "false");
+  if(opt.disabled) item.className += " cd-disabled";
+  item.textContent = opt.textContent;
+  list.appendChild(item);
+
+  item.addEventListener("click", function(e){
+    e.stopPropagation();
+    if(item.classList.contains("cd-disabled")) return;
+    sel.value = item.getAttribute("data-val");
+    triggerSync(list, wrap, item);
+    if(!item.hasAttribute("data-no-close")) cdClose(wrap);
+    sel.dispatchEvent(new Event("change", {bubbles:true}));
+  });
+}
+
+function triggerSync(list, wrap, item){
+  var trigger = wrap.querySelector(".cd-trigger");
+  if(!trigger) return;
+  trigger.textContent = item.textContent;
+  Array.prototype.forEach.call(list.querySelectorAll(".cd-item"), function(x){
+    var isSel = x === item;
+    x.classList.toggle("selected", isSel);
+    x.setAttribute("aria-selected", isSel ? "true" : "false");
+  });
+}
+
+function cdEnabledItems(list){
+  return Array.prototype.filter.call(list.querySelectorAll(".cd-item"), function(x){
+    return !x.classList.contains("cd-disabled");
+  });
+}
+
+function cdSetActive(wrap, list, item){
+  var items = list.querySelectorAll(".cd-item");
+  Array.prototype.forEach.call(items, function(x){ x.classList.remove("cd-active"); });
+  if(item){
+    item.classList.add("cd-active");
+    wrap.setAttribute("aria-activedescendant", item.id);
+    item.scrollIntoView({block:"nearest"});
+  } else {
+    wrap.removeAttribute("aria-activedescendant");
+  }
+}
+
+function cdActiveItem(list){
+  var active = list.querySelector(".cd-item.cd-active");
+  if(active) return active;
+  var sel = list.querySelector(".cd-item.selected");
+  return sel || list.querySelector(".cd-item:not(.cd-disabled)");
+}
+
 window.Ledger.initCustomDropdowns = function(){
   var selects = document.querySelectorAll("select:not(.cd-initialized):not([data-no-cd])");
   Array.prototype.forEach.call(selects, function(sel){
@@ -41,40 +103,34 @@ window.Ledger.initCustomDropdowns = function(){
     if(sel.classList.contains("is-filtered")) wrap.classList.add("is-filtered");
     if(sel.disabled) wrap.classList.add("cd-wrap-disabled");
     wrap.setAttribute("tabindex", sel.disabled ? "-1" : "0");
+    wrap.setAttribute("role", "combobox");
+    wrap.setAttribute("aria-haspopup", "listbox");
+    wrap.setAttribute("aria-expanded", "false");
+
+    var fieldLabel = sel.closest ? sel.closest(".field, .form-row, .modal-row") : null;
+    var labelEl = fieldLabel ? fieldLabel.querySelector("label") : null;
+    var name = labelEl ? (labelEl.textContent || "").replace(/\s+/g, " ").trim() : "";
+    if(name) wrap.setAttribute("aria-label", name);
 
     var trigger = document.createElement("div");
     trigger.className = "cd-trigger";
 
     var list = document.createElement("div");
     list.className = "cd-list";
+    list.setAttribute("role", "listbox");
+    _cdIdCounter++;
+    list.id = "cd-list-" + _cdIdCounter;
     wrap._cdList = list;
-
-    var options = sel.querySelectorAll("option");
-    var currentVal = sel.value;
+    wrap.setAttribute("aria-controls", list.id);
 
     function buildItems(){
       list.innerHTML = "";
       var opts = sel.querySelectorAll("option");
       var val = sel.value;
-      Array.prototype.forEach.call(opts, function(opt){
-        var item = document.createElement("div");
-        item.className = "cd-item" + (opt.value === val ? " selected" : "");
-        item.setAttribute("data-val", opt.value);
-        if(opt.disabled) item.className += " cd-disabled";
-        item.textContent = opt.textContent;
+      Array.prototype.forEach.call(opts, function(opt, i){
+        var item = cdCreateItem(sel, list, wrap, opt, i);
+        if(!item.id) item.id = list.id + "-opt-" + i;
         if(opt.value === val) trigger.textContent = opt.textContent;
-        list.appendChild(item);
-
-        item.addEventListener("click", function(e){
-          e.stopPropagation();
-          if(item.classList.contains("cd-disabled")) return;
-          sel.value = item.getAttribute("data-val");
-          trigger.textContent = item.textContent;
-          Array.prototype.forEach.call(list.querySelectorAll(".cd-item"), function(x){ x.classList.remove("selected"); });
-          item.classList.add("selected");
-          if(!item.hasAttribute("data-no-close")) cdClose(wrap);
-          sel.dispatchEvent(new Event("change", {bubbles:true}));
-        });
       });
     }
     buildItems();
@@ -88,17 +144,53 @@ window.Ledger.initCustomDropdowns = function(){
       e.stopPropagation();
       var wasOpen = wrap.classList.contains("open");
       document.querySelectorAll(".cd-wrap.open").forEach(function(w){ cdClose(w); });
-      if(!wasOpen) cdOpen(wrap, list);
+      if(!wasOpen){
+        cdOpen(wrap, list);
+        cdSetActive(wrap, list, cdActiveItem(list));
+      }
     });
 
     wrap.addEventListener("keydown", function(e){
+      if(sel.disabled) return;
+      var open = wrap.classList.contains("open");
       if(e.key === "Enter" || e.key === " "){
-        if(sel.disabled) return;
         e.preventDefault();
-        wrap.click();
+        if(!open){
+          document.querySelectorAll(".cd-wrap.open").forEach(function(w){ cdClose(w); });
+          cdOpen(wrap, list);
+          cdSetActive(wrap, list, cdActiveItem(list));
+          return;
+        }
+        var active = cdActiveItem(list);
+        if(active && !active.classList.contains("cd-disabled")){
+          sel.value = active.getAttribute("data-val");
+          triggerSync(list, wrap, active);
+          if(!active.hasAttribute("data-no-close")) cdClose(wrap);
+          sel.dispatchEvent(new Event("change", {bubbles:true}));
+        }
+        return;
       }
       if(e.key === "Escape"){
         cdClose(wrap);
+        return;
+      }
+      if(e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Home" || e.key === "End"){
+        e.preventDefault();
+        if(!open){
+          document.querySelectorAll(".cd-wrap.open").forEach(function(w){ cdClose(w); });
+          cdOpen(wrap, list);
+        }
+        var items = cdEnabledItems(list);
+        if(!items.length) return;
+        var current = list.querySelector(".cd-item.cd-active");
+        var curIdx = items.indexOf(current);
+        var nextIdx;
+        if(e.key === "Home") nextIdx = 0;
+        else if(e.key === "End") nextIdx = items.length - 1;
+        else if(e.key === "ArrowDown") nextIdx = curIdx < 0 ? 0 : Math.min(items.length - 1, curIdx + 1);
+        else nextIdx = curIdx <= 0 ? items.length - 1 : curIdx - 1;
+        cdSetActive(wrap, list, items[nextIdx]);
+        return;
       }
     });
   });
@@ -126,27 +218,11 @@ window.Ledger.refreshCustomDropdown = function(sel){
   wrap.setAttribute("tabindex", sel.disabled ? "-1" : "0");
   list.innerHTML = "";
   var options = sel.querySelectorAll("option");
-  var currentVal = sel.value;
 
-  Array.prototype.forEach.call(options, function(opt){
-    var item = document.createElement("div");
-    item.className = "cd-item" + (opt.value === currentVal ? " selected" : "");
-    item.setAttribute("data-val", opt.value);
-    if(opt.disabled) item.className += " cd-disabled";
-    item.textContent = opt.textContent;
-    if(opt.value === currentVal) trigger.textContent = opt.textContent;
-    list.appendChild(item);
-
-    item.addEventListener("click", function(e){
-      e.stopPropagation();
-      if(item.classList.contains("cd-disabled")) return;
-      sel.value = item.getAttribute("data-val");
-      trigger.textContent = item.textContent;
-      Array.prototype.forEach.call(list.querySelectorAll(".cd-item"), function(x){ x.classList.remove("selected"); });
-      item.classList.add("selected");
-      if(!item.hasAttribute("data-no-close")) cdClose(wrap);
-      sel.dispatchEvent(new Event("change", {bubbles:true}));
-    });
+  Array.prototype.forEach.call(options, function(opt, i){
+    var item = cdCreateItem(sel, list, wrap, opt, i);
+    if(!item.id) item.id = list.id + "-opt-" + i;
+    if(opt.value === sel.value) trigger.textContent = opt.textContent;
   });
 };
 

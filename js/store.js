@@ -58,13 +58,13 @@ window.Ledger.normalizeData = function(parsed) {
   var d = window.Ledger.defaultData();
   if(!parsed) return d;
 
-  var categories = parsed.categories || d.categories;
+  var categories = Array.isArray(parsed.categories) ? parsed.categories : d.categories;
   categories = categories.map(function(c){
     if(!c.type) c.type = "expense";
     return c;
   });
 
-  var recurring = parsed.recurring || [];
+  var recurring = Array.isArray(parsed.recurring) ? parsed.recurring : [];
   recurring = recurring.map(function(r){
     if(!r.frequency){
       r.frequency = "monthly";
@@ -80,7 +80,7 @@ window.Ledger.normalizeData = function(parsed) {
     return r;
   });
 
-  var accounts = (parsed.accounts || d.accounts).map(function(ac){
+  var accounts = (Array.isArray(parsed.accounts) ? parsed.accounts : d.accounts).map(function(ac){
     if(typeof ac.reconciledBalance === "undefined") ac.reconciledBalance = null;
     if(typeof ac.reconciledAt === "undefined") ac.reconciledAt = null;
     if(typeof ac.owner === "undefined") ac.owner = "";
@@ -89,14 +89,14 @@ window.Ledger.normalizeData = function(parsed) {
 
   return {
     accounts: accounts,
-    people: parsed.people || [],
-    transactions: parsed.transactions || [],
+    people: Array.isArray(parsed.people) ? parsed.people : [],
+    transactions: Array.isArray(parsed.transactions) ? parsed.transactions : [],
     categories: categories,
     recurring: recurring,
-    debtItems: parsed.debtItems || [],
-    categoryLearning: parsed.categoryLearning || {},
-    subcategoryLearning: parsed.subcategoryLearning || {},
-    groups: parsed.groups || []
+    debtItems: Array.isArray(parsed.debtItems) ? parsed.debtItems : [],
+    categoryLearning: (parsed.categoryLearning && typeof parsed.categoryLearning === "object") ? parsed.categoryLearning : {},
+    subcategoryLearning: (parsed.subcategoryLearning && typeof parsed.subcategoryLearning === "object") ? parsed.subcategoryLearning : {},
+    groups: Array.isArray(parsed.groups) ? parsed.groups : []
   };
 };
 

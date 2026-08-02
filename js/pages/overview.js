@@ -365,7 +365,7 @@ window.Ledger.pages.renderOverviewPage = function(){
       var r = x.r;
       var acc = window.Ledger.findAccount(r.account);
       var diffDays = Math.round((new Date(x.due+"T00:00:00") - new Date(today+"T00:00:00")) / 86400000);
-      var dueDisp = new Date(x.due+"T00:00:00").toLocaleDateString(undefined, {month:"short", day:"numeric"});
+      var dueDisp = window.Ledger.dateLabel(x.due, {month:"short", day:"numeric"});
       var whenLabel = diffDays === 0 ? "Today" : diffDays < 0 ? "Overdue" : ("in "+diffDays+"d");
       return '<div class="bill-row">'
         + '<div><div class="nm">'+window.Ledger.escapeHtml(r.name)+'</div><div class="due '+(diffDays<=3?'soon':'')+'">'+dueDisp+' &middot; '+whenLabel+' &middot; '+window.Ledger.frequencyLabel(r.frequency)+'</div></div>'

@@ -65,18 +65,25 @@ window.Ledger.navigateTo = function(page){
    ============================================================ */
 window.Ledger.renderPage = function(){
   var c = document.getElementById("pageContent");
-  if(window.Ledger.currentPage === "overview") c.innerHTML = window.Ledger.pages.renderOverviewPage();
-  else if(window.Ledger.currentPage === "transactions") c.innerHTML = window.Ledger.pages.renderTransactionsPage();
-  else if(window.Ledger.currentPage === "accounts") c.innerHTML = window.Ledger.pages.renderAccountsPage();
-  else if(window.Ledger.currentPage === "reports") c.innerHTML = window.Ledger.pages.renderReportsPage();
-  else if(window.Ledger.currentPage === "categories") c.innerHTML = window.Ledger.pages.renderCategoriesPage();
-  else if(window.Ledger.currentPage === "payees") c.innerHTML = window.Ledger.pages.renderPeoplePage();
-  else if(window.Ledger.currentPage === "scheduled") c.innerHTML = window.Ledger.pages.renderRecurringPage();
-  else if(window.Ledger.currentPage === "settings") c.innerHTML = window.Ledger.pages.renderSettingsPage();
-  window.Ledger.wirePageEvents();
-  window.Ledger.refreshIcons();
-  window.Ledger.initCustomDropdowns();
-  if(window.Ledger.initDatePickers) window.Ledger.initDatePickers();
+  try{
+    if(window.Ledger.currentPage === "overview") c.innerHTML = window.Ledger.pages.renderOverviewPage();
+    else if(window.Ledger.currentPage === "transactions") c.innerHTML = window.Ledger.pages.renderTransactionsPage();
+    else if(window.Ledger.currentPage === "accounts") c.innerHTML = window.Ledger.pages.renderAccountsPage();
+    else if(window.Ledger.currentPage === "reports") c.innerHTML = window.Ledger.pages.renderReportsPage();
+    else if(window.Ledger.currentPage === "categories") c.innerHTML = window.Ledger.pages.renderCategoriesPage();
+    else if(window.Ledger.currentPage === "payees") c.innerHTML = window.Ledger.pages.renderPeoplePage();
+    else if(window.Ledger.currentPage === "scheduled") c.innerHTML = window.Ledger.pages.renderRecurringPage();
+    else if(window.Ledger.currentPage === "settings") c.innerHTML = window.Ledger.pages.renderSettingsPage();
+    window.Ledger.wirePageEvents();
+    window.Ledger.refreshIcons();
+    window.Ledger.initCustomDropdowns();
+    if(window.Ledger.initDatePickers) window.Ledger.initDatePickers();
+    if(window.Ledger.associateLabels) window.Ledger.associateLabels(c);
+  }catch(err){
+    console.error("Render failed:", err);
+    c.innerHTML = '<div class="card card-pad"><h2>Something went wrong</h2><p class="muted" style="font-size:13px;">The page could not be rendered. Try reloading, or restore a recent backup from Settings.</p></div>';
+    return;
+  }
 
   /* ---- Custom date range picker popover ---- */
   if(window.Ledger.currentPage === "transactions" || window.Ledger.currentPage === "reports"){
@@ -161,14 +168,19 @@ window.Ledger.wireTxRowActions = function(){
       var menu = document.getElementById("kebab-" + id);
       if(!menu) return;
       var wasOpen = menu.classList.contains("open");
-      document.querySelectorAll(".kebab-menu.open").forEach(function(m){ m.classList.remove("open"); });
-      if(!wasOpen) menu.classList.add("open");
+      document.querySelectorAll(".kebab-menu.open").forEach(function(m){
+        m.classList.remove("open");
+        var owner = document.querySelector('[data-kebab="' + (m.id ? m.id.replace(/^kebab-/,"") : "") + '"]');
+        if(owner) owner.setAttribute("aria-expanded", "false");
+      });
+      if(!wasOpen){ menu.classList.add("open"); btn.setAttribute("aria-expanded", "true"); }
     });
   });
 
   if(!window.Ledger._kebabGlobalListenerAdded){
     document.addEventListener("click", function(){
       document.querySelectorAll(".kebab-menu.open").forEach(function(m){ m.classList.remove("open"); });
+      document.querySelectorAll("[data-kebab]").forEach(function(b){ b.setAttribute("aria-expanded", "false"); });
     });
     window.Ledger._kebabGlobalListenerAdded = true;
   }
@@ -211,6 +223,8 @@ window.Ledger.applyTheme = function(t){
   window.Ledger.currentTheme = t;
   localStorage.setItem("ledger_theme", t);
   document.body.setAttribute("data-theme", t);
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute("content", t === "light" ? "#F5F3EF" : "#0E1116");
   Array.prototype.forEach.call(document.querySelectorAll("[data-theme-btn]"), function(b){
     b.classList.toggle("active", b.getAttribute("data-theme-btn") === t);
   });
@@ -240,15 +254,22 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
   function afterStorageReady(data){
-    if(data){
-      window.Ledger.DB = window.Ledger.normalizeData(data);
+    try{
+      if(data){
+        window.Ledger.DB = window.Ledger.normalizeData(data);
+      }
+      window.Ledger.autoPostRecurring();
+      window.Ledger.renderPage();
+    }catch(err){
+      console.error("Boot failed:", err);
     }
-    window.Ledger.autoPostRecurring();
-    window.Ledger.renderPage();
   }
   if(window.Ledger.Storage){
     window.Ledger.Storage.init().then(function(data){
       afterStorageReady(data);
+    }).catch(function(err){
+      console.error("Storage init failed:", err);
+      afterStorageReady(null);
     });
   } else {
     afterStorageReady();

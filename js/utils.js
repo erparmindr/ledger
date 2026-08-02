@@ -43,6 +43,38 @@ window.Ledger.todayISO = function todayISO(){
 };
 window.Ledger.monthKeyOf = function monthKeyOf(dateStr){ return dateStr.slice(0,7); };
 
+window.Ledger.safeDate = function safeDate(dateStr){
+  if(typeof dateStr !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  var d = new Date(dateStr + "T00:00:00");
+  if(isNaN(d.getTime())) return null;
+  return d;
+};
+window.Ledger.dateLabel = function dateLabel(dateStr, opts){
+  var d = window.Ledger.safeDate(dateStr);
+  if(!d) return "\u2014";
+  return d.toLocaleDateString(undefined, opts || {month:"short", day:"numeric"});
+};
+
+/* Associate un-for'd <label> elements with the first control in their
+   .field container so every form control has a programmatic name. */
+window.Ledger.associateLabels = function associateLabels(root){
+  root = root || document;
+  var n = 0;
+  Array.prototype.forEach.call(root.querySelectorAll(".field, .form-row > div, .modal-row, .drow"), function(field){
+    var label = field.querySelector("label");
+    if(!label || label.getAttribute("for")) return;
+    var ctrl = field.querySelector(".cd-wrap[role='combobox']");
+    if(!ctrl) ctrl = field.querySelector("input:not([type='hidden']), select, textarea");
+    if(!ctrl) return;
+    var id = ctrl.id || ctrl.getAttribute("id");
+    if(!id){
+      id = "auto-fld-" + (++n) + "-" + Math.random().toString(36).slice(2, 7);
+      ctrl.setAttribute("id", id);
+    }
+    label.setAttribute("for", id);
+  });
+};
+
 /* Entity lookup */
 window.Ledger.findAccount = function findAccount(id){ return Ledger.DB.accounts.find(function(a){ return a.id === id; }); };
 window.Ledger.findPerson = function findPerson(id){ return Ledger.DB.people.find(function(p){ return p.id === id; }); };

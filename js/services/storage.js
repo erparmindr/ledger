@@ -76,8 +76,11 @@ window.Ledger = window.Ledger || {};
   }
 
   function lsWrite(data){
-    try{ localStorage.setItem(window.Ledger.STORAGE_KEY, JSON.stringify(data)); }
-    catch(e){ console.warn("localStorage write failed:", e); }
+    try{ localStorage.setItem(window.Ledger.STORAGE_KEY, JSON.stringify(data)); return true; }
+    catch(e){
+      console.warn("localStorage write failed:", e);
+      return false;
+    }
   }
 
   /* -----------------------------------------------------------
@@ -154,10 +157,17 @@ window.Ledger = window.Ledger || {};
      */
     persist: function(){
       var data = window.Ledger.DB;
-      lsWrite(data);
-      if(this.ready){
-        return this.adapter.save(data);
+      var lsOk = lsWrite(data);
+      if(!lsOk){
+        window.Ledger.showToast("Could not save — browser storage is full or blocked");
       }
+      if(this.ready){
+        return this.adapter.save(data).catch(function(err){
+          console.error("IDB write failed:", err);
+          window.Ledger.showToast("Could not save to storage");
+        });
+      }
+      return Promise.resolve();
     }
   };
 

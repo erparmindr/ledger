@@ -5,6 +5,8 @@ window.Ledger = window.Ledger || {};
    CSV IMPORT MODAL
    ============================================================ */
 window.Ledger.parseCsv = function(text){
+  if(typeof text !== "string") return [];
+  if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1); // strip UTF-8 BOM
   var rows = [];
   var cur = "", row = [], inQuotes = false;
   for(var i=0;i<text.length;i++){
@@ -26,10 +28,10 @@ window.Ledger.parseCsv = function(text){
 
 window.Ledger.csvDetermineType = function(rawAmt, invertChecked, rawDr, rawCr){
   if(rawDr !== undefined && rawDr !== null){
-    var drAmt = rawDr ? parseFloat(rawDr.replace(/[^0-9.]/g,"")) : 0;
-    var crAmt = rawCr ? parseFloat(rawCr.replace(/[^0-9.]/g,"")) : 0;
-    if(isNaN(drAmt)) drAmt = 0;
-    if(isNaN(crAmt)) crAmt = 0;
+    var drAmt = rawDr ? parseFloat(String(rawDr).replace(/[^0-9.]/g,"")) : 0;
+    var crAmt = rawCr ? parseFloat(String(rawCr).replace(/[^0-9.]/g,"")) : 0;
+    if(isNaN(drAmt) || !isFinite(drAmt)) drAmt = 0;
+    if(isNaN(crAmt) || !isFinite(crAmt)) crAmt = 0;
     if(drAmt > 0 && crAmt === 0) return { type:"expense", amount:drAmt };
     if(crAmt > 0 && drAmt === 0) return { type:"income", amount:crAmt };
     if(drAmt > 0 && crAmt > 0) return { type: drAmt >= crAmt ? "expense" : "income", amount: Math.max(drAmt, crAmt) };
@@ -38,9 +40,11 @@ window.Ledger.csvDetermineType = function(rawAmt, invertChecked, rawDr, rawCr){
   if(rawAmt == null) return null;
   rawAmt = String(rawAmt).trim();
   var isParenNeg = /^\(.*\)$/.test(rawAmt);
-  var cleaned = rawAmt.replace(/[^0-9.\-]/g,"");
+  // European format like 1.234,56 → thousands-separated by '.', decimal comma.
+  var euroLike = /^\d{1,3}(\.\d{3})+(,\d+)?$/.test(rawAmt.replace(/[()\s]/g,""));
+  var cleaned = euroLike ? rawAmt.replace(/[^0-9,]/g,"").replace(/\./g,"").replace(",", ".") : rawAmt.replace(/[^0-9.\-]/g,"");
   var amt = parseFloat(cleaned);
-  if(isNaN(amt)) return null;
+  if(isNaN(amt) || !isFinite(amt)) return null;
   if(isParenNeg) amt = -amt;
   if(invertChecked) amt = -amt;
   return { type: amt < 0 ? "expense" : "income", amount: Math.abs(amt) };
@@ -48,6 +52,8 @@ window.Ledger.csvDetermineType = function(rawAmt, invertChecked, rawDr, rawCr){
 
 window.Ledger.openCsvImportModal = function(file){
   var reader = new FileReader();
+  reader.onerror = function(){ window.Ledger.showToast("Couldn't read that file — it may be unreadable or corrupted"); };
+  reader.onabort = function(){ window.Ledger.showToast("File read was cancelled"); };
   reader.onload = function(e){
     var rows = window.Ledger.parseCsv(e.target.result);
     if(rows.length < 1){ window.Ledger.showToast("Couldn't find any rows in that file"); return; }
@@ -126,7 +132,7 @@ window.Ledger.openCsvImportModal = function(file){
     }
 
     var previewHtml = '<table style="width:100%; font-size:11px; border-collapse:collapse;"><tr>'
-      + headers.map(function(h){ return '<th style="text-align:left; padding:4px 8px; border-bottom:1px solid var(--border); color:var(--text-dim); white-space:nowrap;">'+window.Ledger.escapeHtml(h)+'</th>'; }).join("")
+      + headers.map(function(h){ return '<th scope="col" style="text-align:left; padding:4px 8px; border-bottom:1px solid var(--border); color:var(--text-dim); white-space:nowrap;">'+window.Ledger.escapeHtml(h)+'</th>'; }).join("")
       + '</tr>' + dataRows.map(function(r){
         return '<tr>' + r.map(function(c){ return '<td style="padding:4px 8px; border-bottom:1px solid var(--border-soft); white-space:nowrap;">'+window.Ledger.escapeHtml(c)+'</td>'; }).join("") + '</tr>';
       }).join("") + '</table>';

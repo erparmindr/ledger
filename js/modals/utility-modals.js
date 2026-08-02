@@ -33,7 +33,7 @@ window.Ledger.openDuplicatesModal = function(){
         + '<span class="dupe-row-acct">' + (acct ? acct.name : '') + '</span>'
         + '<span class="dupe-row-amt num">' + window.Ledger.fmtMoney(t.amount, acct ? acct.currency : null) + '</span>'
         + '<span class="dupe-row-actions">'
-        + '  <button class="icon-btn sm" data-dupe-view="' + t.id + '" title="View"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>'
+        + '  <button class="icon-btn sm" data-dupe-view="' + t.id + '" title="View" aria-label="View transaction"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>'
         + '</span>'
         + '</div>';
     }).join("");

@@ -27,7 +27,7 @@ window.Ledger.pages.renderAccountsPage = function(){
 
   function kebabHtml(id){
     return '<div class="kw" data-kebab="'+id+'">'
-      + '<button class="kb" data-kebab-toggle="'+id+'" title="Actions">&#8942;</button>'
+      + '<button class="kb" data-kebab-toggle="'+id+'" title="Actions" aria-label="More actions" aria-expanded="false" aria-haspopup="true">&#8942;</button>'
       + '<div class="km">'
       + '<button class="ki" data-action="edit" data-id="'+id+'"><span class="ico">&#9998;</span> Edit</button>'
       + '<button class="ki" data-action="update-balance" data-id="'+id+'"><span class="ico">&#9878;</span> Update balance</button>'
@@ -135,7 +135,7 @@ window.Ledger.pages.renderAccountsPage = function(){
       return '<div class="acct-card archived" data-acct-click="' + a.id + '">'
         + '<div class="acct-card-left"><div class="nm">' + escHtml(a.name) + ' <span class="faint">(archived)</span></div></div>'
         + '<div class="acct-card-right"><div class="bal num">' + fmtMoney(bal, a.currency) + '</div>'
-        + '<div class="acct-card-actions"><button class="icon-btn" data-unarchive-acct="' + a.id + '" title="Unarchive"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg></button></div>'
+        + '<div class="acct-card-actions"><button class="icon-btn" data-unarchive-acct="' + a.id + '" title="Unarchive" aria-label="Unarchive account"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg></button></div>'
         + '</div></div>';
     }).join("")
     + '</div></div>'
