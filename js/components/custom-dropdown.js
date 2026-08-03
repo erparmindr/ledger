@@ -16,7 +16,15 @@ function cdOpen(wrap, list){
   document.body.appendChild(list);
   var spaceBelow = window.innerHeight - rect.bottom - 4;
   var spaceAbove = rect.top - 4;
-  list.style.cssText = "position:fixed;left:"+rect.left+"px;width:"+rect.width+"px;z-index:9999;display:block;";
+  var vw = window.innerWidth || document.documentElement.clientWidth || 320;
+  if(list.classList.contains("cd-list-wide")){
+    list.style.cssText = "position:fixed;left:"+rect.left+"px;right:auto;width:auto;min-width:"+Math.max(rect.width, 220)+"px;max-width:"+(vw-16)+"px;z-index:9999;display:block;";
+    if(list.offsetWidth && rect.left + list.offsetWidth > vw - 8){
+      list.style.left = Math.max(8, vw - list.offsetWidth - 8) + "px";
+    }
+  } else {
+    list.style.cssText = "position:fixed;left:"+rect.left+"px;width:"+rect.width+"px;z-index:9999;display:block;";
+  }
   if(spaceBelow >= 80 || spaceBelow >= spaceAbove){
     list.style.top = (rect.bottom + 4) + "px";
     list.style.maxHeight = Math.max(80, spaceBelow - 4) + "px";
@@ -118,6 +126,7 @@ window.Ledger.initCustomDropdowns = function(){
 
     var list = document.createElement("div");
     list.className = "cd-list";
+    if(sel.closest && sel.closest(".filters-bar")) list.classList.add("cd-list-wide");
     list.setAttribute("role", "listbox");
     _cdIdCounter++;
     list.id = "cd-list-" + _cdIdCounter;

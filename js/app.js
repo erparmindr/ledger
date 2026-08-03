@@ -135,6 +135,30 @@ window.Ledger.wirePageEvents = function(){
   else if(page === "settings" && window.Ledger.wireSettingsPage) window.Ledger.wireSettingsPage();
 };
 
+window.Ledger.positionKebabMenu = function(menu, btn){
+  if(!menu || !btn || typeof menu.getBoundingClientRect !== "function" || typeof btn.getBoundingClientRect !== "function") return;
+  var vw = window.innerWidth || document.documentElement.clientWidth || 0;
+  var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+  var menuRect = menu.getBoundingClientRect();
+  var btnRect = btn.getBoundingClientRect();
+  var mw = menuRect.width || 150;
+  var mh = menuRect.height || 96;
+  var spaceBelow = vh - btnRect.bottom - 8;
+  var spaceAbove = btnRect.top - 8;
+  var left = Math.max(8, Math.min(btnRect.right - mw, vw - mw - 8));
+  var top;
+  if(spaceBelow >= mh || spaceBelow >= spaceAbove){
+    top = btnRect.bottom + 4;
+  } else {
+    top = Math.max(8, btnRect.top - mh - 4);
+  }
+  menu.style.position = "fixed";
+  menu.style.top = top + "px";
+  menu.style.left = left + "px";
+  menu.style.right = "auto";
+  menu.style.bottom = "auto";
+};
+
 window.Ledger.wireTxRowActions = function(){
   Array.prototype.forEach.call(document.querySelectorAll("[data-edit-tx]"), function(b){
     b.addEventListener("click", function(){
@@ -168,22 +192,115 @@ window.Ledger.wireTxRowActions = function(){
       var menu = document.getElementById("kebab-" + id);
       if(!menu) return;
       var wasOpen = menu.classList.contains("open");
-      document.querySelectorAll(".kebab-menu.open").forEach(function(m){
-        m.classList.remove("open");
-        var owner = document.querySelector('[data-kebab="' + (m.id ? m.id.replace(/^kebab-/,"") : "") + '"]');
-        if(owner) owner.setAttribute("aria-expanded", "false");
-      });
-      if(!wasOpen){ menu.classList.add("open"); btn.setAttribute("aria-expanded", "true"); }
+      window.Ledger.closeAllKebabMenus();
+      if(!wasOpen){
+        window.Ledger.openKebabMenu(menu, btn);
+      }
+    });
+    btn.addEventListener("keydown", function(e){
+      e.stopPropagation();
+      var id = btn.getAttribute("data-kebab");
+      var menu = document.getElementById("kebab-" + id);
+      if(!menu) return;
+      var isOpen = menu.classList.contains("open");
+      if(e.key === "ArrowDown" || e.key === "ArrowUp"){
+        e.preventDefault();
+        if(!isOpen){
+          window.Ledger.closeAllKebabMenus();
+          window.Ledger.openKebabMenu(menu, btn);
+        } else {
+          window.Ledger.moveKebabFocus(menu, e.key === "ArrowDown" ? 1 : -1);
+        }
+      } else if(e.key === "Enter" || e.key === " "){
+        e.preventDefault();
+        if(!isOpen){
+          window.Ledger.closeAllKebabMenus();
+          window.Ledger.openKebabMenu(menu, btn);
+          window.Ledger.moveKebabFocus(menu, 0);
+        }
+      } else if(e.key === "Escape"){
+        if(isOpen){
+          e.preventDefault();
+          window.Ledger.closeKebabMenu(menu, true);
+        }
+      }
     });
   });
 
+  Array.prototype.forEach.call(document.querySelectorAll(".kebab-menu"), function(menu){
+    menu.addEventListener("keydown", function(e){
+      var items = menu.querySelectorAll(".kebab-item");
+      if(!items.length) return;
+      var idx = Array.prototype.indexOf.call(items, document.activeElement);
+      if(e.key === "ArrowDown"){ e.preventDefault(); move(idx + 1); }
+      else if(e.key === "ArrowUp"){ e.preventDefault(); move(idx - 1); }
+      else if(e.key === "Home"){ e.preventDefault(); move(0); }
+      else if(e.key === "End"){ e.preventDefault(); move(items.length - 1); }
+      else if(e.key === "Escape"){ e.preventDefault(); window.Ledger.closeKebabMenu(menu, true); }
+      else if(e.key === "Tab"){
+        window.Ledger.closeKebabMenu(menu, false);
+      }
+      function move(n){
+        if(n < 0) n = items.length - 1;
+        if(n >= items.length) n = 0;
+        items[n].focus();
+      }
+    });
+  });
+
+  if(!window.Ledger._kebabGlobalMouseDown){
+    document.addEventListener("mousedown", function(e){
+      var inMenu = e.target && (e.target.closest && e.target.closest(".kebab-menu"));
+      var inBtn = e.target && (e.target.closest && e.target.closest("[data-kebab]"));
+      if(inMenu || inBtn) return;
+      window.Ledger.closeAllKebabMenus();
+    });
+    window.Ledger._kebabGlobalMouseDown = true;
+  }
+
   if(!window.Ledger._kebabGlobalListenerAdded){
     document.addEventListener("click", function(){
-      document.querySelectorAll(".kebab-menu.open").forEach(function(m){ m.classList.remove("open"); });
-      document.querySelectorAll("[data-kebab]").forEach(function(b){ b.setAttribute("aria-expanded", "false"); });
+      window.Ledger.closeAllKebabMenus();
     });
     window.Ledger._kebabGlobalListenerAdded = true;
   }
+};
+
+window.Ledger.openKebabMenu = function(menu, btn){
+  if(!menu) return;
+  menu.classList.add("open");
+  if(btn) btn.setAttribute("aria-expanded", "true");
+  window.Ledger.positionKebabMenu(menu, btn);
+};
+
+window.Ledger.closeKebabMenu = function(menu, returnFocus){
+  if(!menu || !menu.classList.contains("open")) return;
+  var id = menu.id ? menu.id.replace(/^kebab-/,"") : "";
+  menu.classList.remove("open");
+  var btn = id ? document.querySelector('[data-kebab="' + id + '"]') : null;
+  if(btn){
+    btn.setAttribute("aria-expanded", "false");
+    if(returnFocus && btn.focus) btn.focus();
+  }
+};
+
+window.Ledger.closeAllKebabMenus = function(){
+  document.querySelectorAll(".kebab-menu.open").forEach(function(m){ window.Ledger.closeKebabMenu(m, false); });
+};
+
+window.Ledger.moveKebabFocus = function(menu, dir){
+  var items = menu.querySelectorAll(".kebab-item");
+  if(!items.length) return;
+  var idx = Array.prototype.indexOf.call(items, document.activeElement);
+  var next;
+  if(idx === -1){
+    next = dir >= 0 ? 0 : items.length - 1;
+  } else {
+    next = idx + dir;
+    if(next < 0) next = items.length - 1;
+    if(next >= items.length) next = 0;
+  }
+  items[next].focus();
 };
 
 /* ============================================================

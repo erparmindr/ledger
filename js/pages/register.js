@@ -143,6 +143,45 @@ window.Ledger.pages.renderTransactionsPage = function(){
   var clearBtnHtml = hasActiveFilters
     ? '<button class="clear-filters" id="clearFiltersBtn">Clear filters</button>'
     : '';
+
+  function activeFilterLabel(){
+    var f = window.Ledger.registerFilters;
+    var parts = [];
+    if(f.account !== "all"){
+      var acc = window.Ledger.findAccount(f.account);
+      parts.push(acc ? acc.name : "account");
+    }
+    if(f.currency !== "all"){
+      parts.push(window.Ledger.regionLabel ? "currency: " + f.currency : f.currency);
+    }
+    if(f.category !== "all"){
+      var cat = window.Ledger.findCategory(f.category);
+      parts.push(cat ? cat.name : "category");
+    }
+    if(f.subcategory !== "all"){
+      var scat = window.Ledger.subcatName(f.category, f.subcategory);
+      parts.push(scat || "sub: " + f.subcategory);
+    }
+    if(f.type !== "all"){
+      var t = f.type;
+      parts.push(t.charAt(0).toUpperCase() + t.slice(1));
+    }
+    if(f.datePreset !== "all"){
+      var presets = window.Ledger.DATE_PRESETS || [];
+      var p = presets.filter(function(x){ return x.id === f.datePreset; })[0];
+      if(f.datePreset === "custom"){
+        var rng = "custom";
+        if(f.dateFrom || f.dateTo) rng = (f.dateFrom || "…") + " – " + (f.dateTo || "…");
+        parts.push(rng);
+      } else {
+        parts.push(p ? p.label : f.datePreset);
+      }
+    }
+    if(f.search && f.search.trim() !== "") parts.push("“" + f.search.trim() + "”");
+    if(f.uncategorized) parts.push("Uncategorized only");
+    return parts.join(" · ");
+  }
+
   /* ---- Uncategorized count ---- */
   var uncatCount = 0;
   if(hasAnyTx){
@@ -209,15 +248,18 @@ window.Ledger.pages.renderTransactionsPage = function(){
   var listHtml;
   if(isEmpty){
     if(hasAnyTx){
+      var filterDesc = activeFilterLabel();
       listHtml = '<div class="tx-empty">'
         + '<div class="empty-state">'
         + '<div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'
         + '<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/>'
         + '</svg></div>'
         + '<div class="big">No matching transactions</div>'
-        + '<div class="empty-desc">Try adjusting your filters or search query to find what you\'re looking for.</div>'
+        + '<div class="empty-desc">No transactions match your current filters.'
+        + (hasActiveFilters ? ' Active: <span class="empty-filters">' + window.Ledger.escapeHtml(filterDesc) + '</span>' : '')
+        + ' Try adjusting them below.</div>'
         + '<div class="empty-cta" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">'
-        + (hasActiveFilters ? '<button class="btn btn-sm" id="clearFiltersBtn2">Clear filters</button>' : '')
+        + (hasActiveFilters ? '<button class="btn btn-sm" id="clearFiltersBtn2">Clear all filters</button>' : '')
         + '<button class="btn btn-sm btn-primary" onclick="window.Ledger.openTxModal(null)">+ New transaction</button>'
         + '</div></div></div>';
     } else {
@@ -428,8 +470,9 @@ function renderGroupedTxRow(t, showRunning, runBalMap){
   var notesIcon = t.notes ? '<span class="grp-notes" title="' + window.Ledger.escapeHtml(t.notes) + '">📝</span>' : '';
   var runbalCls = showRunning ? ' show-runbal' : '';
   var isChecked = window.Ledger.registerSelectedTx[t.id] ? ' checked' : '';
+  var rowSelCls = window.Ledger.registerSelectedTx[t.id] ? ' grp-row-selected' : '';
 
-  return '<div class="grp-row' + (isChecked ? ' grp-row-selected' : '') + '" data-tx="' + t.id + '">'
+  return '<div class="grp-row' + runbalCls + rowSelCls + '" data-tx="' + t.id + '">'
     + '<span class="grp-check-cell desktop-only"><input type="checkbox" class="grp-check" data-tx-check="' + t.id + '"' + isChecked + '></span>'
     + '<span class="grp-date">' + dateDisp + '</span>'
     + '<span class="grp-desc">' + window.Ledger.escapeHtml(descLabel) + notesIcon + '</span>'
@@ -439,11 +482,11 @@ function renderGroupedTxRow(t, showRunning, runBalMap){
     + '<span class="grp-amt ' + amtCls + '">' + sign + window.Ledger.fmtMoney(t.amount, currency) + '</span>'
     + runBalHtml
     + '<div class="grp-kebab">'
-    + '  <button class="kebab-btn" data-kebab="' + t.id + '" title="More actions" aria-label="More actions" aria-expanded="false" aria-haspopup="true">&#8942;</button>'
-    + '  <div class="kebab-menu" id="kebab-' + t.id + '">'
-    + '    <button class="kebab-item" data-edit-tx="' + t.id + '"><span class="kebab-icon">\u270F</span> Edit</button>'
-    + '    <div class="kebab-divider"></div>'
-    + '    <button class="kebab-item danger" data-del-tx="' + t.id + '"><span class="kebab-icon">\uD83D\uDDD1</span> Delete</button>'
+    + '  <button class="kebab-btn" data-kebab="' + t.id + '" title="More actions" aria-label="More actions" aria-haspopup="menu" aria-expanded="false">&#8942;</button>'
+    + '  <div class="kebab-menu" id="kebab-' + t.id + '" role="menu" aria-label="Row actions">'
+    + '    <button class="kebab-item" role="menuitem" tabindex="-1" data-edit-tx="' + t.id + '"><span class="kebab-icon">\u270F</span> Edit</button>'
+    + '    <div class="kebab-divider" role="separator"></div>'
+    + '    <button class="kebab-item danger" role="menuitem" tabindex="-1" data-del-tx="' + t.id + '"><span class="kebab-icon">\uD83D\uDDD1</span> Delete</button>'
     + '  </div>'
     + '</div>'
     + '</div>';
