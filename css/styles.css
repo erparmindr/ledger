@@ -2033,3 +2033,26 @@ body.is-mobile .desktop-only{ display:none !important; }
   .modal-backdrop{ padding:0; align-items:flex-end; }
   .modal{ max-width:100vw; width:100vw; max-height:92vh; border-radius:var(--radius-lg) var(--radius-lg) 0 0; margin:0; }
 }
+
+/* ============================================================
+   TOUCH DEVICES — keep hover-revealed actions visible
+   (F-003 audit F1 regression: touch has no :hover, so the
+   kebab/row/group action buttons were invisible on phones.)
+   Applied on devices that lack hover AND when the app's own
+   is-mobile detection is active (JS sets body.is-mobile when
+   width <= 768 or a touch primary pointer is present).
+   ============================================================ */
+@media (hover: none), (pointer: coarse){
+  .kebab-btn,
+  .kb,
+  .cat-row-actions,
+  .dupe-row-actions,
+  .group-chip .group-edit,
+  .group-chip .group-del{ opacity:1; }
+}
+body.is-mobile .kebab-btn,
+body.is-mobile .kb,
+body.is-mobile .cat-row-actions,
+body.is-mobile .dupe-row-actions,
+body.is-mobile .group-chip .group-edit,
+body.is-mobile .group-chip .group-del{ opacity:1; }
