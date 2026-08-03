@@ -4,6 +4,30 @@ window.Ledger.pages = window.Ledger.pages || {};
 
 window.Ledger.pages.renderSettingsPage = function(){
   var mode = window.Ledger.layoutMode || "auto";
+  var backupMeta = (window.Ledger.getBackupMeta && window.Ledger.getBackupMeta()) || null;
+  var hasBackup = !!(backupMeta && backupMeta.lastBackupAt);
+
+  var dpStatus;
+  if(hasBackup){
+    var lastAt = new Date(backupMeta.lastBackupAt);
+    var lastLabel = window.Ledger.dateLabel
+      ? window.Ledger.dateLabel(backupMeta.lastBackupAt.slice(0,10), { month:"short", day:"numeric", year:"numeric" })
+      : lastAt.toLocaleDateString();
+    var counts = backupMeta.counts || {};
+    var countLabel = counts.transactions !== undefined
+      ? ' (' + counts.accounts + ' accounts, ' + counts.transactions + ' transactions)'
+      : '';
+    dpStatus = '<div class="dp-status" style="display:flex; align-items:center; gap:8px; background:rgba(76,175,125,0.12); border:1px solid rgba(76,175,125,0.35); border-radius:var(--radius-md); padding:8px 12px; font-size:12.5px; margin:0 0 12px;">'
+      + '<span style="width:8px; height:8px; border-radius:50%; background:var(--sage); flex-shrink:0;"></span>'
+      + '<span><strong>Manual Backup Available</strong> &mdash; last backup: ' + window.Ledger.escapeHtml(lastLabel) + window.Ledger.escapeHtml(countLabel) + '</span>'
+      + '</div>';
+  } else {
+    dpStatus = '<div class="dp-status dp-status-risk" style="display:flex; align-items:center; gap:8px; background:rgba(226,80,47,0.10); border:1px solid rgba(226,80,47,0.30); border-radius:var(--radius-md); padding:8px 12px; font-size:12.5px; margin:0 0 12px;">'
+      + '<span style="width:8px; height:8px; border-radius:50%; background:var(--clay); flex-shrink:0;"></span>'
+      + '<span><strong>Local Only (At Risk)</strong> &mdash; your data lives only in this browser. Export a backup to protect it.</span>'
+      + '</div>';
+  }
+
   return ''
     + '<div class="card card-pad">'
     + '  <h2 style="font-size:16px; font-weight:800; margin:0 0 6px;">Layout mode</h2>'
@@ -18,6 +42,7 @@ window.Ledger.pages.renderSettingsPage = function(){
     + '<div class="card card-pad section-gap">'
     + '  <h2 style="font-size:16px; font-weight:800; margin:0 0 6px;">Backup &amp; restore</h2>'
     + '  <p class="muted" style="font-size:12.5px; margin:0 0 14px;">Export everything (accounts, people, transactions, categories, recurring items) into one file. Use it to move your data to another device or browser, or just keep a safety copy.</p>'
+    + dpStatus
     + '  <div style="display:flex; gap:10px; flex-wrap:wrap;">'
     + '    <button class="btn btn-primary btn-sm" id="exportBackupBtn">Export full backup</button>'
     + '    <button class="btn btn-sm" id="importBackupBtn">Restore from backup</button>'

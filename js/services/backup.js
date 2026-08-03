@@ -5,13 +5,29 @@
 window.Ledger = window.Ledger || {};
 
 window.Ledger.exportBackup = function(){
-  var blob = new Blob([JSON.stringify(window.Ledger.DB, null, 2)], {type:"application/json"});
+  var wrapper = window.Ledger.wrapBackup(window.Ledger.DB);
+  var blob = new Blob([JSON.stringify(wrapper, null, 2)], {type:"application/json"});
   var url = URL.createObjectURL(blob);
   var a = document.createElement("a");
   a.href = url; a.download = "ledger-backup-" + window.Ledger.todayISO() + ".json";
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  window.Ledger.recordBackupExport();
   window.Ledger.showToast("Backup downloaded");
+};
+
+/* Record the last successful backup for the Data Protection status. */
+window.Ledger.recordBackupExport = function(){
+  var db = window.Ledger.DB;
+  window.Ledger.setBackupMeta({
+    lastBackupAt: new Date().toISOString(),
+    version: window.Ledger.BACKUP_VERSION,
+    counts: {
+      accounts: (db.accounts || []).length,
+      transactions: (db.transactions || []).length,
+      categories: (db.categories || []).length
+    }
+  });
 };
 
 window.Ledger.validateBackup = function validateBackup(data){
@@ -66,34 +82,73 @@ window.Ledger.importBackupFile = function(file){
   reader.onload = function(e){
     try{
       var parsed = JSON.parse(e.target.result);
-      var result = window.Ledger.validateBackup(parsed);
-      if(!result.valid){
-        window.Ledger.showToast("Invalid backup file: " + (result.warnings[0] || "missing required data"));
-        return;
-      }
-      if(!result.stats.accounts && !result.stats.transactions){
-        window.Ledger.showToast("That doesn't look like a valid backup file");
-        return;
-      }
-      var statsLine = result.stats.accounts + " accounts, " + result.stats.transactions + " transactions, " + result.stats.categories + " categories";
-      if(result.warnings.length === 0){
-        window.Ledger.openConfirmModal("Restore backup?", statsLine + "\n\nThis will replace all current data. This can't be undone. Continue?", function(){
-          window.Ledger.replaceAllData(parsed);
-          window.Ledger.showToast("Backup restored");
-        });
-      } else {
-        var warnText = result.warnings.slice(0, 8).join("\n");
-        if(result.warnings.length > 8) warnText += "\n... and " + (result.warnings.length - 8) + " more";
-        window.Ledger.openConfirmModal("Restore backup?", statsLine + "\n\nWarnings:\n" + warnText + "\n\nThis will replace all current data. Restore anyway?", function(){
-          window.Ledger.replaceAllData(parsed);
-          window.Ledger.showToast("Backup restored (" + result.warnings.length + " warnings)");
-        });
-      }
+      window.Ledger.restoreBackupData(parsed);
     }catch(err){
       window.Ledger.showToast("Couldn't read that file — is it a valid backup?");
     }
   };
   reader.readAsText(file);
+};
+
+/* Shared restore path: accepts a versioned wrapper OR a legacy raw DB
+   object (backward compatible). Verifies integrity, migrates, validates,
+   confirms, then replaces all data. */
+window.Ledger.restoreBackupData = function(parsed){
+  var unwrapped = window.Ledger.unwrapBackup(parsed);
+  var version = unwrapped.version;
+  var isWrapper = unwrapped.isWrapper;
+
+  if(isWrapper && version > window.Ledger.BACKUP_VERSION){
+    window.Ledger.showToast("This backup is from a newer version of Ledger and can't be restored here.");
+    return;
+  }
+  if(isWrapper && unwrapped.data !== undefined && !window.Ledger.verifyBackupChecksum(parsed)){
+    window.Ledger.openConfirmModal(
+      "Backup checksum mismatch",
+      "This backup's integrity check failed — the file may be corrupted or modified. Restore anyway?",
+      function(){
+        window.Ledger._applyBackup(unwrapped, version);
+      }
+    );
+    return;
+  }
+
+  var data = window.Ledger.migrateBackup(unwrapped.data, version, window.Ledger.BACKUP_VERSION);
+  var result = window.Ledger.validateBackup(data);
+  if(!result.valid){
+    window.Ledger.showToast("Invalid backup file: " + (result.warnings[0] || "missing required data"));
+    return;
+  }
+  if(!result.stats.accounts && !result.stats.transactions){
+    window.Ledger.showToast("That doesn't look like a valid backup file");
+    return;
+  }
+  var statsLine = result.stats.accounts + " accounts, " + result.stats.transactions + " transactions, " + result.stats.categories + " categories";
+  if(result.warnings.length === 0){
+    window.Ledger.openConfirmModal("Restore backup?", statsLine + "\n\nThis will replace all current data. This can't be undone. Continue?", function(){
+      window.Ledger.replaceAllData(data);
+      window.Ledger.showToast("Backup restored");
+    });
+  } else {
+    var warnText = result.warnings.slice(0, 8).join("\n");
+    if(result.warnings.length > 8) warnText += "\n... and " + (result.warnings.length - 8) + " more";
+    window.Ledger.openConfirmModal("Restore backup?", statsLine + "\n\nWarnings:\n" + warnText + "\n\nThis will replace all current data. Restore anyway?", function(){
+      window.Ledger.replaceAllData(data);
+      window.Ledger.showToast("Backup restored (" + result.warnings.length + " warnings)");
+    });
+  }
+};
+
+/* Apply a backup that passed the checksum-mismatch confirmation. */
+window.Ledger._applyBackup = function(unwrapped, version){
+  var data = window.Ledger.migrateBackup(unwrapped.data, version, window.Ledger.BACKUP_VERSION);
+  var result = window.Ledger.validateBackup(data);
+  if(!result.valid){
+    window.Ledger.showToast("Invalid backup file: " + (result.warnings[0] || "missing required data"));
+    return;
+  }
+  window.Ledger.replaceAllData(data);
+  window.Ledger.showToast("Backup restored");
 };
 
 /* ---- CSV export (shared by register + reports) ---- */

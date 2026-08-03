@@ -14,6 +14,7 @@ const FILES_IN_ORDER = [
   "js/services/csv-import.js",
   "js/services/recurring.js",
   "js/services/demo-data.js",
+  "js/services/backup-format.js",
   "js/services/backup.js",
   "js/services/demo-status.js",
   "js/services/import-preview.js",

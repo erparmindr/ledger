@@ -486,15 +486,21 @@ describe("VALIDATION: CSV export and backup/restore round-trip", () => {
     const json = backupBlob.parts[0];
     expect(typeof json).toBe("string");
     const parsed = JSON.parse(json);
-    expect(parsed.accounts.length).toBe(6);
-    expect(parsed.transactions.length).toBe(L.generateDemoData().transactions.length);
-    expect(parsed.recurring.length).toBe(11);
+    expect(parsed.format).toBe("ledger-backup");
+    expect(parsed.version).toBe(1);
+    expect(typeof parsed.checksum).toBe("string");
+    expect(parsed.checksum.length).toBe(64);
+    expect(L.verifyBackupChecksum(parsed)).toBe(true);
+    const data = L.unwrapBackup(parsed).data;
+    expect(data.accounts.length).toBe(6);
+    expect(data.transactions.length).toBe(L.generateDemoData().transactions.length);
+    expect(data.recurring.length).toBe(11);
 
-    const vb = L.validateBackup(parsed);
+    const vb = L.validateBackup(data);
     expect(vb.valid).toBe(true);
     expect(vb.warnings).toEqual([]);
 
-    L.replaceAllData(parsed);
+    L.replaceAllData(data);
     expect(L.DB.accounts.length).toBe(6);
     expect(L.DB.transactions.length).toBe(L.generateDemoData().transactions.length);
     expect(L.DB.recurring.length).toBe(11);

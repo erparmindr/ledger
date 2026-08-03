@@ -32,6 +32,12 @@ window.Ledger.wireOverviewPage = function(){
     var banner = document.getElementById("reconBanner");
     if(banner) banner.style.display = "none";
   });
+  var dismissBackupWarning = document.getElementById("dismissBackupWarning");
+  if(dismissBackupWarning) dismissBackupWarning.addEventListener("click", function(){
+    try{ localStorage.setItem("ledger_backup_warning_dismissed", "1"); }catch(e){}
+    var banner = document.getElementById("backupWarningBanner");
+    if(banner) banner.style.display = "none";
+  });
   Array.prototype.forEach.call(document.querySelectorAll("[data-recon-acct]"), function(btn){
     btn.addEventListener("click", function(){
       var acctId = btn.getAttribute("data-recon-acct");

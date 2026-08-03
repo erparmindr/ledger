@@ -161,6 +161,188 @@ describe("validateBackup", () => {
 });
 
 /* ============================================================
+   backup-format.js — versioned wrapper, integrity, migration
+   ============================================================ */
+describe("sha256hex", () => {
+  it("matches the standard SHA-256 test vector for 'abc'", () => {
+    expect(L.sha256hex("abc")).toBe("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+  });
+  it("matches the empty-string vector", () => {
+    expect(L.sha256hex("")).toBe("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+  });
+  it("is deterministic", () => {
+    expect(L.sha256hex("hello ledger")).toBe(L.sha256hex("hello ledger"));
+  });
+  it("handles multi-byte (emoji) input", () => {
+    expect(L.sha256hex("\u{1F4B8}\u{1F4B0}").length).toBe(64);
+  });
+});
+
+describe("wrapBackup / unwrapBackup", () => {
+  it("wraps a DB snapshot into a versioned backup", () => {
+    const db = L.defaultData();
+    const w = L.wrapBackup(db, "2026-08-02T00:00:00.000Z");
+    expect(w.format).toBe("ledger-backup");
+    expect(w.version).toBe(1);
+    expect(w.exportedAt).toBe("2026-08-02T00:00:00.000Z");
+    expect(w.data).toEqual(db);
+    expect(w.data).not.toBe(db); // must be a deep copy (true snapshot)
+    expect(typeof w.checksum).toBe("string");
+    expect(w.checksum.length).toBe(64);
+  });
+  it("computes a checksum over the serialized data", () => {
+    const db = { accounts: [{ id: "a1", name: "Checking", type: "checking", currency: "USD" }], transactions: [], categories: [] };
+    const w = L.wrapBackup(db);
+    expect(w.checksum).toBe(L.sha256hex(JSON.stringify(db)));
+  });
+  it("round-trips through JSON", () => {
+    const db = L.generateDemoData();
+    const w = L.wrapBackup(db);
+    const cloned = JSON.parse(JSON.stringify(w));
+    expect(L.unwrapBackup(cloned).version).toBe(1);
+    expect(L.unwrapBackup(cloned).isWrapper).toBe(true);
+    expect(L.verifyBackupChecksum(cloned)).toBe(true);
+  });
+  it("detects legacy (unwrapped) backups", () => {
+    const legacy = { accounts: [{ id: "a1", name: "A", type: "checking", currency: "USD" }], transactions: [], categories: [] };
+    const u = L.unwrapBackup(legacy);
+    expect(u.version).toBe(0);
+    expect(u.isWrapper).toBe(false);
+    expect(u.data).toBe(legacy);
+  });
+  it("keeps a true snapshot: later DB mutations do not alter the backup or break its checksum", () => {
+    const origRender = L.renderPage;
+    L.renderPage = () => {};
+    try {
+      const data = L.generateDemoData();
+      L.replaceAllData(data);
+      const wrapped = L.wrapBackup(L.DB);
+      L.replaceAllData(L.defaultData()); // wipe the live DB AFTER wrapping
+      const clone = JSON.parse(JSON.stringify(wrapped));
+      expect(clone.data.transactions.length).toBe(data.transactions.length);
+      expect(L.verifyBackupChecksum(clone)).toBe(true);
+    } finally { L.renderPage = origRender; }
+  });
+});
+
+describe("verifyBackupChecksum", () => {
+  it("returns true for an unmodified backup", () => {
+    const db = L.defaultData();
+    const w = L.wrapBackup(db);
+    expect(L.verifyBackupChecksum(w)).toBe(true);
+  });
+  it("returns false when data is tampered", () => {
+    const db = L.defaultData();
+    const w = L.wrapBackup(db);
+    w.data.transactions.push({ id: "t-x", type: "expense", date: "2026-08-01", amount: 999, desc: "tampered" });
+    expect(L.verifyBackupChecksum(w)).toBe(false);
+  });
+});
+
+describe("migrateBackup", () => {
+  it("returns data unchanged for version 0 -> current (identity)", () => {
+    const data = { accounts: [], transactions: [], categories: [] };
+    expect(L.migrateBackup(data, 0)).toBe(data);
+  });
+  it("returns data unchanged for current version -> current", () => {
+    const data = { accounts: [], transactions: [], categories: [] };
+    expect(L.migrateBackup(data, 1, 1)).toBe(data);
+  });
+});
+
+describe("backup metadata", () => {
+  it("returns null when never backed up", () => {
+    L._localStorage.removeItem(L.BACKUP_META_KEY);
+    expect(L.getBackupMeta()).toBeNull();
+  });
+  it("round-trips lastBackupAt + counts", () => {
+    L.setBackupMeta({ lastBackupAt: "2026-08-02T10:00:00.000Z", version: 1, counts: { accounts: 2, transactions: 5, categories: 22 } });
+    const meta = L.getBackupMeta();
+    expect(meta.lastBackupAt).toBe("2026-08-02T10:00:00.000Z");
+    expect(meta.counts.transactions).toBe(5);
+    L._localStorage.removeItem(L.BACKUP_META_KEY);
+  });
+});
+
+describe("restoreBackupData (full round-trip)", () => {
+  beforeAll(() => {
+    const origRender = L.renderPage;
+    L.renderPage = () => {};
+    const origShow = L.showToast;
+    L.showToast = () => {};
+  });
+  function autoConfirm() {
+    const orig = L.openConfirmModal;
+    L.openConfirmModal = (t, m, cb) => { if (cb) cb(); };
+    return () => { L.openConfirmModal = orig; };
+  }
+  function snapshotOf() {
+    return {
+      accounts: L.DB.accounts.slice().sort((a, b) => a.id.localeCompare(b.id)),
+      transactions: L.DB.transactions.slice().sort((a, b) => (a.date + a.id).localeCompare(b.date + b.id)),
+      recurring: L.DB.recurring.slice().sort((a, b) => a.id.localeCompare(b.id)),
+      categories: L.DB.categories.slice().sort((a, b) => a.id.localeCompare(b.id)),
+      people: L.DB.people.slice(),
+      debtItems: L.DB.debtItems.slice().sort((a, b) => a.id.localeCompare(b.id)),
+      groups: L.DB.groups.slice(),
+    };
+  }
+  function restoreSnapshot() {
+    return {
+      accountCount: L.DB.accounts.length,
+      txCount: L.DB.transactions.length,
+      recurringCount: L.DB.recurring.length,
+      balances: L.DB.accounts.map(a => ({ id: a.id, bal: L.accountBalance(a.id) })),
+    };
+  }
+
+  it("versioned backup round-trips to an identical database (counts + balances + recurring)", () => {
+    const data = L.generateDemoData();
+    L.replaceAllData(data);
+    const before = restoreSnapshot();
+    const wrapped = L.wrapBackup(L.DB);
+    const restore = autoConfirm();
+    try {
+      L.replaceAllData(L.defaultData()); // wipe
+      expect(L.DB.transactions.length).toBe(0);
+      L.restoreBackupData(JSON.parse(JSON.stringify(wrapped)));
+      const after = restoreSnapshot();
+      expect(after.accountCount).toBe(before.accountCount);
+      expect(after.txCount).toBe(before.txCount);
+      expect(after.recurringCount).toBe(before.recurringCount);
+      expect(after.balances).toEqual(before.balances);
+    } finally { restore(); }
+  });
+
+  it("legacy (unwrapped) backup still restores", () => {
+    const data = L.generateDemoData();
+    L.replaceAllData(data);
+    const before = restoreSnapshot();
+    const legacy = JSON.parse(JSON.stringify(L.DB));
+    const restore = autoConfirm();
+    try {
+      L.replaceAllData(L.defaultData());
+      L.restoreBackupData(legacy);
+      const after = restoreSnapshot();
+      expect(after.txCount).toBe(before.txCount);
+      expect(after.accountCount).toBe(before.accountCount);
+      expect(after.balances).toEqual(before.balances);
+    } finally { restore(); }
+  });
+
+  it("blocks backups from a newer version", () => {
+    const wrapped = L.wrapBackup(L.DB);
+    wrapped.version = 999;
+    const toasts = [];
+    const origToast = L.showToast;
+    L.showToast = (m) => toasts.push(m);
+    L.restoreBackupData(wrapped);
+    expect(toasts.some(m => m.indexOf("newer version") !== -1)).toBe(true);
+    L.showToast = origToast;
+  });
+});
+
+/* ============================================================
    recurring.js
    ============================================================ */
 describe("_advanceRecurring", () => {

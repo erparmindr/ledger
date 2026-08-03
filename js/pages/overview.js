@@ -406,7 +406,19 @@ window.Ledger.pages.renderOverviewPage = function(){
   }
 
   /* ---- Assemble ---- */
-  return reconBannerHtml
+  var backupWarningHtml = "";
+  var backupMeta = (window.Ledger.getBackupMeta && window.Ledger.getBackupMeta()) || null;
+  var dismissed = false;
+  try{ dismissed = localStorage.getItem("ledger_backup_warning_dismissed") === "1"; }catch(e){}
+  if((!backupMeta || !backupMeta.lastBackupAt) && !dismissed){
+    backupWarningHtml = '<div class="backup-warning-banner" id="backupWarningBanner" style="display:flex; align-items:center; gap:10px; background:rgba(226,80,47,0.08); border:1px solid rgba(226,80,47,0.25); border-radius:var(--radius-md); padding:8px 12px; font-size:12.5px; margin-bottom:12px;">'
+      + '<span>You haven\'t backed up your ledger yet. Your data currently lives only in this browser. <a href="#" data-nav-link="settings" style="color:var(--brass); font-weight:700;">Back up now</a></span>'
+      + '<button class="btn btn-sm" id="dismissBackupWarning" style="margin-left:auto; flex-shrink:0;">Dismiss</button>'
+      + '</div>';
+  }
+
+  return backupWarningHtml
+    + reconBannerHtml
     + acctGridHtml
     + '<div class="section-gap">' + cashFlowHtml + '</div>'
     + '<div class="section-gap" style="display:flex; gap:16px; flex-wrap:wrap;">'
