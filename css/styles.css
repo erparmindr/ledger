@@ -1133,11 +1133,9 @@ select[data-no-cd]:focus-visible{
 .kebab-btn{
   background:none; border:none; color:var(--text-faint); font-size:18px;
   cursor:pointer; padding:4px 6px; border-radius:var(--radius-sm); line-height:var(--lh-single);
-  opacity:0; transition:opacity var(--transition-fast), background var(--transition-fast);
   min-width:28px; min-height:28px; display:inline-flex; align-items:center; justify-content:center;
+  transition:background var(--transition-fast), color var(--transition-fast);
 }
-.grp-row:hover .kebab-btn,
-.kebab-btn:focus-visible{ opacity:1; }
 .kebab-btn:hover{ background:var(--surface-2); color:var(--text); }
 .kebab-btn:focus-visible{ outline:none; box-shadow:0 0 0 var(--ring-width) var(--ring-color-soft); }
 .kebab-menu{
@@ -1304,10 +1302,10 @@ select[data-no-cd]:focus-visible{
 .group-chip{ display:inline-flex; align-items:center; gap:6px; padding:5px var(--sp-3); border-radius:var(--radius-pill); border:1px solid var(--border); background:var(--surface-2); font-size:var(--text-sm); font-weight:var(--fw-semibold); color:var(--text-dim); cursor:default; transition:all var(--transition-fast); }
 .group-chip:hover{ border-color:var(--brass); color:var(--text); }
 .group-chip .group-count{ background:var(--border); color:var(--text-faint); font-size:10px; font-weight:var(--fw-bold); padding:1px 6px; border-radius:var(--radius); }
-.group-chip .group-edit{ cursor:pointer; opacity:0.5; transition:opacity 0.1s; font-size:var(--text-xs); }
-.group-chip:hover .group-edit{ opacity:1; }
-.group-chip .group-del{ cursor:pointer; opacity:0.3; transition:opacity 0.1s; color:var(--clay); font-size:var(--text-xs); }
-.group-chip:hover .group-del{ opacity:0.8; }
+.group-chip .group-edit{ cursor:pointer; font-size:var(--text-xs); transition:opacity 0.1s, background 0.1s; border-radius:4px; padding:2px 3px; }
+.group-chip .group-edit:hover{ background:var(--surface-2); }
+.group-chip .group-del{ cursor:pointer; color:var(--clay); font-size:var(--text-xs); transition:opacity 0.1s, background 0.1s; border-radius:4px; padding:2px 3px; }
+.group-chip .group-del:hover{ background:var(--clay-soft); }
 .add-group-btn{ display:inline-flex; align-items:center; gap:var(--sp-1); padding:5px var(--sp-3); border-radius:var(--radius-pill); border:1px dashed var(--border); background:none; font-size:var(--text-sm); font-weight:var(--fw-semibold); color:var(--text-faint); cursor:pointer; transition:all var(--transition-fast); }
 .add-group-btn:hover{ border-color:var(--brass); color:var(--brass); }
 
@@ -1359,8 +1357,9 @@ select[data-no-cd]:focus-visible{
 
 /* ---- Kebab menu (account tiles) ---- */
 .kw{ position:relative; }
-.kb{ background:none; border:none; color:var(--text-faint); font-size:var(--text-lg); cursor:pointer; padding:2px 6px; border-radius:4px; line-height:var(--lh-single); opacity:0; transition:opacity 0.15s; }
-.tile:hover .kb{ opacity:1; }
+.kb{ background:none; border:none; color:var(--text-faint); font-size:var(--text-lg); cursor:pointer; padding:2px 6px; border-radius:4px; line-height:var(--lh-single); transition:background 0.15s, color 0.15s; }
+.kb:hover{ background:var(--surface-2); color:var(--text); }
+.kb:focus-visible{ outline:none; box-shadow:0 0 0 var(--ring-width) var(--ring-color-soft); }
 .km{ display:none; position:absolute; bottom:100%; right:0; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 8px 24px rgba(0,0,0,0.3); min-width:160px; z-index:100; padding:var(--sp-1) 0; }
 .km.open{ display:block; }
 .ki{ display:flex; align-items:center; gap:var(--sp-2); width:100%; padding:7px var(--sp-3); border:none; background:none; font-size:var(--text-sm); font-weight:var(--fw-semibold); color:var(--text); cursor:pointer; text-align:left; transition:background 0.1s; }
@@ -1641,9 +1640,7 @@ select[data-no-cd]:focus-visible{
 .dupe-row-amt{ font-size:var(--text-base); font-weight:var(--fw-bold); font-variant-numeric:tabular-nums; flex-shrink:0; min-width:80px; text-align:right; }
 .dupe-row-actions{
   display:flex; gap:2px; flex-shrink:0; margin-left:var(--sp-1);
-  opacity:0; transition:opacity var(--transition-fast);
 }
-.dupe-row:hover .dupe-row-actions{ opacity:1; }
 .dupe-sel-count{ font-size:var(--text-sm); font-weight:var(--fw-semibold); color:var(--text-dim); margin-right:auto; }
 
 /* ---- Modal ---- */
@@ -1781,9 +1778,7 @@ select[data-no-cd]:focus-visible{
 }
 .cat-row-actions{
   display:flex; gap:2px; flex-shrink:0; margin-left:auto;
-  opacity:0; transition:opacity var(--transition-fast);
 }
-.cat-row:hover .cat-row-actions{ opacity:1; }
 .icon-btn.sm{ padding:5px; }
 .icon-btn.sm i, .icon-btn.sm svg{ width:13px; height:13px; }
 .cat-empty{ text-align:center; padding:var(--sp-10) 0; }
@@ -2034,25 +2029,3 @@ body.is-mobile .desktop-only{ display:none !important; }
   .modal{ max-width:100vw; width:100vw; max-height:92vh; border-radius:var(--radius-lg) var(--radius-lg) 0 0; margin:0; }
 }
 
-/* ============================================================
-   TOUCH DEVICES — keep hover-revealed actions visible
-   (F-003 audit F1 regression: touch has no :hover, so the
-   kebab/row/group action buttons were invisible on phones.)
-   Applied on devices that lack hover AND when the app's own
-   is-mobile detection is active (JS sets body.is-mobile when
-   width <= 768 or a touch primary pointer is present).
-   ============================================================ */
-@media (hover: none), (pointer: coarse){
-  .kebab-btn,
-  .kb,
-  .cat-row-actions,
-  .dupe-row-actions,
-  .group-chip .group-edit,
-  .group-chip .group-del{ opacity:1; }
-}
-body.is-mobile .kebab-btn,
-body.is-mobile .kb,
-body.is-mobile .cat-row-actions,
-body.is-mobile .dupe-row-actions,
-body.is-mobile .group-chip .group-edit,
-body.is-mobile .group-chip .group-del{ opacity:1; }

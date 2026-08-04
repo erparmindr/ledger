@@ -31,7 +31,7 @@ A finding may combine levels, e.g. **[Verified mechanism + Manual review of outc
 
 The app is **fundamentally responsive and usable on mobile** — the register column-collapse, running-balance two-line layout, fullscreen bottom-sheet modals, and off-canvas sidebar are structurally sound (these are Verified from CSS/DOM). The audit found **one Critical systemic issue, four High issues, and a cluster of touch-target/typography/PWA gaps**:
 
-1. **[Critical] [Verified mechanism + Manual review of outcome]** Row-level actions (edit / delete / kebab) are revealed only by `:hover`; on touch devices with no hover they are effectively undiscoverable. The CSS fact is verified; the real-device outcome should be confirmed by eye.
+1. **[Critical → Resolved]** Row-level actions (edit / delete / kebab) were revealed only by `:hover` and were effectively undiscoverable on touch. **Fixed:** action buttons are now **always visible** on every device (desktop + mobile), with hover/focus retained as feedback only. See the F1 regression report.
 2. **[High] [Verified + Manual review]** iOS Safari auto-zooms when tapping form fields whose font-size is <16px; the app's inputs are 13px.
 3. **[High] [Verified absence + Inferred consequence]** No safe-area handling (notch / home indicator) and `100vh` instead of dynamic viewport units.
 4. **[High] [Verified computed sizes]** Most touch targets are 26–38px, well below the 44px guideline; only `.icon-btn` meets it.
@@ -124,7 +124,7 @@ Sizes below are **[Verified]** from the type tokens in `css/styles.css` (`--text
 - Date-range picker collapses to a single calendar ≤480px; popover is `width:calc(100vw - 32px)`.
 
 **Issues:**
-1. **[Critical] [Verified mechanism + Manual review of outcome]** No hover → invisible actions (applies to modals too where actions are kebab-driven). Covered in §9.
+1. **[Resolved] No hover → invisible actions (applies to modals too where actions are kebab-driven).** Fixed with the always-visible action buttons (see §9 / F1 regression report).
 2. **[High] [Verified + Manual review]** iOS auto-zoom: all inputs/selects/date fields are 13px ([Verified]); tapping any field zooms the whole page on iPhone ([Inferred from documented platform behavior], **[Manual review]** on an iOS device).
 3. **[Medium] [Verified mechanism + Manual review of outcome]** Keyboard overlap in bottom-sheet modal: `max-height:92vh` + sticky `.modal-foot` at bottom ([Verified]); when the keyboard opens, the footer/save button may be obscured (outcome **[Manual review]** on a device). No `visualViewport` handling or scroll-into-view on focus ([Verified]).
 4. **[Low] [Verified]** `input[type=number]` for amount; no `inputmode="decimal"` / `enterkeyhint`.
@@ -156,8 +156,8 @@ The app **avoids true `<table>` markup** in favor of grid rows, which is the rig
 **Strengths (from Sprint 1/2, [Verified] from code/CSS):** running balance renders only for single-account views; two-line mobile layout; empty-state filter chips; kebab keyboard a11y (focus-visible reveals it); row readability pass.
 
 **Issues (highest value page):**
-1. **[Critical] [Verified mechanism + Manual review of outcome]** Kebab (⋯) is invisible on touch. `.kebab-btn` is `opacity:0` and only revealed by `:hover`/`:focus-visible` (styles.css:1133-1140) — **[Verified]**. Touch has no hover, and tapping blank space rarely triggers focus-visible first (behavior **[Manual review]**). There is no `@media (hover:none)` fallback and no `body.is-mobile` override ([Verified]).
-   - **Classification:** Bug (must fix).
+1. **[Resolved] Kebab (⋯) is no longer hidden by hover.** Originally `.kebab-btn` was `opacity:0` and only revealed by `:hover`/`:focus-visible`, making it invisible on touch ([Verified]). **Fixed:** the button is now **always visible** (`opacity:1`) on every device; `:hover`/`:focus-visible` provide background/ring feedback only. Verified via computed styles at desktop, touch, and `body.is-mobile` — all `opacity:1`.
+   - **Classification:** Bug (fixed).
 2. **[High] [Verified mechanism + Inferred height]** Filter bar becomes a 10-control vertical stack ≤480px — 6 selects (Type, Account, Currency, Category, Subcategory, Date) + search + Clear + Uncat + Auto-categorize + Check duplicates, each 38px tall ([Verified] from the ≤480 block). The ~400px-of-filters figure is **[Inferred]**. Export CSV is correctly desktop-gated ([Verified]).
    - **Classification:** Improvement → candidate for a collapsible "Filters" sheet (redesign-lite).
 3. **[Medium] [Verified mechanism + Manual review of outcome]** The desktop `.topbar` search box renders full-width below the page title on mobile (double bar, §5).
@@ -171,7 +171,7 @@ The app **avoids true `<table>` markup** in favor of grid rows, which is the rig
 ## 9. Dashboard / Overview
 
 **Findings:**
-1. **[Verified] Correction of earlier scope:** Overview/reports/recurring/people use always-visible `.icon-btn` (44px) ✅. The Critical hover-invisibility is **limited to** register rows (`kebab-btn`), accounts tiles (`kb`), categories rows (`.cat-row-actions`), duplicate-check rows (`.dupe-row-actions`), and group chips (`.group-edit/.group-del`) — all `opacity:0`/low until `:hover` ([Verified] from CSS), with the touch-device outcome [Manual review].
+1. **[Resolved] Correction of earlier scope:** Overview/reports/recurring/people use always-visible `.icon-btn` (44px) ✅. The Critical hover-invisibility was **limited to** register rows (`kebab-btn`), accounts tiles (`kb`), categories rows (`.cat-row-actions`), duplicate-check rows (`.dupe-row-actions`), and group chips (`.group-edit/.group-del`) — all originally `opacity:0`/low until `:hover` ([Verified] from CSS). **Fixed:** all six controls are now always visible on every device.
 2. **[Verified] Good:** Metrics grid collapses to one column at 360/390 (min 240px); sparkline and donut stack cleanly.
 3. **[Low] [Verified computed layout + Manual review of feel]** `.acct-mini-card` min-width:100% at ≤480 ✅; `card-grid` min 180px → 2 columns at 390px+, 1 column at 360px — a 1→2 column jump between 360 and 390 that *may* feel abrupt (judgement **[Manual review]**).
 4. **[Medium] [Inferred + Manual review]** The "New transaction" FAB overlapping the bottom card on short screens is a potential concern; content `padding-bottom:60-80px` ([Verified]) likely covers it — confirm visually.
@@ -241,7 +241,7 @@ The app **avoids true `<table>` markup** in favor of grid rows, which is the rig
 
 | # | Severity | Page / area | Finding | Class | Verification |
 |---|---|---|---|---|---|
-| F1 | **Critical** | Register, Accounts, Categories, Dupes, Groups | Hover-revealed actions invisible on touch (kebab-btn, kb, cat-row-actions, dupe-row-actions, group-edit/del) | Bug | Verified (CSS `opacity:0`/hover-only) + Manual review of outcome |
+| F1 | ~~**Critical**~~ → **Resolved** | Register, Accounts, Categories, Dupes, Groups | Hover-revealed actions invisible on touch (kebab-btn, kb, cat-row-actions, dupe-row-actions, group-edit/del) — **fixed: always visible on all devices** | Bug | Verified (CSS before/after, computed opacity=1 desktop/touch/is-mobile) |
 | F2 | **High** | All forms | iOS auto-zoom: input/select font-size 13px < 16px | Bug | Verified (sizes) + Manual review (iOS device) |
 | F3 | **High** | PWA shell | No safe-area (viewport-fit/insets): notch + home indicator overlap | Bug | Verified (absence) + Inferred/Manual review (consequence) |
 | F4 | **High** | All pages | Touch targets mostly 26–38px vs 44px guideline | Improvement | Verified (computed sizes) + Manual review (feel) |
@@ -271,7 +271,7 @@ Before implementation, a human should visually confirm these items against the r
 
 | # | What to check | PNG / device |
 |---|---|---|
-| F1 | That edit/delete are truly undiscoverable on a touch device (no hover, no focus-visible on tap) | Device (iOS + Android) |
+| F1 | ~~undiscoverable on touch~~ → **done:** action buttons always visible on all devices (verified opacity=1); confirm visual polish on device | Device (iOS + Android) |
 | F2 | iOS auto-zoom on tapping an input/select/date field | iOS device |
 | F3 | Notch/home-indicator overlap of topbar, FAB, toast, bottom-sheet modal | Notched iPhone, standalone |
 | F4 | That the 26–38px controls feel too small | PNGs + device |
@@ -295,7 +295,7 @@ Ordered by **lowest risk → highest user value**. Phases 1–2 are CSS-only; Ph
 ### Phase 1 — Critical bug fixes (pure CSS, ~0 risk, do first)
 | Item | Work |
 |---|---|
-| F1 | Add `@media (hover:none)` (and/or `body.is-mobile`) rules forcing `opacity:1` for `.kebab-btn`, `.kb`, `.cat-row-actions`, `.dupe-row-actions`, `.group-edit`, `.group-del`. Bump `.kb`/`.kebab-btn` hit area to ≥44px via padding/box. **Unblocks edit/delete on every touch device.** *(Confirm F1 on device first.)* |
+| F1 | **DONE** — action buttons made **always visible** on every device (`.kebab-btn`, `.kb`, `.cat-row-actions`, `.dupe-row-actions`, `.group-edit`, `.group-del`): removed hover-only reveal CSS, base `opacity:1`, hover/focus kept as feedback. Remaining: bump `.kb`/`.kebab-btn` hit area to ≥44px via padding/box (Phase 2 F4). |
 | F2 | On ≤880px set `font-size:16px` (with compensating padding) for `.field input`, `select`, `.cat-add-input`, `.search-box input`, `.dp-display`, custom-dropdown triggers — stops iOS zoom. |
 | F3 | Add `viewport-fit=cover` to viewport meta; apply `env(safe-area-inset-top)` to `.mobile-topbar`, `env(safe-area-inset-bottom)` to `.fab`, `.toast`, `.modal`, `.modal-foot`. |
 | F6 | `min-height:100dvh` (fallback `100vh`) on `body`/`.app-shell`. |
@@ -347,7 +347,7 @@ Captured PNGs live in `docs/Features/F-003-Mobile-Audit/`. They are provided **f
 | `transactions-single-360/390/768.png` | Running-balance two-line mobile layout (§7) |
 | `transactions-filtered-360.png` | Empty/filtered state |
 | `reports-360/390/768.png` | Filters stack, tabs scroll, metric trio (§10) |
-| `accounts-360/390.png` | Tile grid, kebab invisibility context (§9) |
+| `accounts-360/390.png` | Tile grid, kebab context (§9, actions now always visible) |
 | `settings-390/480.png` | Settings cards, btn-sm buttons (§11) |
 | `modal-390.png` | Bottom-sheet modal (§6) |
 | `categories-390.png` | Hover-hidden row actions context (§9) |
